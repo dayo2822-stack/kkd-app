@@ -1089,7 +1089,7 @@ function startBookingForService(serviceName){
   state.booking.category = category;
   state.booking.service = serviceName;
   state.serviceCategoryOpen = category;
-  state.booking.units = 1;
+  state.booking.units = kkd135MinUnits();
   state.booking.unitOptions = {};
   cWizard = 2; // STEP 2: 台数・条件・オプション選択へ直結
   document.getElementById("cView").textContent = "予約窓口";
@@ -1322,7 +1322,7 @@ function priceSummaryMinutes(){
   const p=PRICE[state.booking.service]||{mins:60};let optionCount=0;Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
   return p.mins*state.booking.units+optionCount*20;
 }
-function setUnits(n){state.booking.units=Number(n);for(const k of Object.keys(state.booking.unitOptions)){if(Number(k)>state.booking.units)delete state.booking.unitOptions[k]}renderCBody();}
+function setUnits(n){state.booking.units=Math.max(kkd135MinUnits(), Math.min(kkd135MaxUnits(), Number(n)||kkd135MinUnits()));for(const k of Object.keys(state.booking.unitOptions)){if(Number(k)>state.booking.units)delete state.booking.unitOptions[k]}renderCBody();}
 function toggleUnitOption(i,o,on){state.booking.unitOptions[i]=state.booking.unitOptions[i]||[];state.booking.unitOptions[i]=on?[...new Set([...state.booking.unitOptions[i],o])]:state.booking.unitOptions[i].filter(x=>x!==o);renderCBody();}
 function durationHoursForBooking(){
   const p=PRICE[state.booking.service]||{mins:60};
@@ -1478,7 +1478,7 @@ function confirmBookingLocal(gasId){
   if(gasId) job.gas=true;
   state.jobs.push(job);
   state.activeJobId=id;
-  state.booking={category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",note:""};
+  state.booking={category:"",service:"",units:kkd135MinUnits(),options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",note:""};
   state.serviceCategoryOpen="";
   closeSheet("c");
   openCustomerCases("before");
