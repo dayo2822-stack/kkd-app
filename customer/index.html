@@ -1406,8 +1406,29 @@ function cNext(){
   if(cWizard<6){cWizard++;renderCBody();}else confirmBooking();
 }
 function cBack(){if(cWizard>1){cWizard--;renderCBody();}}
+function kkd135Hm(t){ var m = String(t || "").match(/(\d{1,2}):(\d{2})/); return m ? ("0" + m[1]).slice(-2) + ":" + m[2] : ""; }
+function kkd135Selections(){
+  var codeByName = {}, sel = {};
+  pricingOptions().forEach(function(o){ codeByName[o.name] = o.code; });
+  Object.keys(state.booking.unitOptions || {}).forEach(function(u){ (state.booking.unitOptions[u] || []).forEach(function(n){ var c = codeByName[n]; if(c) sel[c] = (sel[c] || 0) + 1; }); });
+  return sel;
+}
+var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
 function confirmBooking(){
-  const id=generateJobId();
+  var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
+  if(!be || typeof be.createBooking !== "function" || env.role !== "customer") return confirmBookingLocal(null);
+  if(window.__kkd135Booking) return;
+  var b = state.booking;
+  b.requestId = b.requestId || ("R" + Date.now() + Math.floor(Math.random() * 1000000)); // 再送しても、二重に作られない
+  window.__kkd135Booking = true;
+  be.createBooking({ requestId: b.requestId, units: b.units, selections: kkd135Selections(), date1: b.date1, time1: kkd135Hm(b.time1), date2: b.date2 || "", time2: b.date2 ? kkd135Hm(b.time2) : "", name: b.name, phone: b.phone || "", zip: b.zip, address: b.address, note: b.note || "" }).then(function(r){
+    window.__kkd135Booking = false;
+    if(r && r.status === "OK" && r.caseId){ confirmBookingLocal(r.caseId); return; }
+    alert((r && KKD135_BOOKING_ERRORS[r.errorCode]) || "予約を送れませんでした。通信を確かめて、もう一度お試しください。（入力内容は、残っています）");
+  }, function(){ window.__kkd135Booking = false; alert("予約を送れませんでした。通信を確かめて、もう一度お試しください。"); });
+}
+function confirmBookingLocal(gasId){
+  const id=gasId||generateJobId();
   const now=new Date();
   const job={
     id,
@@ -1451,6 +1472,7 @@ function confirmBooking(){
       {sender:"system",name:"KKDシステム",text:"予約を受け付けました。ご要望やご相談事項はこちらから担当業者へ直接メッセージをお送りいただけます。",time:nowStr()}
     ]
   };
+  if(gasId) job.gas=true;
   state.jobs.push(job);
   state.activeJobId=id;
   state.booking={category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",note:""};
@@ -2401,6 +2423,17 @@ function confirmSelectedVendorDate(id){
   const selected=document.querySelector(`input[name="vendor-choice-${id}"]:checked`);if(!selected){alert('第1希望または第2希望を選択してください');return}vendorConfirm(id,selected.value);
 }
 function vendorConfirm(id,which){
+  var j = getJob(id), be = window.KKD135_BACKEND;
+  if(!j || !j.gas || !be || typeof be.confirmVisit !== "function") return vendorConfirmLocal(id, which);
+  if(window.__kkd135Confirm) return;
+  window.__kkd135Confirm = true;
+  be.confirmVisit(id, which === "第2希望" ? 2 : 1).then(function(r){
+    window.__kkd135Confirm = false;
+    if(r && r.status === "OK") { vendorConfirmLocal(id, which); return; }
+    alert("訪問日時を保存できませんでした。通信を確かめて、もう一度お試しください。");
+  }, function(){ window.__kkd135Confirm = false; alert("訪問日時を保存できませんでした。"); });
+}
+function vendorConfirmLocal(id,which){
   const j=getJob(id);if(!j)return;
   j.vendorChoice=which;
   j.scheduledDate=which==="第1希望"?j.date1:j.date2;

@@ -23,7 +23,7 @@
 
   liff.init({ liffId: env.liffId }).then(function () {
     if (!liff.isLoggedIn()) { liff.login(); return; }
-    var backend = KKD135Gas.create({ url: env.gasUrl, getIdToken: function () { return liff.getIDToken(); }, customerToken: customerToken });
+    var backend = KKD135Gas.create({ url: env.gasUrl, getIdToken: function () { return liff.getIDToken(); }, customerToken: customerToken, loginAction: env.role === 'customer' ? 'customerLogin' : 'lineLogin' });
     window.KKD135_BACKEND = backend;
     if (env.role === 'vendor' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
       // 本番の案件は、GASが持つ。保存（localStorage）は、試験用（モック）の案件だけ（GASの案件は保存しない）
@@ -36,6 +36,17 @@
       };
       KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} });
     }
-    return backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
+    var pricingDone = backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
+    if (env.role === 'customer' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
+      // 顧客：予約はGASが持つ。保存（localStorage）は、試験用（モック）の案件だけ。自分の予約を読み込む（価格の取込み後＝オプション名が分かってから）
+      window.saveAndSync = function () {
+        try { localStorage.setItem('kkd_state_jobs', JSON.stringify(state.jobs.filter(function (j) { return !j.gas; }))); localStorage.setItem('kkd_state_vendor_avail', JSON.stringify(state.vendorAvailable)); if (state.customerTab) localStorage.setItem('kkd_customer_tab', state.customerTab); } catch (e) {}
+      };
+      pricingDone = pricingDone.then(function () {
+        var names = {}; ((window.KKD135_PRICING && KKD135_PRICING.options) || []).forEach(function (o) { names[o.code] = o.name; });
+        return KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, names);
+      });
+    }
+    return pricingDone;
   }).catch(function () { /* LIFFが使えない場合は、単体のモックのまま */ });
 })();

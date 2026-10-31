@@ -27,7 +27,7 @@ var KKD135Gas = (function () {
       if (loginPromise) return loginPromise;
       loginPromise = Promise.resolve().then(function () { return o.getIdToken ? o.getIdToken() : ''; }).then(function (tok) {
         if (!tok) return { status: 'ERROR', errorCode: 'TOKEN_INVALID' };
-        var b = { action: 'lineLogin', idToken: tok };
+        var b = { action: o.loginAction || 'lineLogin', idToken: tok }; // 業者は lineLogin、顧客は customerLogin
         var n = o.getNonce ? o.getNonce() : ''; if (n) b.nonce = n;
         return post(b);
       }).then(function (r) {
@@ -69,8 +69,12 @@ var KKD135Gas = (function () {
       // --- 追加項目（業者） ---
       setAdditional: function (caseId, phase, payload) { return vendor(Object.assign({ action: 'setAdditionalItems', caseId: caseId, phase: phase }, payload || {})); },
       getAdditional: function (caseId) { return vendor({ action: 'getAdditionalItems', caseId: caseId }); },
+      // --- 予約（顧客）：作成・自分の予約の取得 ---
+      createBooking: function (payload) { return vendor(Object.assign({ action: 'createBooking' }, payload || {})); },
+      listMyBookings: function () { return vendor({ action: 'listMyBookings' }); },
       // --- 担当案件（業者） ---
       listMyJobs: function () { return vendor({ action: 'listMyJobs' }); },
+      confirmVisit: function (caseId, choice) { return vendor({ action: 'confirmVisit', caseId: caseId, choice: choice }); },
       // 試験・診断用
       _hasSession: function () { return !!session && Date.now() < expiresAt; }
     };

@@ -10,16 +10,23 @@ var KKD135Jobs = (function () {
     return s === 'done' || s === 'completed' || /^完了/.test(s);
   }
 
+  // 訪問日時が確定済みなら、第1・第2希望のどちらか（希望日時の無い案件は、第1希望）。未確定（日時が空）なら、空
+  function choiceOf(r) {
+    var d = String(r.date || ''); if (!d) return '';
+    if (r.date2 && d === String(r.date2) && String(r.startTime || '') === String(r.time2 || '')) return '第2希望';
+    return '第1希望';
+  }
+
   // GASの1件 → 画面の案件
   function fromGas(r) {
     if (!r || typeof r !== 'object' || !r.caseId) return null;
     var done = isDone(r.status), units = Math.max(1, Number(r.units) || 1), reported = r.photoReported === true;
     return {
       id: String(r.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: {},
-      date1: String(r.date || ''), time1: String(r.startTime || ''), date2: '', time2: '', name: 'お客様', zip: '', address: String(r.areaName || ''), note: '',
+      date1: String(r.date1 || r.date || ''), time1: String(r.time1 || r.startTime || ''), date2: String(r.date2 || ''), time2: String(r.time2 || ''), name: 'お客様', zip: '', address: String(r.areaName || ''), note: '',
       photos: { install: true, model: true, outdoor: true, other: false },
-      vendorChoice: done ? '第1希望' : '第1希望', vendorId: 'V-001', adminNote: '', vendorMemo: '',
-      additionalFlag: '', additionalItems: [], customerDetailed: true,
+      vendorChoice: choiceOf(r), vendorId: 'V-001', adminNote: '', vendorMemo: '',
+      additionalFlag: '', additionalItems: [], customerDetailed: r.detailed !== false,
       todayTime: '', scheduledDate: String(r.date || ''), scheduledTime: String(r.startTime || ''),
       completed: done, completedDate: done ? String(r.date || '') : '', completedAt: '',
       completionPhotos: { before: reported, after: reported }, photoReported: reported,
@@ -63,5 +70,42 @@ var KKD135Jobs = (function () {
     });
   }
 
-  return { fromGas: fromGas, applyAdditional: applyAdditional, load: load };
+  // ---- 顧客：自分の予約（GASの listMyBookings）→ 画面の案件 ----
+  // names：{OPT_コード: 項目名}（料金マスタから）。選んだオプションは、台数の若い順に付ける（台ごとの選択は、予約画面の形に合わせる）
+  function fromBooking(b, names) {
+    if (!b || typeof b !== 'object' || !b.caseId) return null;
+    var done = isDone(b.status), units = Math.max(1, Number(b.units) || 1), uo = {}, sel = (b.selections && typeof b.selections === 'object') ? b.selections : {};
+    Object.keys(sel).forEach(function (code) {
+      var n = Math.min(units, Number(sel[code]) || 0), nm = names && names[code];
+      if (!nm) return;
+      for (var i = 1; i <= n; i++) { uo[i] = uo[i] || []; uo[i].push(nm); }
+    });
+    var visitDate = String(b.date || ''), chosen = '';
+    if (visitDate) chosen = (visitDate === String(b.date1 || '') && String(b.startTime || '') === String(b.time1 || '')) ? '第1希望' : '第2希望';
+    return {
+      id: String(b.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: uo, options: [],
+      date1: String(b.date1 || ''), time1: String(b.time1 || ''), date2: String(b.date2 || ''), time2: String(b.time2 || ''),
+      name: String(b.name || ''), zip: String(b.zip || ''), address: String(b.address || ''), note: String(b.note || ''),
+      photos: { install: false, model: false, outdoor: false, other: false },
+      vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
+      todayTime: '', scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
+      completed: done, completedDate: done ? visitDate : '', completedAt: '', completionPhotos: { before: false, after: false },
+      rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: false
+    };
+  }
+  function loadCustomer(backend, state, render, names) {
+    if (!backend || typeof backend.listMyBookings !== 'function') return Promise.resolve({ status: 'ERROR', errorCode: 'NO_BACKEND' });
+    return backend.listMyBookings().then(function (r) {
+      if (!r || r.status !== 'OK' || !Array.isArray(r.bookings)) return r || { status: 'ERROR', errorCode: 'NETWORK' };
+      var list = r.bookings.map(function (b) { return fromBooking(b, names); }).filter(Boolean);
+      var ids = {}; list.forEach(function (j) { ids[j.id] = 1; });
+      var keep = state.jobs.filter(function (j) { return j && !j.gas && !ids[j.id]; });
+      state.jobs.length = 0;
+      list.concat(keep).forEach(function (j) { state.jobs.push(j); });
+      if (typeof render === 'function') render();
+      return { status: 'OK', count: list.length, kept: keep.length };
+    });
+  }
+
+  return { fromGas: fromGas, applyAdditional: applyAdditional, load: load, fromBooking: fromBooking, loadCustomer: loadCustomer };
 })();
