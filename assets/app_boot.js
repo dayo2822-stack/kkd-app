@@ -25,6 +25,20 @@
     if (!liff.isLoggedIn()) { liff.login(); return; }
     var backend = KKD135Gas.create({ url: env.gasUrl, getIdToken: function () { return liff.getIDToken(); }, customerToken: customerToken, loginAction: env.role === 'customer' ? 'customerLogin' : 'lineLogin' });
     window.KKD135_BACKEND = backend;
+    // 価格の取込み（料金マスタ）。オプション名（コード→名前）は、案件の取得と並行して取り、案件の変換に使う
+    var pricingDone = backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
+    var namesP = pricingDone.then(function () { var names = {}; ((window.KKD135_PRICING && KKD135_PRICING.options) || []).forEach(function (o) { names[o.code] = o.name; }); return names; });
+    // 案件を読み込んでいる間の表示（数秒かかる。何も出ないと、案件が無いように見えるため）
+    function loading(on, msg) {
+      var el = document.getElementById('kkd135Loading');
+      if (!on && !msg) { if (el) el.parentNode.removeChild(el); return; }
+      if (!el) { el = document.createElement('div'); el.id = 'kkd135Loading'; el.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;padding:8px 12px;background:#0d6b57;color:#fff;font-size:12px;text-align:center;'; document.body.appendChild(el); }
+      el.style.background = on ? '#0d6b57' : '#b45309'; el.textContent = msg;
+    }
+    function finished(r) {
+      if (r && r.status === 'OK') loading(false);
+      else loading(false, '案件を読み込めませんでした（' + ((r && r.errorCode) || 'NETWORK') + '）。画面を開き直してください。');
+    }
     if (env.role === 'vendor' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
       // 本番の案件は、GASが持つ。保存（localStorage）は、試験用（モック）の案件だけ（GASの案件は保存しない）
       window.saveAndSync = function () {
@@ -34,18 +48,16 @@
           if (state.vendorTab) localStorage.setItem('kkd_vendor_tab', state.vendorTab);
         } catch (e) {}
       };
-      KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} });
+      loading(true, '案件を読み込み中…');
+      KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
-    var pricingDone = backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
     if (env.role === 'customer' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
-      // 顧客：予約はGASが持つ。保存（localStorage）は、試験用（モック）の案件だけ。自分の予約を読み込む（価格の取込み後＝オプション名が分かってから）
+      // 顧客：予約はGASが持つ。保存（localStorage）は、試験用（モック）の案件だけ
       window.saveAndSync = function () {
         try { localStorage.setItem('kkd_state_jobs', JSON.stringify(state.jobs.filter(function (j) { return !j.gas; }))); localStorage.setItem('kkd_state_vendor_avail', JSON.stringify(state.vendorAvailable)); if (state.customerTab) localStorage.setItem('kkd_customer_tab', state.customerTab); } catch (e) {}
       };
-      pricingDone = pricingDone.then(function () {
-        var names = {}; ((window.KKD135_PRICING && KKD135_PRICING.options) || []).forEach(function (o) { names[o.code] = o.name; });
-        return KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, names);
-      });
+      loading(true, '予約を読み込み中…');
+      KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
     return pricingDone;
   }).catch(function () { /* LIFFが使えない場合は、単体のモックのまま */ });
