@@ -52,10 +52,13 @@ var KKD135Jobs = (function () {
         if (typeof backend.getAdditional !== 'function') return j;
         return backend.getAdditional(j.id).then(function (g) { return (g && g.status === 'OK') ? applyAdditional(j, g.additional) : j; }, function () { return j; });
       })).then(function (list) {
+        // GASの案件に置き換える。画面の試験用（モック）の案件（gas でないもの）は、消さずに残す（同じ案件番号は、GASを優先）
+        var ids = {}; list.forEach(function (j) { ids[j.id] = 1; });
+        var keep = state.jobs.filter(function (j) { return j && !j.gas && !ids[j.id]; });
         state.jobs.length = 0;
-        list.forEach(function (j) { state.jobs.push(j); });
+        list.concat(keep).forEach(function (j) { state.jobs.push(j); });
         if (typeof render === 'function') render();
-        return { status: 'OK', count: list.length };
+        return { status: 'OK', count: list.length, kept: keep.length };
       });
     });
   }

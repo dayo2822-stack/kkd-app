@@ -26,7 +26,14 @@
     var backend = KKD135Gas.create({ url: env.gasUrl, getIdToken: function () { return liff.getIDToken(); }, customerToken: customerToken });
     window.KKD135_BACKEND = backend;
     if (env.role === 'vendor' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
-      window.saveAndSync = function () {}; // 本番の案件は、GASが持つ。モックの保存（localStorage）は使わない
+      // 本番の案件は、GASが持つ。保存（localStorage）は、試験用（モック）の案件だけ（GASの案件は保存しない）
+      window.saveAndSync = function () {
+        try {
+          localStorage.setItem('kkd_state_jobs', JSON.stringify(state.jobs.filter(function (j) { return !j.gas; })));
+          localStorage.setItem('kkd_state_vendor_avail', JSON.stringify(state.vendorAvailable));
+          if (state.vendorTab) localStorage.setItem('kkd_vendor_tab', state.vendorTab);
+        } catch (e) {}
+      };
       KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} });
     }
     return backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
