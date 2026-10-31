@@ -25,6 +25,10 @@
     if (!liff.isLoggedIn()) { liff.login(); return; }
     var backend = KKD135Gas.create({ url: env.gasUrl, getIdToken: function () { return liff.getIDToken(); }, customerToken: customerToken });
     window.KKD135_BACKEND = backend;
+    if (env.role === 'vendor' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
+      window.saveAndSync = function () {}; // 本番の案件は、GASが持つ。モックの保存（localStorage）は使わない
+      KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} });
+    }
     return backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
   }).catch(function () { /* LIFFが使えない場合は、単体のモックのまま */ });
 })();

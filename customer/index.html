@@ -460,6 +460,7 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 <script src="../assets/photo_report_logic.js"></script>
 <script src="../assets/photo_report_ui.js"></script>
 <script src="../assets/gas_backend.js"></script>
+<script src="../assets/jobs_from_gas.js"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -693,6 +694,13 @@ function toggleVisitPhoto(id, key){
   const j = getJob(id);
   if (!j) return;
   j.visitPhotos = j.visitPhotos || { parking: false, entrance: false };
+  // 画面を描き直す前に、入力途中の詳細住所・メモを保存する（描き直しで消えないように）
+  [["cust-block-", "addressBlock"], ["cust-building-", "buildingName"], ["cust-room-", "roomNumber"]].forEach(function(p){
+    const el = document.getElementById(p[0] + id);
+    if (el) j[p[1]] = el.value;
+  });
+  const routeEl = document.getElementById("cust-route-" + id);
+  if (routeEl) { j.visitInfo = j.visitInfo || {}; j.visitInfo.routeMemo = routeEl.value; }
   j.visitPhotos[key] = !j.visitPhotos[key];
   log(`VISIT_PHOTO_TOGGLED ${id} ${key} ${j.visitPhotos[key]}`);
   if (state.customerTab) {
@@ -1733,7 +1741,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
             ${statusBadge}
           </div>
           <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:6px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            <span style="overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">👤 <b style="font-size:11px;">${esc(lastName)}</b> ｜ 💰 <b style="font-size:11.5px;color:var(--customer);">¥${calcPrice(j).toLocaleString()}</b></span>
+            <span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;">👤 <b style="font-size:11px;">${esc(lastName)}</b></span><span style="flex:none;white-space:nowrap;">💰 ${headerPriceLabel(j)} <b style="font-size:11.5px;color:var(--customer);">¥${headerPrice(j).toLocaleString()}</b></span></span>
             <span style="flex-shrink:0;font-size:9px;color:var(--muted);">${rightItemHtml}</span>
           </div>
           <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
@@ -2083,6 +2091,7 @@ function openVendorCases(tab="before", resetAccordion=false){
           <label>現場確認　＜追加項目＞（作業開始の前に確認）</label>
           ${renderAdditionalChecklist(j, !!j.isStarted)}
         </div>
+        ${j.isStarted ? renderFreeExplain(j) : ""}
         <div class="actions">
           ${j.isStarted?`
             <div class="notice ok" style="flex:1;font-size:9.5px;padding:5px 8px;border-left:3px solid #0d6b57;background:#f0faf5;">
@@ -2143,7 +2152,7 @@ function openVendorCases(tab="before", resetAccordion=false){
             ${statusBadge}
           </div>
           <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:6px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            <span style="overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">👤 <b style="font-size:11px;">${esc(lastName)}</b> ｜ 💰 <b style="font-size:11.5px;color:var(--customer);">¥${calcPrice(j).toLocaleString()}</b></span>
+            <span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;">👤 <b style="font-size:11px;">${esc(lastName)}</b></span><span style="flex:none;white-space:nowrap;">💰 ${headerPriceLabel(j)} <b style="font-size:11.5px;color:var(--customer);">¥${headerPrice(j).toLocaleString()}</b></span></span>
             <span style="flex-shrink:0;font-size:9px;color:var(--muted);">${rightItemHtml}</span>
           </div>
           <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
@@ -2218,11 +2227,19 @@ var KKD135_PRICING = {
   unitPrice: 33000, minUnits: 2, maxUnits: 6,
   options: [
     { code: "OPT_ANTI_MOLD", name: "防カビ抗菌コート", price: 2200, unit: "台" },
+    { code: "OPT_OUTDOOR_CLEAN", name: "室外機洗浄", price: 4400, unit: "台" },
     { code: "OPT_AUTO_CLEANING", name: "お掃除機能付き機種", price: 11000, unit: "台" },
     { code: "OPT_SPECIAL_FAN", name: "特殊形状ファン分解", price: 11000, unit: "台" },
-    { code: "OPT_NO_REMOVE_PARTS", name: "脱着不可：部品分解", price: 0, unit: "台" },
-    { code: "OPT_NO_REMOVE_BACK", name: "脱着不可：背抜分解", price: 0, unit: "台" },
-    { code: "OPT_HIGH_PLACE", name: "高所作業：床上3m迄", price: 4400, unit: "台" }
+    { code: "OPT_HIGH_PLACE", name: "高所作業：床上3m迄", price: 4400, unit: "台" },
+    { code: "OPT_HIGH_6M", name: "高所作業：床上6m迄", price: 8800, unit: "台" },
+    { code: "OPT_HIGH_9M", name: "高所作業：床上9m迄", price: 13200, unit: "台" }
+  ],
+  freeOptions: [
+    { code: "FREE_NO_REMOVE_PARTS", name: "【無償】脱着不可：部品分解" },
+    { code: "FREE_NO_REMOVE_BACK", name: "【無償】脱着不可：背抜分解" },
+    { code: "FREE_ANTI_MOLD", name: "【無償】防カビ抗菌コート" },
+    { code: "FREE_OUTDOOR_CLEAN", name: "【無償】室外機洗浄" },
+    { code: "FREE_HIGH_PLACE", name: "【無償】高所作業" }
   ],
   extraFees: { travelFee: 0, parkingFee: 0 }
 };
@@ -2235,6 +2252,41 @@ function applyPricing(m){
   if(!m || typeof m.unitPrice !== "number" || !Array.isArray(m.options)) return;
   KKD135_PRICING = m;
   if(PRICE["エアコン脱着分解クリーニング"]) PRICE["エアコン脱着分解クリーニング"].base = m.unitPrice;
+}
+function itemsTotal(items){ return (Array.isArray(items) ? items : []).reduce(function(s, x){ return s + (Number(x.price) || 0) * (Number(x.qty) || 1); }, 0); }
+// 事前見積：基本＋顧客が予約で選んだオプション＋訪問前（写真確認後）に確定した追加項目。現場で項目を変えても、変わらない
+function estimatePrice(j){
+  var p = PRICE[j.service] || { base: 0 }, opt = 0;
+  if(j.unitOptions && typeof j.unitOptions === "object") Object.values(j.unitOptions).forEach(function(a){ (Array.isArray(a) ? a : []).forEach(function(n){ opt += optPriceByName(n); }); });
+  if(Array.isArray(j.options)) j.options.forEach(function(n){ opt += optPriceByName(n); });
+  return p.base * (j.units || 1) + opt + itemsTotal(j.reviewItems);
+}
+function headerPrice(j){ return j.completed ? calcPrice(j) : estimatePrice(j); }
+function headerPriceLabel(j){ return j.completed ? "確定" : "見積"; }
+function freeOptions(){ return (KKD135_PRICING && KKD135_PRICING.freeOptions) || []; }
+// 作業完了後の顧客説明：無償対応のプルダウン。1つ選ぶと、すぐ下に、次のプルダウンが現れる
+function renderFreeExplain(j){
+  var fo = freeOptions(); if(!fo.length) return "";
+  var sel = (Array.isArray(j.freeItems) ? j.freeItems : []).filter(function(c){ return fo.some(function(o){ return o.code === c; }); });
+  var rowsCodes = sel.concat(sel.length < fo.length ? [""] : []);
+  var h = rowsCodes.map(function(c, i){
+    var opts = '<option value="">' + (c ? "（選択を外す）" : "＋ 無償対応を選択…") + '</option>' + fo.filter(function(o){ return o.code === c || sel.indexOf(o.code) < 0; }).map(function(o){ return '<option value="' + o.code + '"' + (o.code === c ? " selected" : "") + '>' + esc(o.name) + '</option>'; }).join("");
+    return '<select style="width:100%;margin:2px 0;font-size:11px;" onchange="setFreeItem(\'' + j.id + '\',' + i + ',this.value)">' + opts + '</select>';
+  }).join("");
+  return '<div class="field" style="margin:6px 0;"><label>作業完了後の顧客説明　＜無償対応＞</label>' + h + '<div class="mini">料金は加算されません（¥0）。</div></div>';
+}
+function setFreeItem(id, idx, code){
+  var j = getJob(id); if(!j) return;
+  var a = (Array.isArray(j.freeItems) ? j.freeItems : []).slice();
+  if(code === "") a.splice(idx, 1); else if(idx < a.length) a[idx] = code; else if(a.indexOf(code) < 0) a.push(code);
+  j.freeItems = a;
+  afterAdditionalChange(id, "FREE_ITEM " + id + " " + a.join(","), true);
+}
+function persistFree(id){
+  var j = getJob(id), be = window.KKD135_BACKEND;
+  if(!j || !j.gas || !be || typeof be.setAdditional !== "function") return;
+  var a = j.freeItems || [];
+  be.setAdditional(id, "explain", a.length ? { items: a.map(function(c){ return { code: c, qty: 1 }; }) } : { none: true }).then(function(r){ if(!r || r.status !== "OK") alert("無償対応を保存できませんでした。通信を確かめて、もう一度お試しください。"); }, function(){ alert("無償対応を保存できませんでした。"); });
 }
 function additionalSummary(j){
   if(!j || !Array.isArray(j.additionalItems) || !j.additionalItems.length) return "なし";
@@ -2256,7 +2308,24 @@ function renderAdditionalChecklist(j, locked){
     '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef2f7;font-weight:bold;"><input type="checkbox" style="width:18px;height:18px;flex:none;margin:0;" ' + dis + ' ' + (none ? "checked" : "") + ' onchange="setAdditionalNone(\'' + j.id + '\',this.checked)"><span style="flex:1;font-size:11px;">追加項目なし</span></label>' + rows +
     '<div class="mini">金額は料金マスタに連動します。チェックした項目は、お見積りに加わります。</div></div>';
 }
-function afterAdditionalChange(id, note){
+// 追加項目の変更を、GASへ保存する（GAS接続時のみ。場面：訪問前＝review／対応中＝onsite）。「未確認」（なし・項目なし）は、保存しない
+function persistAdditional(id){
+  var j = getJob(id), be = window.KKD135_BACKEND;
+  if(!j || !j.gas || !be || typeof be.setAdditional !== "function") return;
+  var phase = state.vendorTab === "progress" ? "onsite" : "review", payload = null;
+  if(j.additionalFlag === "なし") payload = { none: true };
+  else if(Array.isArray(j.additionalItems) && j.additionalItems.length) payload = { items: j.additionalItems.map(function(x){ return { code: x.id, qty: Number(x.qty) || 1 }; }) };
+  if(!payload) return;
+  be.setAdditional(id, phase, payload).then(function(r){ if(!r || r.status !== "OK") alert("追加項目を保存できませんでした。通信を確かめて、もう一度お試しください。"); }, function(){ alert("追加項目を保存できませんでした。"); });
+}
+function afterAdditionalChange(id, note, free){
+  var jj = getJob(id);
+  if(free){ persistFree(id); }
+  else {
+    // 訪問前（写真確認後）の変更は、事前見積として固定する。現場確認（対応中）の変更では、触らない
+    if(jj && state.vendorTab !== "progress"){ jj.reviewItems = JSON.parse(JSON.stringify(Array.isArray(jj.additionalItems) ? jj.additionalItems : [])); }
+    persistAdditional(id);
+  }
   if(state.vendorTab){ openVendorCases(state.vendorTab, false); } else { renderVendorHome(); }
   var body = document.getElementById("vjob-body-" + id);
   if(body) body.style.display = "block";
