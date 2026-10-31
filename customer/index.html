@@ -1,0 +1,2824 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KKD WORKS — LINE UI Interactive Mock v13.4</title>
+<style>
+:root{
+  --bg:#eef3f1;--panel:#fff;--ink:#17201e;--muted:#687570;--line:#d8e2de;
+  --customer:#0d6b57;--customer-soft:#dff3eb;--vendor:#263238;--vendor-soft:#e7ecee;
+  --accent:#c89e63;--danger:#b54c39;--ok:#2f7e62;--shadow:0 14px 36px rgba(26,43,38,.14)
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#eaf1ee,#f7f9f8);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;color:var(--ink)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.top{max-width:1540px;margin:auto;padding:18px 22px 8px}
+.top h1{margin:0;font-size:22px}.top p{margin:6px 0;color:var(--muted);font-size:12px;line-height:1.6}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.toolbar button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:800}
+.toolbar .primary{background:var(--ink);color:#fff}
+.workspace{max-width:1540px;margin:auto;padding:10px 22px 30px;display:grid;grid-template-columns:minmax(320px,430px) minmax(320px,430px) minmax(340px,1fr);gap:18px}
+.phone{height:900px;background:#111716;border-radius:30px;padding:9px;box-shadow:var(--shadow);position:relative}
+.phone.customer{--accent:var(--customer)}.phone.vendor{--accent:var(--vendor)}
+.screen{height:100%;border-radius:22px;overflow:hidden;background:#eef4f1;display:flex;flex-direction:column;position:relative}
+.status{display:none !important;}
+.rich-toggle-bar{background:#202b28;color:#fff;font-size:9.5px;font-weight:bold;text-align:center;padding:5px 0;cursor:pointer;user-select:none;border-top:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;gap:4px;}
+.rich-toggle-bar:hover{background:#2d3b37;}
+.rich.collapsed{display:none !important;}
+.apphead{background:var(--accent);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.apphead b{font-size:14px}.apphead span{font-size:9px;opacity:.8}
+.viewbar{background:#fff;border-bottom:1px solid var(--line);padding:6px 9px;font-size:9px;color:var(--muted);display:flex;justify-content:space-between}
+.viewbar b{color:var(--accent)}
+.chat{flex:1;overflow:auto;padding:11px 10px 10px;display:flex;flex-direction:column;gap:8px;background:#edf3f0}
+.bubble{max-width:94%;background:#fff;border:1px solid #dce6e2;border-radius:14px;padding:9px 11px;font-size:11.5px;line-height:1.5;box-shadow:0 1px 2px #00000009}
+.bubble.me{align-self:flex-end;background:#d7f3e9}.bubble.system{border-left:3px solid var(--accent)}
+.rich{height:148px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:2px;background:#cfdad6;border-top:1px solid #c5d1cc}
+.rich button{border:0;background:#fff;color:#24302c;font-size:10px;font-weight:800}.rich button:hover{background:#eaf5f1}
+.rich i{display:block;font-style:normal;font-size:18px;margin-bottom:2px}
+.overlay{position:absolute;inset:24px 0 0;background:#0008;z-index:30;display:none;align-items:flex-end}
+.sheet{width:100%;height:94%;background:#fff;border-radius:18px 18px 0 0;display:flex;flex-direction:column;animation:up .2s ease}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheethead{padding:11px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:900}
+.close{border:0;background:none;font-size:20px;color:#7c8682}.sheetbody{flex:1;overflow:auto;padding:14px}
+.sheetfoot{padding:10px 14px;border-top:1px solid var(--line);display:flex;gap:7px}
+.btn{border:0;border-radius:9px;padding:10px 11px;font-size:11px;font-weight:900;flex:1}
+.btn.primary{background:var(--accent);color:#fff}.btn.secondary{background:#f3f6f5;border:1px solid var(--line);color:#45514d}
+.btn.danger{background:#fff1ed;border:1px solid #efc4b9;color:var(--danger)}
+h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-weight:900;letter-spacing:.08em;margin-bottom:5px}
+.field{margin:9px 0}.field label{display:block;font-size:10px;font-weight:900;margin-bottom:4px}
+.field select,.field input,.field textarea{width:100%;border:1px solid #cfdad6;background:#fbfcfb;border-radius:8px;padding:8px;font-size:11px}
+.field textarea{min-height:62px;resize:vertical}
+.check{display:flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px;margin:5px 0;font-size:10px}
+.summary{background:#f2f8f5;border:1px solid #d2e6dd;border-radius:9px;padding:9px;font-size:10px;line-height:1.65}
+.notice{background:#fff8e8;border:1px solid #ead8a4;border-radius:8px;padding:8px;font-size:9px;line-height:1.55;margin:8px 0}
+.ok{background:#e9f8ef;border-color:#bfe4cc}.dangerbox{background:#fff0ec;border:1px solid #efc3b8;color:#914132;border-radius:8px;padding:8px;font-size:9px;line-height:1.5;margin:8px 0}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;margin:7px 0}.calendar-head button{border:0;background:#f3f6f5;border:1px solid var(--line);border-radius:7px;width:30px;height:28px}
+.calendar-head b{font-size:11px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:8px;color:var(--muted);text-align:center;margin-bottom:3px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.calendar button{min-height:34px;border:1px solid var(--line);background:#fff;border-radius:6px;font-size:9px;position:relative}
+.calendar button.empty{visibility:hidden;border:0;background:transparent}.calendar button.off{color:#b8c0bd;background:#f7f8f7}
+.calendar button.available{border-color:#8bc7b1;background:#f0faf5;font-weight:800}.calendar button.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.calendar button.blocked{color:#a7afac;background:#f4f5f4;border-style:dashed}.calendar button .dot{display:block;width:4px;height:4px;border-radius:50%;background:#3d9474;margin:2px auto 0}
+.slots{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.slot{border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px;font-size:10px;text-align:left}
+.slot.selected{background:var(--customer-soft);border-color:#71b69d;font-weight:900}.slot.disabled{opacity:.45;cursor:not-allowed}
+.job{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;font-size:10px;line-height:1.55}
+.job b{font-size:12px}.job .meta{color:var(--muted);font-size:9px}.job .actions{display:flex;gap:6px;margin-top:7px}.job .actions .btn{padding:8px}
+.photo{border:1px dashed #aebdb7;background:#fafcfb;border-radius:8px;padding:10px;text-align:center;font-size:10px;margin:6px 0}
+.photo.sent{background:#eef9f4;border-style:solid;border-color:#a8d6c2}.chatbox{border:1px solid var(--line);border-radius:10px;background:#fafcfb;padding:8px}
+.chatline{padding:6px 0;border-bottom:1px dashed #d9e2df;font-size:10px}.chatline:last-child{border-bottom:0}
+.chip{display:inline-block;background:#e8efec;border-radius:99px;padding:3px 6px;font-size:8px;margin:2px}
+.progress{display:flex;gap:3px;margin:9px 0}.progress span{flex:1;height:4px;border-radius:99px;background:#dfe7e4}.progress span.on{background:var(--accent)}
+.tabs{display:flex;gap:4px;margin-bottom:8px}.tabs button{flex:1;border:1px solid var(--line);background:#f5f8f7;border-radius:8px;padding:7px;font-size:9px;font-weight:900}
+.tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cardline{display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid #e7ecea;padding:7px 0}
+.badge{font-size:8px;border-radius:99px;padding:3px 6px;background:#e9efed}.badge.ok{background:#e2f5eb;color:#236c51}.badge.warn{background:#fff3cf;color:#86661c}
+.side{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:var(--shadow);height:max-content;position:sticky;top:14px}
+.side h2{font-size:16px;margin:0 0 9px}.side h3{font-size:12px;margin:16px 0 7px}.state{background:#f5f8f7;border:1px solid var(--line);border-radius:9px;padding:9px;font-size:9.5px;line-height:1.7}
+.flow{display:flex;flex-direction:column;gap:5px}.flow div{padding:7px 8px;border-radius:7px;background:#f4f7f5;font-size:9px}.flow div.current{background:#dcf3e9;border:1px solid #acd8c7;font-weight:900}
+.eventlog{max-height:240px;overflow:auto;background:#151c1a;color:#dce9e4;border-radius:9px;padding:8px;font-family:ui-monospace,monospace;font-size:8.5px;line-height:1.6}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:5px}.legend div{padding:6px;border:1px solid var(--line);border-radius:7px;font-size:9px}.legend b{display:block;font-size:10px;margin-bottom:2px}
+.muted{color:var(--muted)}.mini{font-size:8px;color:var(--muted)}
+@media(max-width:1120px){.workspace{grid-template-columns:1fr 1fr}.side{grid-column:1/-1;position:static}}
+@media(max-width:760px){.workspace{grid-template-columns:1fr;padding:8px}.phone{height:820px}.top{padding:14px}}
+.select-modes{display:flex;flex-wrap:nowrap;gap:8px;justify-content:flex-end;align-items:center}.select-modes .select-all{white-space:nowrap}.select-modes .select-all{font-size:11px}.notice.success{border:1px solid #3b82f6}
+/* --- v13.4 要望対応スタイル --- */
+.calendar button.has-supply{background:#e8f5e9;border-color:#a5d6a7;font-weight:700}
+.calendar button .hope-dot{display:block;width:5px;height:5px;border-radius:50%;background:#e65100;margin:1px auto 0;box-shadow:0 0 2px rgba(230,81,0,0.5)}
+.calendar button .circle-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:2px solid #0d6b57;font-weight:900;color:#0d6b57;box-sizing:border-box;margin:0 auto}
+.calendar button.selected .circle-num{border-color:#fff;color:#fff}
+.cal-legend{display:flex;gap:7px;flex-wrap:wrap;font-size:8px;color:var(--muted);margin-top:6px;padding:4px 6px;background:#f5f8f7;border-radius:6px;border:1px solid var(--line)}
+.cal-legend span{display:inline-flex;align-items:center;gap:3px}
+.stepper-wrap{display:flex;align-items:center;gap:10px;margin:7px 0}
+.stepper-btn{width:36px;height:36px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.stepper-btn:active{background:var(--customer-soft)}
+.stepper-val{font-size:16px;font-weight:900;min-width:32px;text-align:center}
+.vendor-job-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.vendor-job-toggle{border:1px solid var(--line);background:#f4f7f5;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:800;cursor:pointer}
+.vendor-job-body{margin-top:7px;border-top:1px dashed var(--line);padding-top:7px}
+
+/* --- サービスカタログ (顧客デフォルト画面) --- */
+.catalog-container{display:flex;flex-direction:column;gap:10px}
+.catalog-hero{background:linear-gradient(135deg,#0d6b57 0%,#1a8c73 100%);color:#fff;border-radius:12px;padding:12px 13px;box-shadow:0 2px 6px rgba(13,107,87,0.22)}
+.catalog-hero h2{font-size:13px;margin:0 0 3px;font-weight:900;letter-spacing:0.02em}
+.catalog-hero p{font-size:9px;margin:0;opacity:0.92;line-height:1.45}
+.catalog-section-title{font-size:10.5px;font-weight:900;color:var(--ink);margin:4px 0 1px;display:flex;align-items:center;gap:4px}
+.catalog-card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 11px;display:flex;flex-direction:column;gap:5px;box-shadow:0 1px 3px rgba(0,0,0,0.04);position:relative}
+.catalog-card.featured{border:1.5px solid #0d6b57;background:#f6fbf9}
+.catalog-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.catalog-card-title{font-size:11.5px;font-weight:900;color:var(--ink)}
+.catalog-card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.catalog-badge{font-size:8px;font-weight:800;border-radius:4px;padding:2px 5px}
+.catalog-badge.primary{background:#0d6b57;color:#fff}
+.catalog-badge.warn{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
+.catalog-badge.future{background:#e2e8f0;color:#475569}
+.catalog-card-price{font-size:11.5px;font-weight:900;color:#0d6b57}
+.catalog-card-desc{font-size:9px;color:var(--muted);line-height:1.45}
+.catalog-card-btn{margin-top:4px;width:100%;border:0;border-radius:8px;padding:7px 10px;font-size:10px;font-weight:900;cursor:pointer;background:#0d6b57;color:#fff;text-align:center}
+.catalog-card-btn:active{opacity:0.85}
+.catalog-card-btn.future{background:#cbd5e1;color:#64748b;cursor:not-allowed}
+
+/* --- 顧客案件アコーディオン --- */
+.customer-job-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.customer-job-toggle{border:1px solid var(--line);background:#f4f7f5;border-radius:6px;padding:3px 7px;font-size:9px;font-weight:800;cursor:pointer}
+.customer-job-body{margin-top:7px;border-top:1px dashed var(--line);padding-top:7px}
+
+/* --- 業者⇄顧客 双方向チャット --- */
+.direct-chat-box{background:#f8faf9;border:1px solid #dce6e2;border-radius:9px;padding:8px;margin-top:8px}
+.direct-chat-head{font-size:10px;font-weight:900;color:var(--ink);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.direct-chat-history{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:2px}
+.direct-chat-msg{max-width:85%;padding:6px 8px;border-radius:9px;font-size:10px;line-height:1.4;word-break:break-all}
+.direct-chat-msg.mine{align-self:flex-end;background:#0d6b57;color:#fff;border-bottom-right-radius:2px}
+.direct-chat-msg.theirs{align-self:flex-start;background:#fff;border:1px solid #cfdad6;color:var(--ink);border-bottom-left-radius:2px}
+.direct-chat-msg.system{align-self:center;background:#edf2f0;color:var(--muted);font-size:8.5px;max-width:96%;text-align:center;border-radius:6px;padding:3px 8px}
+.direct-chat-time{font-size:7.5px;opacity:0.75;margin-top:2px;text-align:right}
+.direct-chat-input-row{display:flex;gap:5px;margin-top:6px}
+.direct-chat-input{flex:1;border:1px solid #cfdad6;border-radius:6px;padding:6px 7px;font-size:10px;background:#fff}
+.direct-chat-send{border:0;border-radius:6px;padding:6px 10px;background:#0d6b57;color:#fff;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+</style>
+
+<style id="provider-availability-v10">
+.provider-availability-panel{margin-top:18px}
+.availability-layout{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(320px,1.1fr);gap:18px;align-items:start}
+.availability-calendar-wrap,.availability-times-wrap{border:1px solid var(--border,#e5e7eb);border-radius:16px;background:var(--surface,#fff);padding:16px}
+.calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.icon-btn{width:36px;height:36px;border:1px solid var(--border,#e5e7eb);border-radius:10px;background:#fff;font-size:22px;cursor:pointer}
+.calendar-note{font-size:12px;color:#6b7280;margin:7px 0 12px}
+.weekday-row,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.weekday-row{font-size:11px;color:#6b7280;text-align:center;margin-bottom:5px}
+.calendar-day{min-height:42px;border:1px solid #e5e7eb;background:#fff;border-radius:9px;cursor:pointer;font-weight:600}
+.calendar-day.empty{border-color:transparent;background:transparent;cursor:default}
+.calendar-day.disabled{opacity:.32;cursor:not-allowed}
+.calendar-day.has-slots{box-shadow:inset 0 -3px 0 #16a34a}
+.calendar-day.selected{background:#111827;color:#fff;border-color:#111827}
+.calendar-day .dot{display:block;font-size:8px;color:#16a34a;margin-top:2px}
+.calendar-day.selected .dot{color:#fff}
+.selected-date-card{background:#f8fafc;border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.selected-date-card span{display:block;font-size:11px;color:#6b7280}
+.selected-date-card strong{display:block;margin-top:2px}
+.time-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.select-all{font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.time-list-scroll{max-height:270px;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;padding:7px}
+.time-row{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-bottom:1px solid #f1f5f9}
+.time-row:last-child{border-bottom:0}
+.time-row label{display:flex;align-items:center;gap:9px;width:100%;cursor:pointer}
+.time-row input{width:17px;height:17px}
+.time-badge{font-size:11px;color:#64748b}
+.availability-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.btn{border:0;border-radius:11px;padding:11px 13px;font-weight:700;cursor:pointer}
+.btn.primary{background:#111827;color:#fff}
+.btn.secondary{background:#eef2ff;color:#3730a3}
+.action-hint{font-size:11px;color:#6b7280;margin:8px 2px 0;line-height:1.5}
+.provider-day-summary{margin-top:18px;border-top:1px solid #e5e7eb;padding-top:15px}
+.summary-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:9px}
+.summary-head span{font-size:11px;color:#6b7280}
+.schedule-summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px}
+.schedule-card{border:1px solid #e5e7eb;border-radius:12px;padding:11px;background:#fff}
+.schedule-card strong{display:block;margin-bottom:5px}
+.schedule-card .slots{font-size:12px;color:#475569;line-height:1.6}
+@media(max-width:760px){.availability-layout{grid-template-columns:1fr}.availability-actions{grid-template-columns:1fr}.summary-head{display:block}.summary-head span{display:block;margin-top:4px}}
+</style>
+
+
+<style id="v12-fixes">
+.category-dropdown{border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden;margin-bottom:6px}.category-dropdown-head{width:100%;border:0;background:#fff;padding:9px 10px;display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:800;text-align:left}.category-dropdown-head.selected{background:var(--customer-soft)}.category-dropdown-body{padding:7px 8px 9px;border-top:1px solid var(--line)}.category-dropdown-body select{width:100%}.address-completion{display:grid;grid-template-columns:1fr;gap:7px}.map-mock{border:1px dashed #94a3b8;border-radius:9px;padding:9px;background:#f8fafc;font-size:10px;color:#475569}.
+
+.case-shell{display:flex;flex-direction:column;height:100%;gap:8px}
+.case-fixed{flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:11px;padding:9px;box-shadow:0 2px 6px #0000000b}
+.case-fixed .case-title{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.case-fixed .case-title b{font-size:12px}.case-fixed .case-meta{font-size:9px;color:var(--muted);line-height:1.55;margin-top:4px}
+.case-toggle{border:1px solid var(--line);background:#f5f8f7;border-radius:7px;padding:5px 7px;font-size:9px;font-weight:800}
+.case-chat{min-height:0;flex:1;overflow:auto;background:#edf3f0;border-radius:10px;padding:6px}
+.case-message{background:#fff;border:1px solid #dce6e2;border-radius:12px;padding:8px 9px;font-size:10px;line-height:1.5;margin:5px 0}
+.case-message.me{background:#d7f3e9}.case-message.system{border-left:3px solid var(--accent)}
+.case-photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.case-photo-grid .photo{margin:0}
+.category-list{display:grid;grid-template-columns:1fr;gap:6px}.category-item{border:1px solid var(--line);border-radius:9px;padding:8px;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;font-weight:800}
+.category-item.selected{background:var(--customer-soft);border-color:#71b69d}
+.duration-note{font-size:9px;color:var(--muted);margin-top:4px}
+.available-slot-info{font-size:9px;color:#4b635a;margin-top:6px;line-height:1.45}
+.service-category-buttons{display:grid;gap:8px}.service-category-block{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}.service-category-button{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:#fff;padding:12px 13px;font-weight:800;text-align:left}.service-category-button.open{background:var(--customer-soft)}.service-menu-list{display:grid;gap:6px;padding:8px;border-top:1px solid var(--line);background:#f8fbfa}.service-menu-item{width:100%;text-align:left;border:1px solid var(--line);border-radius:8px;background:#fff;padding:9px 10px}.service-menu-item.selected{border-color:#71b69d;background:var(--customer-soft);font-weight:800}
+
+/* 領収書・施工写真・星評価スタイル */
+.receipt-sheet{background:#fff;border-radius:10px;padding:14px;max-width:320px;margin:auto;box-shadow:0 4px 15px rgba(0,0,0,0.12);border:1px solid #cbd5e1;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Meiryo",sans-serif}
+.receipt-title{text-align:center;font-size:15px;font-weight:900;letter-spacing:4px;border-bottom:2px solid #0d6b57;padding-bottom:5px;margin-bottom:10px;color:#0d6b57}
+.receipt-meta{display:flex;justify-content:space-between;font-size:8.5px;color:#64748b;margin-bottom:8px}
+.receipt-target{font-size:12px;font-weight:900;border-bottom:1px solid #334155;padding-bottom:3px;margin-bottom:8px}
+.receipt-amount-box{background:#f1f8f5;border:1px solid #a7d7c5;border-radius:6px;text-align:center;padding:7px 4px;margin-bottom:8px}
+.receipt-amount-val{font-size:16px;font-weight:900;color:#0d6b57}
+.receipt-proviso{font-size:9px;color:#334155;margin-bottom:8px;line-height:1.4}
+.receipt-table{width:100%;border-collapse:collapse;font-size:8.5px;margin-bottom:8px}
+.receipt-table th,.receipt-table td{border:1px solid #e2e8f0;padding:3px 5px;text-align:left}
+.receipt-table th{background:#f8fafc;font-weight:bold}
+.receipt-issuer{font-size:8px;color:#64748b;border-top:1px dashed #cbd5e1;padding-top:6px;margin-bottom:8px;line-height:1.4}
+.photo-viewer-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.photo-viewer-card{border:1px solid #cbd5e1;border-radius:6px;overflow:hidden;background:#f8fafc;text-align:center}
+.photo-viewer-card .photo-preview{height:75px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;color:#64748b}
+.photo-viewer-card.has-photo .photo-preview{background:#d1fae5;color:#0d6b57}
+.photo-viewer-card .photo-label{font-size:8.5px;font-weight:bold;padding:4px;border-top:1px solid #e2e8f0;background:#fff}
+.star-btn{cursor:pointer;user-select:none;font-size:18px;color:#cbd5e1;transition:color 0.15s;padding:0 1px}
+.star-btn.active{color:#f59e0b}
+</style>
+
+<style id="management-v13">
+  .management{
+    min-width:340px;background:#fff;border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);height:900px;overflow:hidden;display:flex;flex-direction:column;
+  }
+  .management-head{background:#17201e;color:#fff;padding:13px 15px;display:flex;justify-content:space-between;align-items:center}
+  .management-head b{font-size:14px}.management-head span{font-size:9px;opacity:.75}
+  .management-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px;background:#f4f7f5;border-bottom:1px solid var(--line)}
+  .management-nav button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 4px;font-size:8px;font-weight:900}
+  .management-nav button.active{background:#17201e;color:#fff}
+  .management-body{flex:1;overflow:auto;padding:12px;background:#eef3f1}
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px}
+  .kpi b{display:block;font-size:17px;line-height:1.1}.kpi span{font-size:8px;color:var(--muted)}
+  .admin-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+  .admin-card-head{display:flex;justify-content:space-between;gap:7px;align-items:center;margin-bottom:6px}
+  .admin-card-head b{font-size:11px}.admin-card small{font-size:8px;color:var(--muted)}
+  .admin-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+  .admin-actions button{border:1px solid var(--line);background:#f7f9f8;border-radius:7px;padding:6px 8px;font-size:8px;font-weight:900}
+  .admin-actions button.primary{background:#17201e;color:#fff}
+  .admin-actions button.warn{background:#fff4d8;color:#7a5a17;border-color:#e8d49c}
+  .admin-actions button.danger{background:#fff0ec;color:#8f4133;border-color:#efc3b8}
+  .statebar{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:8px;background:#f8faf9;padding:7px 8px;margin:6px 0;font-size:9px}
+  .statebar strong{font-size:9px}.admin-table{width:100%;border-collapse:collapse;font-size:8px}
+  .admin-table th,.admin-table td{border-bottom:1px solid #e7ecea;padding:6px 4px;text-align:left;vertical-align:top}
+  .admin-table th{font-size:8px;color:var(--muted);font-weight:900}
+  .alert-row{border-left:3px solid var(--danger);background:#fff;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:6px;font-size:9px;line-height:1.5}
+  .alert-row.warn{border-left-color:#c49b3d}
+  .admin-log{background:#151c1a;color:#dce9e4;border-radius:8px;padding:8px;font-family:ui-monospace,monospace;font-size:8px;line-height:1.55;max-height:230px;overflow:auto}
+  .sync-note{font-size:8px;color:var(--muted);line-height:1.5;margin:5px 1px 9px}
+  .admin-section-title{font-size:10px;font-weight:900;margin:10px 0 6px}
+  .job-toggle-btn{width:52px;height:24px;line-height:22px;text-align:center;font-size:8.5px;padding:0;border:1px solid var(--line);border-radius:6px;background:#f4f7f5;font-weight:800;color:#334155;cursor:pointer;flex-shrink:0;box-sizing:border-box}
+  .job-toggle-btn:active{background:#e2e8f0}
+  .map-btn{width:52px;height:24px;line-height:22px;text-align:center;font-size:8.5px;padding:0;border:1px solid var(--line);border-radius:6px;background:#fff;font-weight:800;color:#334155;cursor:pointer;flex-shrink:0;box-sizing:border-box}
+  .map-btn:active{background:#f1f5f9}
+  @media(max-width:1120px){.workspace{grid-template-columns:1fr 1fr}.management{grid-column:1/-1;height:720px}}
+  @media(max-width:760px){.management{height:760px}}
+
+  /* --- 実機スマホ対応：ロール別フルスクリーンネイティブ表示 --- */
+  body.standalone-mode {
+    background: #eef4f1;
+    overflow-x: hidden;
+  }
+  body.standalone-mode .top {
+    display: none !important;
+  }
+  body.standalone-mode .workspace {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
+  body.standalone-mode .phone {
+    height: 100% !important;
+    height: 100dvh !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  body.standalone-mode .screen {
+    border-radius: 0 !important;
+    height: 100% !important;
+    height: 100dvh !important;
+  }
+
+  /* 顧客専用表示モード */
+  body.role-customer .phone.vendor,
+  body.role-customer .management,
+  body.role-customer .top {
+    display: none !important;
+  }
+  body.role-customer .phone.customer {
+    display: block !important;
+  }
+
+  /* 業者専用表示モード */
+  body.role-vendor .phone.customer,
+  body.role-vendor .management,
+  body.role-vendor .top {
+    display: none !important;
+  }
+  body.role-vendor .phone.vendor {
+    display: block !important;
+  }
+
+  /* 管理者専用表示モード */
+  body.role-admin .phone.customer,
+  body.role-admin .phone.vendor,
+  body.role-admin .top {
+    display: none !important;
+  }
+  body.role-admin .management {
+    display: flex !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* スマホ検証用ロール切り替えヘッダー */
+  .mobile-role-bar {
+    display: flex;
+    background: #17201e;
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 11px;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 99999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .mobile-role-bar .role-title {
+    font-weight: 900;
+    font-size: 11px;
+    color: #4ade80;
+  }
+  .mobile-role-bar .role-btn-group {
+    display: flex;
+    gap: 4px;
+  }
+  .mobile-role-bar button {
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 7px;
+    font-size: 10px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .mobile-role-bar button.active {
+    background: #0d6b57;
+    border-color: #34d399;
+  }
+</style>
+</head>
+<body>
+<!-- スマホ用ロールスイッチャー（実機での画面切り替え用） -->
+<div class="mobile-role-bar" id="mobileRoleBar">
+  <span class="role-title" id="currentRoleLabel">📱 画面切替:</span>
+  <div class="role-btn-group">
+    <button type="button" id="btnRoleCustomer" onclick="switchRole('customer')">顧客</button>
+    <button type="button" id="btnRoleVendor" onclick="switchRole('vendor')">業者</button>
+    <button type="button" id="btnRoleAdmin" onclick="switchRole('admin')">管理室</button>
+    <button type="button" id="btnRoleAll" onclick="switchRole('all')">全表示</button>
+  </div>
+</div>
+<div class="top">
+  <h1>KKD WORKS — LINE UI 動的モック v13.4（確定改訂版）</h1>
+  <p>
+    v13.3確定設計をベースに、今回指定された「顧客予約窓口のサービスメニューカタログ常設」「顧客・業者 依頼一覧のアコーディオン化・排他タブ切り替え（訪問前・対応中・完了後）」「業者⇄顧客 双方向メッセージチャット欄」「詳細住所統合表示＆即時マップ起動」「施工前後写真登録・閲覧」「施工者☆評価」「顧客電子領収書セルフ発行」「受付日続き番号採番（YYYYMMDD-XXXX）」を完全統合した最新モックです。
+  </p>
+  <div class="toolbar">
+    <button class="primary" onclick="seedAvailability()">① デモ用の業者空き枠を登録</button>
+    <button onclick="newBookingDemo()">② 新規案件をもう1件作る</button>
+    <button onclick="simulateDayBefore()">③ 前日シナリオ</button>
+    <button onclick="simulateToday()">④ 当日シナリオ</button>
+    <button onclick="resetMock()">初期化</button>
+  </div>
+</div>
+
+<div class="workspace">
+<!-- CUSTOMER -->
+<section class="phone customer">
+<div class="screen">
+  <div class="apphead"><b>KKD WORKS（顧客）</b><span>LINE UI想定</span></div>
+  <div class="viewbar"><span>現在表示：<b id="cView">予約窓口</b></span><span>案件：<b id="cStatus">未予約</b></span></div>
+  <div id="cChat" class="chat"></div>
+  <div id="cRich" class="rich">
+    <button onclick="renderCustomerServiceCatalog()"><i>📝</i>予約窓口</button>
+    <button onclick="openCustomerCases('before', true)"><i>📂</i>依頼一覧</button>
+    <button onclick="customerInquiry()"><i>✓</i>お問合せ</button>
+    <button onclick="customerInquiry()"><i>💬</i>お問合せ</button>
+    <button onclick="customerInfo()"><i>ℹ️</i>info</button>
+    <button onclick="customerOther()"><i>＋</i>ご意見箱・その他</button>
+  </div>
+  <div class="rich-toggle-bar" id="cRichToggle" onclick="toggleRichMenu('c')">
+    <span id="cRichToggleText">▼ リッチメニューを閉じる</span>
+  </div>
+  <div id="cOverlay" class="overlay"><div class="sheet">
+    <div class="sheethead"><span id="cTitle">予約窓口</span><button class="close" onclick="closeSheet('c')">×</button></div>
+    <div id="cBody" class="sheetbody"></div>
+    <div class="sheetfoot"><button id="cBack" class="btn secondary" onclick="cBack()">戻る</button><button id="cNext" class="btn primary" onclick="cNext()">次へ</button></div>
+  </div></div>
+</div>
+</section>
+
+<!-- VENDOR -->
+<section class="phone vendor">
+<div class="screen">
+  <div class="apphead"><b>KKD WORKS（業者）</b><span>案件供給UI想定</span></div>
+  <div class="viewbar"><span>現在表示：<b id="vView">予定表示</b></span><span>案件：<b id="vStatus">0件</b></span></div>
+  <div id="vChat" class="chat"></div>
+  <div id="vActionNotice" class="notice success" style="display:none;margin:6px 8px 8px"></div>
+  <div id="vRich" class="rich">
+    <button onclick="renderVendorHome()"><i>🗓</i>予定表示</button>
+    <button onclick="openVendorCases('before', true)"><i>📋</i>案件一覧</button>
+    <button onclick="vendorHistory()"><i>💬</i>お問合せ</button>
+    <button onclick="vendorInventory()"><i>📦</i>在庫利用・貸出申請</button>
+    <button onclick="vendorFacility()"><i>🎓</i>技術継承・資格学習</button>
+    <button onclick="vendorOther()"><i>＋</i>ご相談箱・その他</button>
+  </div>
+  <div class="rich-toggle-bar" id="vRichToggle" onclick="toggleRichMenu('v')">
+    <span id="vRichToggleText">▼ リッチメニューを閉じる</span>
+  </div>
+  <div id="vOverlay" class="overlay"><div class="sheet">
+    <div class="sheethead"><span id="vTitle">空き枠報告</span><button class="close" onclick="closeSheet('v')">×</button></div>
+    <div id="vBody" class="sheetbody"></div>
+    <div class="sheetfoot"><button id="vBack" class="btn secondary" onclick="vBack()">戻る</button><button id="vNext" class="btn primary" onclick="vNext()">次へ</button></div>
+  </div></div>
+</div>
+</section>
+
+<!-- MANAGEMENT / CENTRAL CONTROL ROOM -->
+<section class="management">
+  <div class="management-head">
+    <b>KKDワークス・管理室（仮）</b>
+    <span>中央管理・状態監視・介入</span>
+  </div>
+  <div class="management-nav">
+    <button id="mNavDashboard" class="active" onclick="openManagement('dashboard')">全体</button>
+    <button id="mNavCases" onclick="openManagement('cases')">案件</button>
+    <button id="mNavVendors" onclick="openManagement('vendors')">業者</button>
+    <button id="mNavAlerts" onclick="openManagement('alerts')">要対応</button>
+    <button id="mNavAudit" onclick="openManagement('audit')">記録</button>
+  </div>
+  <div id="managementBody" class="management-body"></div>
+</section>
+</div>
+
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec"};</script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="../assets/photo_report_logic.js"></script>
+<script src="../assets/photo_report_ui.js"></script>
+<script src="../assets/gas_backend.js"></script>
+<script>
+const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
+const SERVICES={
+  "トラブル対応":["エアコンが効かない","エアコンが臭う"],
+  "メンテナンス":["エアコン脱着分解クリーニング","バスルームクリーニング","キッチンクリーニング"]
+};
+const PRICE={
+ "エアコン脱着分解クリーニング":{base:18000,unit:"台",mins:150},
+ "バスルームクリーニング":{base:24000,unit:"式",mins:180},
+ "キッチンクリーニング":{base:22000,unit:"式",mins:150},
+ "エアコンが効かない":{base:12000,unit:"式",mins:90},
+ "エアコンが臭う":{base:10000,unit:"式",mins:75},
+ "エアコン隠蔽施工":{base:85000,unit:"式",mins:360},
+ "屋根":{base:120000,unit:"式",mins:480},
+ "外壁":{base:180000,unit:"式",mins:600}
+};
+
+let state={
+  jobs:[],
+  activeJobId:null,
+  vendorAvailable:{},
+  monthOffset:0, vendorMonthOffset:0,
+  booking:{category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",addressBlock:"",buildingName:"",roomNumber:"",note:""},
+  bookingStep:1,
+  vendorSelectedDate:"",
+  vendorTempTimes:[],
+  serviceCategoryOpen:"",
+  vendorTab:"before",
+  customerTab:"before",
+  managementTab:"dashboard",
+  managementFilter:"all",
+  vendorMaster:[
+    {id:"V-001",name:"デモ業者A",priority:1,status:"稼働中",score:4.8,ratings:126},
+    {id:"V-002",name:"デモ業者B",priority:2,status:"稼働中",score:4.6,ratings:74},
+    {id:"V-003",name:"デモ業者C",priority:3,status:"稼働中",score:4.4,ratings:38}
+  ],
+  logs:[]
+};
+
+// localStorageからの状態復元（リロード時の状態保持）
+try {
+  const cachedJobs = localStorage.getItem("kkd_state_jobs");
+  if (cachedJobs) {
+    const pj = JSON.parse(cachedJobs);
+    if (Array.isArray(pj) && pj.length > 0) state.jobs = pj;
+  }
+  const cachedAvail = localStorage.getItem("kkd_state_vendor_avail");
+  if (cachedAvail) {
+    const pa = JSON.parse(cachedAvail);
+    if (pa && typeof pa === "object") state.vendorAvailable = pa;
+  }
+  const cachedCustTab = localStorage.getItem("kkd_customer_tab");
+  if (cachedCustTab) state.customerTab = cachedCustTab;
+  const cachedVendTab = localStorage.getItem("kkd_vendor_tab");
+  if (cachedVendTab) state.vendorTab = cachedVendTab;
+} catch (e) {}
+
+function saveAndSync(){
+  try {
+    localStorage.setItem("kkd_state_jobs", JSON.stringify(state.jobs));
+    localStorage.setItem("kkd_state_vendor_avail", JSON.stringify(state.vendorAvailable));
+    if (state.customerTab) localStorage.setItem("kkd_customer_tab", state.customerTab);
+    if (state.vendorTab) localStorage.setItem("kkd_vendor_tab", state.vendorTab);
+  } catch (e) {}
+  if (typeof pushSharedState === 'function') {
+    pushSharedState();
+  }
+}
+let cWizard=1, vWizard=1;
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function getCustomerLastNameWithHonorific(fullName){
+  if(!fullName) return "お客様";
+  const parts = String(fullName).trim().split(/[\s　]+/);
+  return (parts[0] || fullName) + " 様";
+}
+function changeUnits(delta){
+  const next = Math.max(1, Math.min(99, Number(state.booking.units||1) + delta));
+  setUnits(next);
+}
+function toggleVendorJob(id){
+  const body = document.getElementById("vjob-body-" + id);
+  if(!body) return;
+  const isHidden = body.style.display === "none";
+  body.style.display = isHidden ? "block" : "none";
+}
+function updateJobMemo(id, text){
+  const j = getJob(id);
+  if(j) {
+    j.vendorMemo = text;
+    if (typeof saveAndSync === 'function') saveAndSync();
+  }
+}
+function toggleCustomerJob(id){
+  const body = document.getElementById("cjob-body-" + id);
+  if(!body) return;
+  const isHidden = body.style.display === "none";
+  body.style.display = isHidden ? "block" : "none";
+}
+function sendDirectMessage(jobId, senderRole){
+  const j = getJob(jobId); if(!j) return;
+  const prefix = senderRole === "vendor" ? "v" : "c";
+  const inputEl = document.getElementById(prefix + "-msg-" + jobId);
+  if(!inputEl) return;
+  const text = (inputEl.value || "").trim();
+  if(!text) return;
+
+  if(!j.chatMessages) j.chatMessages = [];
+  const senderName = senderRole === "vendor" ? "担当業者" : (j.name ? `${getCustomerLastNameWithHonorific(j.name)}` : "お客様");
+  j.chatMessages.push({
+    sender: senderRole,
+    name: senderName,
+    text: text,
+    time: nowStr()
+  });
+  inputEl.value = "";
+  log(`DIRECT_MESSAGE [${senderRole}] ${jobId}: ${text}`);
+  updateDirectChatDOM(jobId);
+  saveAndSync();
+}
+function updateDirectChatDOM(jobId){
+  const j = getJob(jobId); if(!j) return;
+  ['vendor', 'customer'].forEach(role => {
+    const prefix = role === "vendor" ? "v" : "c";
+    const historyEl = document.getElementById(prefix + "-chat-history-" + jobId);
+    if(historyEl){
+      const msgs = j.chatMessages || [];
+      historyEl.innerHTML = msgs.map(m => {
+        if(m.sender === "system"){
+          return `<div class="direct-chat-msg system">${esc(m.text)}<div class="direct-chat-time">${esc(m.time||"")}</div></div>`;
+        }
+        const isMine = m.sender === role;
+        return `<div class="direct-chat-msg ${isMine ? 'mine' : 'theirs'}">
+          <div style="font-size:8px;opacity:0.8;margin-bottom:1px;">${esc(m.name||(isMine?"自分":"相手"))}</div>
+          ${esc(m.text)}
+          <div class="direct-chat-time">${esc(m.time||"")}</div>
+        </div>`;
+      }).join("");
+      historyEl.scrollTop = historyEl.scrollHeight;
+    }
+  });
+}
+function renderDirectChatBox(j, viewerRole){
+  const prefix = viewerRole === "vendor" ? "v" : "c";
+  const partnerTitle = viewerRole === "vendor" ? "👤 お客様との直接メッセージ" : "🛠 担当業者との直接メッセージ";
+  const placeholder = viewerRole === "vendor" ? "お客様へのメッセージを入力..." : "担当業者へのメッセージを入力...";
+  const msgs = j.chatMessages || [];
+
+  let msgsHtml = "";
+  if (!msgs.length) {
+    msgsHtml = `<div class="direct-chat-msg system">まだメッセージはありません。こちらから直接やり取りできます。</div>`;
+  } else {
+    msgsHtml = msgs.map(m => {
+      if(m.sender === "system"){
+        return `<div class="direct-chat-msg system">${esc(m.text)}<div class="direct-chat-time">${esc(m.time||"")}</div></div>`;
+      }
+      const isMine = m.sender === viewerRole;
+      return `<div class="direct-chat-msg ${isMine ? 'mine' : 'theirs'}">
+        <div style="font-size:8px;opacity:0.8;margin-bottom:1px;">${esc(m.name||(isMine?"自分":"相手"))}</div>
+        ${esc(m.text)}
+        <div class="direct-chat-time">${esc(m.time||"")}</div>
+      </div>`;
+    }).join("");
+  }
+
+  return `
+    <div class="direct-chat-box">
+      <div class="direct-chat-head">
+        <span>${partnerTitle}</span>
+        <span style="font-size:8px;color:var(--customer);font-weight:900;">💬 双方向通信</span>
+      </div>
+      <div class="direct-chat-history" id="${prefix}-chat-history-${j.id}">
+        ${msgsHtml}
+      </div>
+      <div class="direct-chat-input-row">
+        <input type="text" id="${prefix}-msg-${j.id}" class="direct-chat-input" placeholder="${placeholder}" onkeydown="if(event.key==='Enter')sendDirectMessage('${j.id}','${viewerRole}')">
+        <button type="button" class="direct-chat-send" onclick="sendDirectMessage('${j.id}','${viewerRole}')">送信</button>
+      </div>
+    </div>
+  `;
+}
+function nowStr(){return new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+function log(msg){state.logs.unshift(nowStr()+"  "+msg);state.logs=state.logs.slice(0,80);const el=document.getElementById("eventLog");if(el)el.innerHTML=state.logs.map(esc).join("<br>");}
+function addChat(id,html,me=false,scrollBottom=false){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.insertAdjacentHTML("beforeend",`<div class="bubble ${me?"me":"system"}">${html}</div>`);
+  if(scrollBottom) el.scrollTop=el.scrollHeight;
+}
+function clearChat(id){document.getElementById(id).innerHTML="";}
+function openSheet(who,title){document.getElementById(who+"Overlay").style.display="flex";document.getElementById(who+"Title").textContent=title;}
+function closeSheet(who){document.getElementById(who+"Overlay").style.display="none";}
+function fmtDate(ds){if(!ds)return "";const d=new Date(ds+"T00:00:00");return `${d.getMonth()+1}/${d.getDate()}(${["日","月","火","水","木","金","土"][d.getDay()]})`;}
+
+function fmtSlotStart(timeStr) {
+  if (!timeStr) return "";
+  const start = String(timeStr).split(/[〜~\-－]/)[0].trim();
+  const m = start.match(/^(\d{1,2}):(\d{2})$/);
+  if (m) {
+    const h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    return min === 0 ? `${h}時～` : `${h}:${m[2]}～`;
+  }
+  return start.endsWith("～") ? start : `${start}～`;
+}
+
+function fmtDateShort(ds) {
+  if (!ds) return "";
+  const m = String(ds).match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (m) {
+    return `${parseInt(m[2], 10)}/${parseInt(m[3], 10)}`;
+  }
+  const mShort = String(ds).match(/(\d{1,2})[/-](\d{1,2})/);
+  if (mShort) {
+    return `${parseInt(mShort[1], 10)}/${parseInt(mShort[2], 10)}`;
+  }
+  return ds;
+}
+
+function countVisitPhotos(j) {
+  if (!j || !j.visitPhotos) return 0;
+  return (j.visitPhotos.parking ? 1 : 0) + (j.visitPhotos.entrance ? 1 : 0);
+}
+
+function countCompletionPhotos(j) {
+  if (!j || !j.completionPhotos) return 0;
+  return (j.completionPhotos.before ? 1 : 0) + (j.completionPhotos.after ? 1 : 0);
+}
+
+function toggleVisitPhoto(id, key){
+  const j = getJob(id);
+  if (!j) return;
+  j.visitPhotos = j.visitPhotos || { parking: false, entrance: false };
+  j.visitPhotos[key] = !j.visitPhotos[key];
+  log(`VISIT_PHOTO_TOGGLED ${id} ${key} ${j.visitPhotos[key]}`);
+  if (state.customerTab) {
+    openCustomerCases(state.customerTab, false);
+    const body = document.getElementById("cjob-body-" + id);
+    if (body) body.style.display = "block";
+  }
+  if (state.vendorTab) {
+    openVendorCases(state.vendorTab, false);
+    const body = document.getElementById("vjob-body-" + id);
+    if (body) body.style.display = "block";
+  }
+  renderSide();
+  saveAndSync();
+}
+
+function submitCustomerAddressDetail(id){
+  const j = getJob(id);
+  if (!j) return;
+  const blockEl = document.getElementById("cust-block-" + id);
+  const buildingEl = document.getElementById("cust-building-" + id);
+  const roomEl = document.getElementById("cust-room-" + id);
+  const routeEl = document.getElementById("cust-route-" + id);
+
+  const block = normalizeHalfWidthAddressValue(blockEl?.value || "").trim();
+  if (!block) {
+    alert("番地を入力してください（例：1-2-3）");
+    if (blockEl) blockEl.focus();
+    return;
+  }
+  j.addressBlock = block;
+  j.buildingName = (buildingEl?.value || "").trim();
+  j.roomNumber = normalizeHalfWidthAddressValue(roomEl?.value || "").trim();
+  j.detailAddress = [j.addressBlock, j.buildingName, j.roomNumber].filter(Boolean).join(" ");
+  j.customerDetailed = true;
+  j.visitInfo = j.visitInfo || {};
+  j.visitInfo.routeMemo = (routeEl?.value || "").trim();
+
+  log(`CUSTOMER_ADDRESS_DETAILED ${id} ${j.detailAddress}`);
+  addChat("cChat", `【住所・訪問先情報確定】詳細住所（${getFullAddress(j)}）を登録完了しました。案件が「対応中」へ移動しました。`);
+  addChat("vChat", `【顧客住所確定】案件 ${id} の詳細住所（${getFullAddress(j)}）および訪問先情報が確定しました。「対応中」よりマップ確認・現場直行が可能です。`);
+
+  openCustomerCases("progress", false);
+  const cBody = document.getElementById("cjob-body-" + id);
+  if (cBody) cBody.style.display = "block";
+
+  if (state.vendorTab) {
+    openVendorCases(state.vendorTab, false);
+    const vBody = document.getElementById("vjob-body-" + id);
+    if (vBody) vBody.style.display = "block";
+  }
+
+  renderSide();
+  saveAndSync();
+}
+function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+
+// 案件番号採番（予約受付日の続き番号 例: 20261019-0001, 7件目なら 20261019-0007）
+function generateJobId(d = new Date()){
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const ymd = `${y}${m}${day}`;
+  const countToday = state.jobs.filter(j => j.id && String(j.id).startsWith(ymd)).length;
+  const seq = String(countToday + 1).padStart(4, "0");
+  return `${ymd}-${seq}`;
+}
+
+// アコーディオン内側折畳部用：お見積り・料金内訳表示（各台オプション・現場追加を網羅）
+function renderPriceBreakdown(j){
+  const basePrice = (PRICE[j.service]?.base || 0) * (j.units || 1);
+  const total = calcPrice(j);
+
+  // オプション項目の収集（台数ごとの unitOptions と options の両方に対応）
+  let optRows = [];
+  if (j.unitOptions && typeof j.unitOptions === "object") {
+    Object.keys(j.unitOptions).forEach(u => {
+      const list = j.unitOptions[u] || [];
+      list.forEach(optName => {
+        optRows.push({
+          label: `${Number(j.units) > 1 ? `[${u}台目] ` : ""}${optName}`,
+          price: optPriceByName(optName)
+        });
+      });
+    });
+  }
+  if (Array.isArray(j.options)) {
+    j.options.forEach(optName => {
+      optRows.push({ label: optName, price: optPriceByName(optName) });
+    });
+  }
+
+  // 現場追加項目の収集
+  let addRows = [];
+  if (Array.isArray(j.additionalItems) && j.additionalItems.length > 0) {
+    j.additionalItems.forEach(item => {
+      addRows.push({
+        label: (item.name || "追加作業") + ((Number(item.qty) || 1) > 1 ? "×" + item.qty : ""),
+        price: (Number(item.price) || 0) * (Number(item.qty) || 1)
+      });
+    });
+  }
+
+  return `
+    <div class="summary" style="margin:6px 0;font-size:9.5px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px;">
+      <div style="font-weight:bold;color:var(--ink);margin-bottom:4px;border-bottom:1px solid #cbd5e1;padding-bottom:2px;">📋 お見積り・料金内訳</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+        <span>・基本施工料 (${esc(j.service)} × ${j.units}${PRICE[j.service]?.unit||"台"}):</span>
+        <span>¥${basePrice.toLocaleString()}</span>
+      </div>
+      ${optRows.length > 0 ? optRows.map(r => `
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;color:#0d6b57;">
+        <span>・オプション (${esc(r.label)}):</span>
+        <span>+¥${r.price.toLocaleString()}</span>
+      </div>`).join("") : `
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;color:var(--muted);">
+        <span>・オプション:</span>
+        <span>なし (¥0)</span>
+      </div>`}
+      ${addRows.map(r => `
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;color:#d97706;">
+        <span>・追加作業 (${esc(r.label)}):</span>
+        <span>+¥${r.price.toLocaleString()}</span>
+      </div>`).join("")}
+      <div style="display:flex;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px dashed #cbd5e1;font-weight:bold;font-size:10px;color:var(--ink);">
+        <span>合計金額（税込）:</span>
+        <span style="color:var(--customer);font-size:11px;">¥${total.toLocaleString()}</span>
+      </div>
+    </div>
+  `;
+}
+
+// 業者・顧客共通の統合住所表示
+function getFullAddress(j){
+  if(!j) return "";
+  const zipPart = j.zip ? `〒${formatZip(j.zip)} ` : "";
+  const base = (j.address || "").trim();
+  const detail = (j.detailAddress || "").trim();
+  if(!detail) {
+    const parts = [j.addressBlock, j.buildingName, j.roomNumber].filter(Boolean).join(" ").trim();
+    if(parts) return `${zipPart}${base} ${parts}`.trim();
+    return `${zipPart}${base}`.trim();
+  }
+  if(detail.startsWith(base)) return `${zipPart}${detail}`.trim();
+  return `${zipPart}${base} ${detail}`.trim();
+}
+
+// 完了後用：詳細住所（番地・建物名・部屋番号等）を省いた訪問前状態（郵便番号＋市区町村）の簡易住所
+function getSimpleAddress(j){
+  if(!j) return "";
+  const zipPart = j.zip ? `〒${formatZip(j.zip)} ` : "";
+  const base = (j.address || "").trim();
+  return `${zipPart}${base}`.trim();
+}
+
+// マップアプリ（Google Maps）即時起動
+function openMapApp(addr){
+  if(!addr || !addr.trim()){
+    alert("住所が登録されていません。");
+    return;
+  }
+  const clean = addr.replace(/^〒\d{3}-\d{4}\s*/, "").trim();
+  const q = clean || addr;
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  window.open(url, "_blank");
+  log("OPEN_MAP_APP " + q);
+}
+
+// 業者側：施工前後写真の送信・登録
+function uploadCompletionPhoto(id, type){
+  const j = getJob(id); if(!j) return;
+  j.completionPhotos = j.completionPhotos || { before: false, after: false };
+  j.completionPhotos[type] = true;
+  const label = type === 'before' ? '施工前写真' : '施工後写真';
+  addChat("vChat", `案件 <b>${id}</b> の【${label}】を送信・登録しました。`, "me");
+  addChat("cChat", `【施工報告】業者より <b>${label}</b> が届きました。「施工写真を確認」ボタンからご確認いただけます。`);
+  openVendorCases('done');
+  renderSide();
+  log(`VENDOR_COMPLETION_PHOTO ${id} ${type}`);
+  saveAndSync();
+}
+
+// 顧客側：施工写真の閲覧モーダル
+function openCustomerPhotoModal(id){
+  const j = getJob(id); if(!j) return;
+  openSheet("c", "施工写真の確認");
+  document.getElementById("cBody").innerHTML = '<div style="font-size:11px;font-weight:bold;color:var(--customer);margin-bottom:4px;">案件：' + esc(j.id) + '（' + esc(j.service) + '）</div>' +
+    '<div class="mini" style="margin-bottom:8px;">施工担当：' + esc(vendorForJob(j)) + ' による現場作業写真です。</div><div id="custPhotoRoot"></div>' +
+    '<div style="display:flex;gap:6px;margin-top:10px;"><button type="button" class="btn primary" style="flex:1;" onclick="closeSheet(\'c\')">閉じる</button></div>';
+  document.getElementById("cBack").style.display = "none";
+  document.getElementById("cNext").style.display = "none";
+  KKD135PhotoUI.renderCustomer(document.getElementById("custPhotoRoot"), { caseId: j.id, unitsTotal: Math.max(1, Object.keys(j.unitOptions || {}).length), labels: KKD135_REPORT_LABELS, backend: KKD135_BACKEND });
+  log("CUSTOMER_PHOTO_VIEW " + id);
+}
+
+// 顧客側：施工者評価（☆評価選択）
+function setCustomerRating(id, stars){
+  const j = getJob(id); if(!j) return;
+  j.rating = stars;
+  const container = document.getElementById(`star-select-${id}`);
+  if(container){
+    const spans = container.querySelectorAll(".star-btn");
+    spans.forEach((s, idx) => {
+      if(idx < stars) s.classList.add("active");
+      else s.classList.remove("active");
+    });
+  }
+  const valEl = document.getElementById(`star-val-${id}`);
+  if(valEl) valEl.textContent = `${stars}.0点`;
+}
+
+// 顧客側：施工者評価（送信）
+function submitCustomerRating(id){
+  const j = getJob(id); if(!j) return;
+  const commentInput = document.getElementById(`rating-comment-${id}`);
+  if(commentInput) j.ratingComment = commentInput.value.trim();
+  if(!j.rating) j.rating = 5;
+  j.ratingSubmitted = true;
+  addChat("cChat", `【施工者評価】評価（★${j.rating}.0）を送信しました。ご協力ありがとうございました！`, "me");
+  addChat("vChat", `【顧客評価】案件 <b>${id}</b> の評価（★${j.rating}.0）を受信しました。${j.ratingComment ? `コメント：「${esc(j.ratingComment)}」` : ""}`);
+  openCustomerCases('done');
+  renderSide();
+  log(`CUSTOMER_RATING_SUBMITTED ${id} stars=${j.rating}`);
+  saveAndSync();
+}
+
+// 顧客側：電子領収書セルフ発行モーダル（インボイス表示ON/OFF選択対応）
+let currentReceiptInvoiceMode = true; // デフォルトはインボイス表示ON
+
+function toggleReceiptInvoice(id, enabled) {
+  currentReceiptInvoiceMode = enabled;
+  openReceiptModal(id);
+}
+
+function openReceiptModal(id){
+  const j = getJob(id); if(!j) return;
+  const total = calcPrice(j);
+  const tax = Math.round(total * 10 / 110);
+  const withoutTax = total - tax;
+  const issueDate = j.completedDate || fmtDate(new Date().toISOString().slice(0,10));
+  const receiptNo = `REC-${j.id}`;
+  const isInvoice = (j.isInvoiceIssuer !== undefined) ? j.isInvoiceIssuer : currentReceiptInvoiceMode;
+
+  openSheet("c", "電子領収書");
+  document.getElementById("cBody").innerHTML = `
+    <div style="max-width:320px;margin:0 auto 6px;display:flex;justify-content:flex-end;align-items:center;gap:6px;font-size:10px;color:#475569;">
+      <label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;user-select:none;background:#f1f5f9;padding:3px 8px;border-radius:12px;border:1px solid #cbd5e1;">
+        <input type="checkbox" id="receiptInvoiceToggle" ${isInvoice ? 'checked' : ''} onchange="toggleReceiptInvoice('${id}', this.checked)">
+        <span>インボイス（適格請求書）表記</span>
+      </label>
+    </div>
+    <div class="receipt-sheet" id="printableReceipt">
+      <div class="receipt-title">${isInvoice ? "領 収 書（適格簡易請求書）" : "領 収 書"}</div>
+      <div class="receipt-meta">
+        <span>No. ${esc(receiptNo)}</span>
+        <span>発行日: ${esc(issueDate)}</span>
+      </div>
+      <div class="receipt-target">
+        <b>${esc(j.name ? j.name + " 様" : "お客様")}</b>
+      </div>
+      <div class="receipt-amount-box">
+        <div style="font-size:9px;color:#0d6b57;font-weight:bold;">領収金額${isInvoice ? '（税込）' : ''}</div>
+        <div class="receipt-amount-val">¥${total.toLocaleString()} -</div>
+      </div>
+      <div class="receipt-proviso">
+        但し、<b>${esc(j.service)}（${j.units}${PRICE[j.service]?.unit||"台"}）施工代金</b>として<br>
+        上記正に領収いたしました。<br>
+        <span style="font-size:8.5px;color:var(--muted);">（Square キャッシュレス決済完了）</span>
+      </div>
+      <table class="receipt-table">
+        <tr><th>品名 / サービス</th><th>数量</th><th>金額${isInvoice ? '(税込)' : ''}</th></tr>
+        <tr><td>${esc(j.service)}</td><td>${j.units}${PRICE[j.service]?.unit||"台"}</td><td style="text-align:right;">¥${total.toLocaleString()}</td></tr>
+        ${isInvoice ? `
+        <tr><td colspan="2" style="font-weight:bold;">10%対象金額（税抜）</td><td style="text-align:right;">¥${withoutTax.toLocaleString()}</td></tr>
+        <tr><td colspan="2" style="font-weight:bold;">消費税等（10%）</td><td style="text-align:right;">¥${tax.toLocaleString()}</td></tr>
+        ` : `
+        <tr><td colspan="2" style="font-weight:bold;">合計金額</td><td style="text-align:right;font-weight:bold;">¥${total.toLocaleString()}</td></tr>
+        `}
+      </table>
+      <div class="receipt-issuer">
+        <b>発行者：綺麗快適デザイン（KKD）／ KKD WORKS</b><br>
+        ${isInvoice ? '適格請求書発行事業者登録番号：T1234567890123<br>' : ''}
+        担当施工者：${esc(vendorForJob(j))}<br>
+        電子交付：本領収書は電子的に発行された正規の証明書です。
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button type="button" class="btn primary" style="flex:1;background:#0d6b57;" onclick="printReceipt('${receiptNo}')">🖨️ 印刷 / PDF保存</button>
+        <button type="button" class="btn secondary" style="flex:1;" onclick="closeSheet('c')">閉じる</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("cBack").style.display = "none";
+  document.getElementById("cNext").style.display = "none";
+  log("RECEIPT_VIEW " + id);
+}
+
+function printReceipt(receiptNo){
+  log("RECEIPT_PRINT " + receiptNo);
+  window.print();
+}
+function monthBase(){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+state.monthOffset);return d;}
+function calendarHTML(mode){
+  const isVendor = mode==="vendor" || mode==="vendorHome";
+  const offsetKey = isVendor ? "vendorMonthOffset" : "monthOffset";
+  const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+state[offsetKey]);
+  const y=base.getFullYear(), m=base.getMonth();
+  const first=new Date(y,m,1), days=new Date(y,m+1,0).getDate(), start=first.getDay();
+  const prevDisabled=state[offsetKey]<=0, nextDisabled=state[offsetKey]>=3;
+  let html=`<div class="calendar-head"><button onclick="shiftMonth(-1,'${mode}')" ${prevDisabled?'disabled':''}>‹</button><b>${y}年 ${m+1}月</b><button onclick="shiftMonth(1,'${mode}')" ${nextDisabled?'disabled':''}>›</button></div>`;
+  html+=`<div class="week">${["日","月","火","水","木","金","土"].map(x=>`<span>${x}</span>`).join("")}</div><div class="calendar">`;
+  for(let i=0;i<start;i++) html+=`<button class="empty"></button>`;
+  for(let day=1;day<=days;day++){
+    const d=new Date(y,m,day), ds=dateKey(d);
+    const past=d < new Date(new Date().setHours(0,0,0,0));
+    let blocked=false, selected=false;
+    if(mode==="customer1") selected=state.booking.date1===ds;
+    if(mode==="customer2") {selected=state.booking.date2===ds; blocked=state.booking.date1===ds;}
+    if(mode==="vendor") selected=state.vendorSelectedDate===ds;
+    if(mode==="vendorHome") selected=false;
+
+    let clsList = [];
+    if(past) clsList.push("off");
+    if(blocked) clsList.push("blocked");
+    if(selected) clsList.push("selected");
+
+    let innerContent = `${day}`;
+    let dotHtml = "";
+
+    if(isVendor){
+      const hasSupply = !!(state.vendorAvailable[ds] && state.vendorAvailable[ds].length > 0);
+      const hasHope = state.jobs.some(j => !j.completed && !j.vendorChoice && (j.date1 === ds || j.date2 === ds));
+      const hasConfirmed = state.jobs.some(j => !j.completed && j.vendorChoice && (
+        (j.vendorChoice === "第1希望" && j.date1 === ds) ||
+        (j.vendorChoice === "第2希望" && j.date2 === ds) ||
+        (j.confirmedDate === ds)
+      ));
+
+      if(hasSupply) clsList.push("has-supply");
+      if(hasConfirmed){
+        innerContent = `<span class="circle-num" title="予約確定">${day}</span>`;
+      }
+      if(hasHope){
+        dotHtml = `<span class="hope-dot" title="予約希望あり"></span>`;
+      }
+    } else {
+      const available = availableTimes(ds).length > 0;
+      if(available) {
+        clsList.push("available");
+        dotHtml = '<span class="dot"></span>';
+      }
+    }
+
+    const cls = clsList.filter(Boolean).join(" ");
+    let onclick="";
+    if(!past && !blocked){
+      if(mode==="vendor") onclick=`selectVendorDate('${ds}')`;
+      else if(mode==="vendorHome") onclick=`vendorHomeDate('${ds}')`;
+      else if(mode==="customer1") onclick=`selectCustomerDate1('${ds}')`;
+      else onclick=`selectCustomerDate2('${ds}')`;
+    }
+    html+=`<button class="${cls}" ${onclick?`onclick="${onclick}"`:"disabled"}>${innerContent}${dotHtml}</button>`;
+  }
+  html+="</div>";
+  if(!isVendor) html+=`<div class="mini" style="margin-top:6px">緑点＝業者が報告済みの空き枠あり。予約可能日はこの空き枠だけに限定。</div>`;
+  else html+=`<div class="cal-legend">
+    <span><span style="display:inline-block;width:10px;height:10px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:2px;"></span> 空き枠登録日</span>
+    <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#e65100;"></span> 予約希望日</span>
+    <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid #0d6b57;text-align:center;line-height:10px;font-size:7px;font-weight:900;color:#0d6b57;">○</span> 予約確定日</span>
+  </div>`;
+  return html;
+}
+function shiftMonth(n,mode){
+  const key=(mode==="vendor"||mode==="vendorHome")?"vendorMonthOffset":"monthOffset";
+  state[key]=Math.max(0,Math.min(3,state[key]+n));
+  renderCurrentCalendar();
+}
+function renderCurrentCalendar(){if(document.getElementById("cOverlay").style.display==="flex")renderCBody();if(document.getElementById("vOverlay").style.display==="flex")renderVBody();if(document.getElementById("vView").textContent==="予定表示")renderVendorHome();}
+
+function resetBooking(){state.booking={category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",detailAddress:"",note:""};state.serviceCategoryOpen="";cWizard=1;}
+function openCustomerBooking(){
+  resetBooking();cWizard=1;document.getElementById("cView").textContent="予約窓口";openSheet("c","予約窓口");renderCBody();log("CUSTOMER_BOOKING_OPEN");
+}
+function startBookingForService(serviceName){
+  resetBooking();
+  const category = Object.keys(SERVICES).find(cat => (SERVICES[cat]||[]).includes(serviceName)) || "メンテナンス";
+  state.booking.category = category;
+  state.booking.service = serviceName;
+  state.serviceCategoryOpen = category;
+  state.booking.units = 1;
+  state.booking.unitOptions = {};
+  cWizard = 2; // STEP 2: 台数・条件・オプション選択へ直結
+  document.getElementById("cView").textContent = "予約窓口";
+  openSheet("c", "予約窓口");
+  renderCBody();
+  log(`CUSTOMER_DIRECT_SERVICE_SELECT ${serviceName}`);
+}
+function renderCustomerServiceCatalog(){
+  document.getElementById("cView").textContent="予約窓口";
+  clearChat("cChat");
+  const html = `
+    <div class="catalog-container">
+      <div class="catalog-hero">
+        <h2>✨ 綺麗快適デザイン（KKD）</h2>
+        <p>プロの技術で清潔・安心の空間をお届けします。<br>一番売り出したい安心・確実なメニューを厳選掲載！気になるメニューを選んで簡単予約できます。</p>
+      </div>
+
+      <div class="catalog-section-title">🌟 イチオシ・人気おすすめメニュー</div>
+
+      <!-- エアコン脱着分解クリーニング -->
+      <div class="catalog-card featured">
+        <div class="catalog-card-head">
+          <div>
+            <div class="catalog-card-title">エアコン脱着分解クリーニング</div>
+            <div class="catalog-card-badges">
+              <span class="catalog-badge primary">人気No.1</span>
+              <span class="catalog-badge primary">完全分解洗浄</span>
+              <span class="catalog-badge warn">防カビコート可</span>
+            </div>
+          </div>
+          <div class="catalog-card-price">¥18,000<span style="font-size:9px;color:var(--muted);">〜/台</span></div>
+        </div>
+        <div class="catalog-card-desc">
+          壁から完全に取り外して内部の熱交換器・ファン・ドレンパンまで徹底丸洗い。奥に潜むカビやホコリを根こそぎ除去し、新車のような爽快な風を取り戻します。（作業時間：約150分〜）
+        </div>
+        <button type="button" class="catalog-card-btn" onclick="startBookingForService('エアコン脱着分解クリーニング')">このメニューを予約する ➔</button>
+      </div>
+
+      <!-- バスルームクリーニング -->
+      <div class="catalog-card">
+        <div class="catalog-card-head">
+          <div>
+            <div class="catalog-card-title">バスルームクリーニング</div>
+            <div class="catalog-card-badges">
+              <span class="catalog-badge primary">水回り徹底洗浄</span>
+              <span class="catalog-badge warn">エプロン内部対応</span>
+            </div>
+          </div>
+          <div class="catalog-card-price">¥24,000<span style="font-size:9px;color:var(--muted);">〜/式</span></div>
+        </div>
+        <div class="catalog-card-desc">
+          浴槽エプロン内部、鏡の頑固なウロコ汚れ、床・壁の黒カビ・皮脂汚れをプロ仕様の薬剤と高圧洗浄で徹底除去します。（作業時間：約180分）
+        </div>
+        <button type="button" class="catalog-card-btn" onclick="startBookingForService('バスルームクリーニング')">このメニューを予約する ➔</button>
+      </div>
+
+      <!-- キッチンクリーニング -->
+      <div class="catalog-card">
+        <div class="catalog-card-head">
+          <div>
+            <div class="catalog-card-title">キッチンクリーニング</div>
+            <div class="catalog-card-badges">
+              <span class="catalog-badge primary">油汚れ撃退</span>
+              <span class="catalog-badge warn">シンク鏡面仕上げ</span>
+            </div>
+          </div>
+          <div class="catalog-card-price">¥22,000<span style="font-size:9px;color:var(--muted);">〜/式</span></div>
+        </div>
+        <div class="catalog-card-desc">
+          ガスコンロ・IHの焦げ付き、レンジフード・換気扇の頑固な油汚れ、シンクの水垢・ぬめりを分解洗浄。（作業時間：約150分）
+        </div>
+        <button type="button" class="catalog-card-btn" onclick="startBookingForService('キッチンクリーニング')">このメニューを予約する ➔</button>
+      </div>
+
+      <div class="catalog-section-title">⚡ トラブル診断・お急ぎ対応</div>
+
+      <div class="catalog-card">
+        <div class="catalog-card-head">
+          <div>
+            <div class="catalog-card-title">エアコン トラブル診断</div>
+            <div class="catalog-card-badges">
+              <span class="catalog-badge primary">スピード診断</span>
+              <span class="catalog-badge warn">効かない・臭う</span>
+            </div>
+          </div>
+          <div class="catalog-card-price">¥10,000〜¥12,000<span style="font-size:9px;color:var(--muted);">〜</span></div>
+        </div>
+        <div class="catalog-card-desc">
+          「冷えが悪い」「異臭がする」「水漏れがする」等の急なトラブルにプロが現場急行し、原因を即座に特定・対処します。
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button type="button" class="catalog-card-btn" style="flex:1;" onclick="startBookingForService('エアコンが効かない')">冷えない・効かない ➔</button>
+          <button type="button" class="catalog-card-btn" style="flex:1;" onclick="startBookingForService('エアコンが臭う')">異臭がする ➔</button>
+        </div>
+      </div>
+
+      <div class="catalog-section-title">🚀 今後展開予定のサービス（スクロールで随時拡張）</div>
+
+      <!-- KKDリフォーム（仮） -->
+      <div class="catalog-card" style="opacity:0.85;">
+        <div class="catalog-card-head">
+          <div>
+            <div class="catalog-card-title">KKDリフォーム（仮）</div>
+            <div class="catalog-card-badges">
+              <span class="catalog-badge future">近日公開予定</span>
+              <span class="catalog-badge future">住設大型施工</span>
+            </div>
+          </div>
+          <div class="catalog-card-price" style="color:var(--muted);">見積診断</div>
+        </div>
+        <div class="catalog-card-desc">
+          外壁塗装・屋根塗装、隠蔽配管エアコン新設・交換など、住まいの総合リフォームサービスとして別途立ち上げ準備中！
+        </div>
+        <button type="button" class="catalog-card-btn future" disabled>近日公開予定（準備中）</button>
+      </div>
+
+      <!-- 不用品回収・整理 -->
+      <div class="catalog-card" style="opacity:0.85;">
+        <div class="catalog-card-head">
+          <div>
+            <div class="catalog-card-title">不用品回収・住まいの整理（仮）</div>
+            <div class="catalog-card-badges">
+              <span class="catalog-badge future">企画準備中</span>
+            </div>
+          </div>
+          <div class="catalog-card-price" style="color:var(--muted);">パック料金</div>
+        </div>
+        <div class="catalog-card-desc">
+          お部屋まるごと片付け・粗大ゴミ整理・古物買取と連携した整理サービスを計画中。
+        </div>
+        <button type="button" class="catalog-card-btn future" disabled>企画準備中</button>
+      </div>
+
+      <div style="text-align:center;margin:8px 0 4px;">
+        <button type="button" class="btn secondary" style="font-size:10.5px;padding:8px 14px;" onclick="openCustomerBooking()">📋 全サービスから選んで予約（ウィザード起動）</button>
+      </div>
+    </div>
+  `;
+  addChat("cChat", html);
+  log("CUSTOMER_SERVICE_CATALOG_RENDERED");
+}
+function renderCBody(){
+  const b=document.getElementById("cBody"), back=document.getElementById("cBack"), next=document.getElementById("cNext");
+  back.style.display=cWizard===1?"none":"block";
+  next.textContent=cWizard===6?"予約を確定":"次へ";
+  let h="";
+  if(cWizard===1){
+    h=`<div class="step">STEP 1 / 6</div><h3>サービスメニュー</h3>
+      <div class="notice">サービスカテゴリを押すと、その直下に該当するサービスメニューを一覧表示します。</div>
+      <div class="service-category-buttons">${Object.entries(SERVICES).map(([cat,list])=>{
+        const open=state.serviceCategoryOpen===cat;
+        return `<div class="service-category-block"><button type="button" class="service-category-button ${open?"open":""}" onclick="toggleServiceCategory('${esc(cat)}')">${esc(cat)}<span>${open?"▲":"▼"}</span></button>${open?`<div class="service-menu-list">${list.map(s=>`<button type="button" class="service-menu-item ${state.booking.service===s?"selected":""}" onclick="selectServiceCategoryMenu('${esc(cat)}','${esc(s)}')">${esc(s)}</button>`).join("")}</div>`:""}</div>`;
+      }).join("")}</div>
+      ${state.booking.service?`<div class="summary">選択中：<b>${esc(state.booking.category)}</b> ／ <b>${esc(state.booking.service)}</b></div>`:`<div class="notice">サービスカテゴリを選択し、表示されたサービスメニューから1つ選択してください。</div>`}`;
+  } else if(cWizard===2){
+    const isAC=state.booking.service==="エアコン脱着分解クリーニング";
+    h=`<div class="step">STEP 2 / 6</div><h3>条件・オプション</h3>`;
+    if(isAC){
+      h+=`<div class="field"><label>施工台数</label>
+        <div class="stepper-wrap">
+          <button type="button" class="stepper-btn" onclick="changeUnits(-1)">−</button>
+          <span class="stepper-val">${state.booking.units}</span>
+          <button type="button" class="stepper-btn" onclick="changeUnits(1)">＋</button>
+          <span style="font-size:12px;font-weight:800;color:var(--muted);">${PRICE[state.booking.service]?.unit||"台"}</span>
+        </div>
+      </div>`;
+      for(let i=1;i<=state.booking.units;i++){const o=state.booking.unitOptions[i]||[];h+=`<div class="job"><b>${i}台目</b>${customerOptions().map(x=>`<label class="check"><input type="checkbox" data-n="${esc(x.name)}" ${o.includes(x.name)?"checked":""} onchange="toggleUnitOption(${i},this.dataset.n,this.checked)">${esc(x.name)}（+¥${x.price.toLocaleString()}）</label>`).join("")}</div>`}
+    } else h+=`<div class="notice">サービス固有の条件・オプションをサービスマスタから表示する想定です。</div>`;
+    h+=priceSummary();
+  } else if(cWizard===3){
+    h=`<div class="step">STEP 3 / 6</div><h3>第1希望：予約可能枠</h3>${calendarHTML("customer1")}<div class="field"><label>希望時間</label><div class="available-slot-info">必要作業時間：約${durationHoursForBooking()}時間（${priceSummaryMinutes()}分）。開始時刻から必要時間分を連続して業者空き枠として確保できる候補のみ表示します。</div><div class="slots">${availableTimes(state.booking.date1).map(t=>`<button class="slot ${state.booking.time1===t?"selected":""}" onclick="state.booking.time1='${t}';renderCBody()">${t}</button>`).join("")||'<div class="notice">業者が報告した空き枠のない日は予約できません。</div>'}</div></div><div class="summary">第1希望：${state.booking.date1?fmtDate(state.booking.date1):"未選択"} ${esc(state.booking.time1||"")}</div>`;
+  } else if(cWizard===4){
+    h=`<div class="step">STEP 4 / 6</div><h3>第2希望：予約可能枠 <span class="mini">任意</span></h3><div class="notice">第2希望は任意です。第1希望だけで進むことができます。第1希望の ${state.booking.date1?fmtDate(state.booking.date1):"日付"} は第2希望では選択できません。</div>${calendarHTML("customer2")}<div class="field"><label>希望時間</label><div class="available-slot-info">必要作業時間：約${durationHoursForBooking()}時間（${priceSummaryMinutes()}分）。第1希望で選択した日付は除外されています。</div><div class="slots">${availableTimes(state.booking.date2).map(t=>`<button class="slot ${state.booking.time2===t?"selected":""}" onclick="state.booking.time2='${t}';renderCBody()">${t}</button>`).join("")||'<div class="notice">第2希望を設定しない場合は、そのまま［次へ］へ進めます。</div>'}</div></div><div class="summary">第2希望：${state.booking.date2?fmtDate(state.booking.date2):"未選択"} ${esc(state.booking.time2||"")} ${!state.booking.date2?'<span class="badge">任意・未選択</span>':""}</div>`;
+  } else if(cWizard===5){
+    h=`<div class="step">STEP 5 / 6</div><h3>訪問先情報</h3><div class="field"><label>お名前（又は表札名）</label><input value="${esc(state.booking.name)}" oninput="state.booking.name=this.value"></div><div class="field"><label>郵便番号</label><input data-zip="1" type="tel" inputmode="numeric" autocomplete="postal-code" maxlength="8" pattern="[0-9-]*" placeholder="150-0001" value="${esc(formatZip(state.booking.zip))}" oninput="forceHalfWidthInput(this,'zip')" oncompositionend="forceHalfWidthInput(this,'zip')" onblur="forceHalfWidthInput(this,'zip')"></div><div class="field"><label>住所（郵便番号から自動表示）</label><input data-address="auto" value="${esc(state.booking.address)}" readonly placeholder="7桁入力後に表示"></div><div class="field"><label>ご要望・備考</label><textarea oninput="state.booking.note=this.value">${esc(state.booking.note)}</textarea></div><div class="notice">郵便番号は全角・半角・ハイフン有無を問わず受け付け、7桁に正規化して「XXX-XXXX」で表示します。</div>`;
+  } else {
+    h=`<div class="step">STEP 6 / 6</div><h3>予約内容の確認</h3><div class="summary"><b>${esc(state.booking.service)}</b><br>カテゴリ：${esc(state.booking.category)}<br>数量：${state.booking.units}${PRICE[state.booking.service]?.unit||"式"}<br>第1希望：${fmtDate(state.booking.date1)} ${esc(state.booking.time1)}<br>第2希望：${fmtDate(state.booking.date2)} ${esc(state.booking.time2)}<br>${esc(state.booking.name)} ／ ${esc(state.booking.zip)}<br>${esc(state.booking.address)}</div>${priceSummary()}<div class="notice ok">予約確定後は既存案件とは別の案件IDとして「案件一覧」に追加されます。</div>`;
+  }
+  b.innerHTML=h;
+}
+
+function toggleServiceCategory(category){state.serviceCategoryOpen=state.serviceCategoryOpen===category?"":category;renderCBody();}
+function selectServiceCategoryMenu(category,service){
+  state.booking.category=category||"";
+  state.booking.service=service||"";
+  state.serviceCategoryOpen=category||"";
+  state.booking.unitOptions = {}; // DEF-009: サービス変更時に旧サービスのオプション状態をクリア
+  renderCBody();
+}
+function selectServiceMenu(service){
+  const category=Object.keys(SERVICES).find(cat=>(SERVICES[cat]||[]).includes(service))||state.booking.category||"";
+  selectServiceCategoryMenu(category,service);
+}
+function normalizeZipDigits(v){
+  return String(v??"").replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).replace(/[^0-9]/g,"").slice(0,7);
+}
+function normalizeHalfWidthAddressValue(v){
+  return String(v??"")
+    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+    .replace(/[Ａ-Ｚａ-ｚ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+    .replace(/[－ー−―]/g,"-");
+}
+function forceHalfWidthInput(el,type){
+  if(!el)return;
+  const normalize=()=>{
+    const raw=String(el.value??"");
+    const normalized=type==='zip'?formatZip(normalizeZipDigits(raw)):normalizeHalfWidthAddressValue(raw);
+    if(el.value!==normalized){
+      el.value=normalized;
+      try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}
+    }
+    if(type==='zip')zipLookup(normalizeZipDigits(normalized));
+  };
+  normalize();
+  requestAnimationFrame(normalize);
+  setTimeout(normalize,0);
+  setTimeout(normalize,30);
+}
+function formatZip(v){const d=normalizeZipDigits(v);return d.length>3?`${d.slice(0,3)}-${d.slice(3)}`:d;}
+function priceSummary(){
+  const p=PRICE[state.booking.service]||{base:0,mins:60,unit:"式"};
+  let optionCount=0;
+  Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
+  const mins=p.mins*state.booking.units + optionCount*20;
+  let optTotal=0; Object.values(state.booking.unitOptions).forEach(a=>a.forEach(n=>{ optTotal+=optPriceByName(n); }));
+  const price=p.base*state.booking.units + optTotal;
+  return `<div class="summary"><b>自動見積・工数（モック）</b><br>作業時間目安：約${mins}分<br>見積金額目安：${price.toLocaleString()}円〜<br><span class="mini">実装時はサービス／条件／オプション別マスタ単価を参照して算出。</span></div>`;
+}
+function priceSummaryMinutes(){
+  const p=PRICE[state.booking.service]||{mins:60};let optionCount=0;Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
+  return p.mins*state.booking.units+optionCount*20;
+}
+function setUnits(n){state.booking.units=Number(n);for(const k of Object.keys(state.booking.unitOptions)){if(Number(k)>state.booking.units)delete state.booking.unitOptions[k]}renderCBody();}
+function toggleUnitOption(i,o,on){state.booking.unitOptions[i]=state.booking.unitOptions[i]||[];state.booking.unitOptions[i]=on?[...new Set([...state.booking.unitOptions[i],o])]:state.booking.unitOptions[i].filter(x=>x!==o);renderCBody();}
+function durationHoursForBooking(){
+  const p=PRICE[state.booking.service]||{mins:60};
+  let optionCount=0;Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
+  return Math.max(1,Math.ceil((p.mins*state.booking.units+optionCount*20)/60));
+}
+function durationHoursForJob(j){return Math.max(1,Math.ceil(calcMinutes(j)/60));}
+function timeIndex(t){return TIMES.indexOf(t);}
+function reservedStartsAndBlocks(ds){
+  const blocked=new Set();
+  state.jobs.filter(j=>!j.completed).forEach(j=>{
+    // 業者が訪問日時を確定するまでは第1・第2希望を仮押さえ。
+    // 確定後は選択された側だけを予約枠として残し、選ばれなかった希望枠を再び予約可能に戻す。
+    const pairs=j.vendorChoice
+      ? (j.vendorChoice==="第1希望"?[[j.date1,j.time1]]:[[j.date2,j.time2]])
+      : [[j.date1,j.time1],[j.date2,j.time2]];
+    pairs.forEach(([d,t])=>{
+      if(d!==ds||!t)return;
+      const start=timeIndex(t); if(start<0)return;
+      for(let k=0;k<durationHoursForJob(j);k++) if(TIMES[start+k]) blocked.add(TIMES[start+k]);
+    });
+  });
+  return blocked;
+}
+function availableTimesForDuration(ds,hours){
+  const supply=new Set(state.vendorAvailable[ds]||[]), blocked=reservedStartsAndBlocks(ds), result=[];
+  TIMES.forEach((t,i)=>{
+    if(!supply.has(t)||blocked.has(t))return;
+    let ok=true;
+    for(let k=0;k<hours;k++){const slot=TIMES[i+k];if(!slot||!supply.has(slot)||blocked.has(slot)){ok=false;break;}}
+    if(ok)result.push(t);
+  });
+  return result;
+}
+function availableTimes(ds){return availableTimesForDuration(ds,durationHoursForBooking());}
+function selectCustomerDate1(ds){if(!availableTimes(ds).length){alert("この日は、選択中サービスの必要作業時間を連続して確保できる予約枠がありません。");return}state.booking.date1=ds;state.booking.time1="";renderCBody();}
+function selectCustomerDate2(ds){if(ds===state.booking.date1){alert("第1希望と同じ日は第2希望に選択できません。");return}if(!availableTimes(ds).length){alert("この日は、選択中サービスの必要作業時間を連続して確保できる予約枠がありません。");return}state.booking.date2=ds;state.booking.time2="";renderCBody();}
+async function zipLookup(v){
+  const clean=normalizeZipDigits(v);
+  state.booking.zip=clean;
+  const addressEl=document.querySelector('#cBody input[data-address="auto"]');
+  const zipEl=document.querySelector('#cBody input[data-zip="1"]');
+  if(zipEl && zipEl.value!==formatZip(clean)){
+    zipEl.value=formatZip(clean);
+    try{zipEl.setSelectionRange(zipEl.value.length,zipEl.value.length)}catch(e){}
+  }
+  if(clean.length===7){
+    if(addressEl && !addressEl.value) addressEl.placeholder="住所を自動検索中...";
+    try {
+      const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${clean}`);
+      const data = await res.json();
+      if(data && data.results && data.results.length > 0){
+        const r = data.results[0];
+        const fullAddr = `${r.address1}${r.address2}${r.address3}`;
+        state.booking.address = fullAddr;
+        if(addressEl) addressEl.value = fullAddr;
+        return;
+      }
+    } catch(e) {}
+    // フォールバック辞書
+    const z={"1500001":"東京都渋谷区神宮前","1600022":"東京都新宿区新宿","5300001":"大阪府大阪市北区梅田","1000001":"東京都千代田区千代田"};
+    if(z[clean]){
+      state.booking.address = z[clean];
+      if(addressEl) addressEl.value = state.booking.address;
+    } else {
+      if(addressEl) addressEl.placeholder="市区町村・町名を入力してください";
+    }
+  } else {
+    state.booking.address = "";
+    if(addressEl) addressEl.value = "";
+  }
+}
+function cNext(){
+  if(cWizard===1&&(!state.booking.category||!state.booking.service)){alert("サービスカテゴリとサービスメニューを選択してください");return}
+  if(cWizard===2&&!state.booking.service){alert("サービスメニューを選択してください");return}
+  if(cWizard===3&&(!state.booking.date1||!state.booking.time1)){alert("第1希望の日付と時間を選択してください");return}
+  if(cWizard===3 && !availableTimes(state.booking.date1).includes(state.booking.time1)){alert("第1希望の開始時刻から必要作業時間分の空き枠を確保できません。再選択してください。");return}
+  if(cWizard===4 && ((state.booking.date2 && !state.booking.time2) || (!state.booking.date2 && state.booking.time2))){alert("第2希望を選択する場合は、日付と時間をセットで選択してください。未選択のままでも次へ進めます。");return}
+  if(cWizard===4 && state.booking.date2 && !availableTimes(state.booking.date2).includes(state.booking.time2)){alert("第2希望の開始時刻から必要作業時間分の空き枠を確保できません。再選択してください。");return}
+  if(cWizard===5&&(!state.booking.name||state.booking.zip.length!==7)){alert("お名前と7桁の郵便番号を入力してください");return}
+  if(cWizard<6){cWizard++;renderCBody();}else confirmBooking();
+}
+function cBack(){if(cWizard>1){cWizard--;renderCBody();}}
+function confirmBooking(){
+  const id=generateJobId();
+  const now=new Date();
+  const job={
+    id,
+    service:state.booking.service,
+    category:state.booking.category,
+    units:state.booking.units,
+    unitOptions:JSON.parse(JSON.stringify(state.booking.unitOptions)),
+    date1:state.booking.date1,
+    time1:state.booking.time1,
+    date2:state.booking.date2,
+    time2:state.booking.time2,
+    name:state.booking.name,
+    zip:state.booking.zip,
+    address:state.booking.address,
+    note:state.booking.note,
+    addressBlock:state.booking.addressBlock||"",
+    buildingName:state.booking.buildingName||"",
+    roomNumber:state.booking.roomNumber||"",
+    detailAddress:state.booking.detailAddress||"",
+    photos:{install:false,model:false,outdoor:false,other:false},
+    vendorChoice:"",
+    vendorId:"V-001",
+    adminNote:"",
+    vendorMemo:"",
+    additionalFlag:"",
+    additionalItems:[],
+    customerDetailed:false,
+    todayTime:"",
+    scheduledDate:"",
+    scheduledTime:"",
+    completed:false,
+    completedDate:"",
+    completedAt:"",
+    completionPhotos:{before:false,after:false},
+    rating:5,
+    ratingComment:"",
+    ratingSubmitted:false,
+    createdAt:now.toLocaleString("ja-JP"),
+    receiptDateYmd:`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`,
+    chatMessages:[
+      {sender:"system",name:"KKDシステム",text:"予約を受け付けました。ご要望やご相談事項はこちらから担当業者へ直接メッセージをお送りいただけます。",time:nowStr()}
+    ]
+  };
+  state.jobs.push(job);
+  state.activeJobId=id;
+  state.booking={category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",note:""};
+  state.serviceCategoryOpen="";
+  closeSheet("c");
+  openCustomerCases("before");
+  renderVendorHome();
+  renderSide();
+  addChat("cChat",`予約を受け付けました。<b>${id}</b> として案件一覧に追加しました。`,"me");
+  addChat("vChat",`新規案件 <b>${id}</b> が条件適合業者の案件一覧へ届きました。`);
+  log("BOOKING_CONFIRMED "+id);
+  saveAndSync();
+}
+function getCurrentlyOpenCardIds(prefix){
+  const openIds = new Set();
+  document.querySelectorAll(`[id^="${prefix}job-body-"]`).forEach(el => {
+    if (el.style.display !== "none") {
+      openIds.add(el.id.replace(`${prefix}job-body-`, ""));
+    }
+  });
+  return openIds;
+}
+function getCurrentlyClosedCardIds(prefix){
+  const closedIds = new Set();
+  document.querySelectorAll(`[id^="${prefix}job-body-"]`).forEach(el => {
+    if (el.style.display === "none") {
+      closedIds.add(el.id.replace(`${prefix}job-body-`, ""));
+    }
+  });
+  return closedIds;
+}
+
+function openCustomerCases(tab="before", resetAccordion=false){
+  state.customerTab = tab;
+  try { localStorage.setItem("kkd_customer_tab", tab); } catch(e){}
+  const labels = {before:"訪問前（写真・住所）", progress:"対応中（予約確定）", done:"完了後（施工完了）"};
+  document.getElementById("cView").textContent = labels[tab] || labels.before;
+  clearChat("cChat");
+  addChat("cChat", `<div class="tabs"><button class="${tab==='before'?'active':''}" onclick="openCustomerCases('before', true)">訪問前（写真・住所）</button><button class="${tab==='progress'?'active':''}" onclick="openCustomerCases('progress', true)">対応中（予約確定）</button><button class="${tab==='done'?'active':''}" onclick="openCustomerCases('done', true)">完了後（履歴）</button></div>`);
+
+  const previouslyClosedIds = resetAccordion ? new Set() : getCurrentlyClosedCardIds("c");
+
+  // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
+  let jobs = [];
+  if(tab === "before"){
+    jobs = state.jobs.filter(j => (!j.vendorChoice || !j.customerDetailed) && !j.completed);
+  } else if(tab === "progress"){
+    jobs = state.jobs.filter(j => !!j.vendorChoice && !!j.customerDetailed && !j.completed);
+    // 作業予定日毎（昇順：直近の予定順）
+    jobs.sort((a, b) => {
+      const dateA = a.scheduledDate || (a.vendorChoice==="第1希望"?a.date1:a.date2) || "";
+      const dateB = b.scheduledDate || (b.vendorChoice==="第1希望"?b.date1:b.date2) || "";
+      const timeA = a.todayTime || a.scheduledTime || (a.vendorChoice==="第1希望"?a.time1:a.time2) || "";
+      const timeB = b.todayTime || b.scheduledTime || (b.vendorChoice==="第1希望"?b.time1:b.time2) || "";
+      return (dateA + timeA).localeCompare(dateB + timeB);
+    });
+  } else {
+    jobs = state.jobs.filter(j => !!j.completed);
+    // 対応完了日毎（降順：直近の完了順）
+    jobs.sort((a, b) => {
+      const dateA = a.completedAt || a.completedDate || "";
+      const dateB = b.completedAt || b.completedDate || "";
+      return dateB.localeCompare(dateA);
+    });
+  }
+
+  if(!jobs.length){
+    const emptyMsg = tab === "before"
+      ? "訪問前（写真・詳細住所入力）の案件はありません。<br>「予約窓口」から新規予約を行ってください。"
+      : (tab === "progress" ? "対応中（予約確定）の案件はありません。" : "完了後の案件はありません。");
+    addChat("cChat", `<div class="job" style="color:var(--muted);text-align:center;padding:14px 10px;">${emptyMsg}</div>`);
+    log("CUSTOMER_CASES_OPEN " + tab + " (0件)");
+    return;
+  }
+
+  jobs.forEach(j => {
+    const lastName = getCustomerLastNameWithHonorific(j.name);
+    const zipCode = formatZip(j.zip);
+    const req = requiredPhotoCount(j), rec = countRequiredPhotos(j);
+    const isPhotosDone = rec >= req;
+    const vRec = countVisitPhotos(j);
+    const cRec = countCompletionPhotos(j);
+
+    let statusBadge = "";
+    if(tab === "before"){
+      if(j.vendorChoice && !j.customerDetailed){
+        statusBadge = '<span class="badge ok">日時確定・住所入力</span>';
+      } else {
+        statusBadge = isPhotosDone ? '<span class="badge ok">写真受領済</span>' : '<span class="badge warn">写真待ち</span>';
+      }
+    } else if(tab === "progress"){
+      statusBadge = j.isStarted ? '<span class="badge ok">▶️ 作業中</span>' : '<span class="badge ok">予約確定</span>';
+    } else {
+      statusBadge = '<span class="badge ok">完了</span>';
+    }
+
+    let tabDetailHtml = "";
+    if(tab === "before"){
+      if(j.vendorChoice && !j.customerDetailed){
+        // 訪問日時確定後：残りの番地・建物名・部屋番号等の入力ステップ
+        const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
+        const scheduledTm = j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
+        tabDetailHtml = `
+          <div class="notice ok" style="margin:4px 0 6px;line-height:1.6;border:2px solid #0d6b57;background:#f0faf5;">
+            <div style="font-weight:bold;color:#0d6b57;font-size:11px;">🎉 【訪問日時が確定しました】</div>
+            <div>担当業者が <b>${esc(j.vendorChoice)}（${fmtDateShort(scheduledDt)} ${fmtSlotStart(scheduledTm)}）</b> にて訪問決定いたしました！</div>
+            <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #a7f3d0;font-size:9.5px;color:var(--ink);">
+              現場訪問に向け、残りの番地・建物名・部屋番号等の詳細住所と訪問先情報をご入力ください。入力完了後に案件が「対応中」へ移動します。
+            </div>
+          </div>
+          ${renderPriceBreakdown(j)}
+          <div style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:8px;margin:6px 0;">
+            <div style="font-size:10.5px;font-weight:bold;color:var(--ink);margin-bottom:6px;">📍 詳細住所・訪問先情報の入力</div>
+            <div class="field" style="margin:4px 0;">
+              <label>郵便番号</label>
+              <input value="${esc(formatZip(j.zip))}" readonly style="background:#f1f5f9;color:var(--muted);">
+            </div>
+            <div class="field" style="margin:4px 0;">
+              <label>郵便番号から自動表示された住所</label>
+              <input value="${esc(j.address||"")}" readonly style="background:#f1f5f9;color:var(--muted);">
+            </div>
+            <div class="field" style="margin:6px 0;">
+              <label>番地 <span class="badge req" style="font-size:7.5px;padding:1px 4px;background:#e11d48;color:#fff;">必須</span></label>
+              <input id="cust-block-${j.id}" value="${esc(j.addressBlock||"")}" type="tel" inputmode="numeric" placeholder="例：1-2-3" oninput="forceHalfWidthInput(this,'address')">
+            </div>
+            <div class="field" style="margin:6px 0;">
+              <label>建物名 <span class="mini">（マンション・アパート・ビル名等）</span></label>
+              <input id="cust-building-${j.id}" value="${esc(j.buildingName||"")}" placeholder="例：グランドハイツ">
+            </div>
+            <div class="field" style="margin:6px 0;">
+              <label>部屋番号</label>
+              <input id="cust-room-${j.id}" value="${esc(j.roomNumber||"")}" type="tel" inputmode="numeric" placeholder="例：201" oninput="forceHalfWidthInput(this,'address')">
+            </div>
+
+            <!-- 訪問先特有情報（写真・経路・駐車場） -->
+            <div style="margin-top:8px;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid #e2e8f0;">
+              <div style="font-size:10px;font-weight:bold;color:var(--ink);margin-bottom:3px;">📍 訪問先特有の情報（推奨・写真共有）</div>
+              <div class="mini" style="margin-bottom:6px;color:var(--muted);">※駐車場位置や特有の進入経路など、業者が迷わず到着できるよう事前に写真をご提供いただけます。</div>
+              <div style="display:flex;gap:6px;margin-bottom:6px;">
+                <button type="button" class="btn ${j.visitPhotos?.parking ? 'secondary' : 'primary'}" style="flex:1;font-size:9px;padding:6px 4px;" onclick="toggleVisitPhoto('${j.id}','parking')">
+                  ${j.visitPhotos?.parking ? '✓ 🅿️ 駐車位置写真 登録済' : '＋ 🅿️ 駐車位置写真を追加'}
+                </button>
+                <button type="button" class="btn ${j.visitPhotos?.entrance ? 'secondary' : 'primary'}" style="flex:1;font-size:9px;padding:6px 4px;" onclick="toggleVisitPhoto('${j.id}','entrance')">
+                  ${j.visitPhotos?.entrance ? '✓ 🚪 進入経路写真 登録済' : '＋ 🚪 進入経路写真を追加'}
+                </button>
+              </div>
+              <div class="field" style="margin:4px 0;">
+                <label style="font-size:9.5px;">訪問経路・駐車場の特記事項メモ</label>
+                <textarea id="cust-route-${j.id}" rows="2" style="width:100%;font-size:10px;padding:5px;border:1px solid #cbd5e1;border-radius:4px;" placeholder="例：敷地内来客用駐車場No.3利用可能。オートロックは呼出201を押してください。">${esc(j.visitInfo?.routeMemo||"")}</textarea>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;">
+              <button type="button" class="btn primary" style="width:100%;padding:10px;font-size:11.5px;background:#0d6b57;font-weight:bold;" onclick="submitCustomerAddressDetail('${j.id}')">
+                ✓ 住所・訪問先情報を確定して予約完了へ
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        // 通常の訪問前：現場写真提出ステップ
+        tabDetailHtml = `
+          <div class="meta" style="margin-bottom:6px;">
+            第1希望：${fmtDate(j.date1)} ${esc(j.time1)}
+            ${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}
+          </div>
+          ${renderPriceBreakdown(j)}
+          <div class="notice" style="margin:4px 0 6px;">📷 <b>現場写真提出</b><br>作業を円滑に進めるため、現場写真を送信してください。必須写真が揃うと業者側の訪問日時確定へ進みます。</div>
+          <div class="case-photo-grid">
+            <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</button></div>
+            <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</button></div>
+          </div>
+          ${j.service==="エアコン脱着分解クリーニング"?`
+          <div class="case-photo-grid" style="margin-top:5px;">
+            <div class="photo ${j.photos.outdoor?'sent':''}">📷 ${outdoorRequired(j)?'必須：':'任意：'}室外機の写真<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','outdoor')">${j.photos.outdoor?'✓ 送信済み':'写真を追加'}</button></div>
+            <div class="photo ${j.photos.other?'sent':''}">📷 任意：その他（気になる場所）<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','other')">${j.photos.other?'✓ 送信済み':'写真を追加'}</button></div>
+          </div>`:""}
+          <div class="summary" style="margin-top:6px;font-size:9px;">必須写真：<b>${rec}/${req}</b> ${rec>=req?'<span class="badge ok">送信完了・日時調整中</span>':'<span class="badge warn">残り'+(req-rec)+'点必要</span>'}</div>
+        `;
+      }
+    } else if(tab === "progress"){
+      const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
+      const scheduledTm = j.todayTime || j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
+      tabDetailHtml = `
+        <div class="notice ok" style="margin:4px 0 6px;line-height:1.6;">
+          <div>【訪問日時確定】作業予定日：<b>${fmtDate(scheduledDt)} ${esc(scheduledTm)}</b>（確定枠：${esc(j.vendorChoice)}）</div>
+          <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #a7f3d0;">
+            【訪問住所確定】<b>${esc(getFullAddress(j))}</b>
+            <div style="font-size:8.5px;color:#065f46;margin-top:2px;">※番地・建物名・部屋番号まで確定済みです（マップ連携・現場直行可能）。</div>
+          </div>
+        </div>
+        ${j.visitInfo?.routeMemo ? `
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px;margin:4px 0;font-size:9px;line-height:1.4;">
+            <b>📍 訪問先情報・経路メモ:</b> ${esc(j.visitInfo.routeMemo)}
+          </div>
+        `: ""}
+        ${renderPriceBreakdown(j)}
+        ${j.todayTime?`<div class="notice ok" style="margin:4px 0 6px;">【当日連絡】本日の訪問予定時間は <b>${esc(j.todayTime)}</b> です。</div>`:""}
+        ${j.isStarted?`
+        <div class="notice ok" style="margin:4px 0 6px;border-left:3px solid #0d6b57;background:#f0faf5;">
+          ▶️ <b>【作業中】</b>業者が <b>${esc(j.startedAt)}</b> より作業を開始しております。（追加作業：${esc(additionalSummary(j))}）
+        </div>
+        `:""}
+      `;
+    } else {
+      const compDateStr = j.completedDate || fmtDate(j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2));
+      tabDetailHtml = `
+        <div class="notice ok" style="margin:4px 0 6px;">
+          【作業完了】対応完了日：<b>${esc(compDateStr)}</b> ｜ 確定金額：<b style="color:var(--customer);font-size:11px;">¥${calcPrice(j).toLocaleString()}</b>（税込）<br>
+          施工が完了いたしました。ご利用ありがとうございました。<br>
+          <span class="mini">Squareキャッシュレス決済完了・領収書即時発行可能</span>
+        </div>
+        ${renderPriceBreakdown(j)}
+        <div style="margin:6px 0;display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn secondary" style="font-size:10px;padding:5px 10px;display:inline-flex;align-items:center;gap:4px;" onclick="openCustomerPhotoModal('${j.id}')">
+            📷 施工写真を確認
+            ${(j.completionPhotos?.before && j.completionPhotos?.after)?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">写真受領済</span>':''}
+          </button>
+          <button type="button" class="btn primary" style="font-size:10px;padding:5px 10px;background:#0d6b57;display:inline-flex;align-items:center;gap:4px;" onclick="openReceiptModal('${j.id}')">
+            🧾 領収書を発行・ダウンロード
+          </button>
+        </div>
+        <div style="margin-top:8px;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid #e2e8f0;">
+          <div style="font-size:10px;font-weight:bold;color:var(--ink);display:flex;justify-content:space-between;align-items:center;">
+            <span>⭐ 施工担当者のご評価</span>
+            ${j.ratingSubmitted ? '<span class="badge ok">評価送信済</span>' : '<span class="badge">未評価</span>'}
+          </div>
+          ${j.ratingSubmitted ? `
+            <div style="font-size:12px;color:#f59e0b;margin-top:3px;letter-spacing:2px;">
+              ${'★'.repeat(j.rating)}${'☆'.repeat(5-j.rating)} <b style="font-size:10px;color:var(--ink);">(${j.rating}.0点)</b>
+            </div>
+            ${j.ratingComment ? `<div style="font-size:9.5px;color:var(--ink);margin-top:3px;background:#fff;padding:4px 6px;border-radius:4px;border:1px solid #e2e8f0;">"${esc(j.ratingComment)}"</div>` : ''}
+            <div class="mini ok" style="margin-top:3px;">ご評価ありがとうございました！Googleビジネス等の口コミ連携にも反映されます。</div>
+          ` : `
+            <div style="margin-top:4px;">
+              <div style="display:flex;gap:4px;align-items:center;">
+                <span style="font-size:9.5px;color:var(--muted);">満足度：</span>
+                <div id="star-select-${j.id}" class="star-rating" style="display:inline-flex;">
+                  <span class="star-btn active" onclick="setCustomerRating('${j.id}',1)">★</span>
+                  <span class="star-btn active" onclick="setCustomerRating('${j.id}',2)">★</span>
+                  <span class="star-btn active" onclick="setCustomerRating('${j.id}',3)">★</span>
+                  <span class="star-btn active" onclick="setCustomerRating('${j.id}',4)">★</span>
+                  <span class="star-btn active" onclick="setCustomerRating('${j.id}',5)">★</span>
+                </div>
+                <span id="star-val-${j.id}" style="font-size:10px;font-weight:bold;color:var(--ink);margin-left:4px;">5.0点</span>
+              </div>
+              <input type="text" id="rating-comment-${j.id}" placeholder="施工へのご感想・メッセージ（任意）" style="width:100%;font-size:9.5px;padding:4px 6px;margin-top:4px;border:1px solid #cbd5e1;border-radius:4px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                <span class="mini" style="color:var(--muted);">Googleビジネス口コミ想定</span>
+                <button type="button" class="btn primary" style="font-size:9px;padding:3px 10px;" onclick="submitCustomerRating('${j.id}')">評価を送信</button>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // 外側固定部（ヘッダー）：新4行構成（2行目と4行目を入れ替え、新2行目右端に:rec/req点バッジを統一配置）
+    let rightItemHtml = "";
+    let line4Html = "";
+
+    if(tab === "before"){
+      rightItemHtml = `📷 必須写真:${rec}/${req}点 ${isPhotosDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
+      line4Html = `🗓 希望日：第1:${fmtDateShort(j.date1)} ${fmtSlotStart(j.time1)}${j.date2&&j.time2?` / 第2:${fmtDateShort(j.date2)} ${fmtSlotStart(j.time2)}`:""}`;
+    } else if(tab === "progress"){
+      const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
+      const scheduledTm = j.todayTime || j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
+      const isVisitDone = vRec >= 2;
+      rightItemHtml = `📍 訪問先情報:${vRec}/2点 ${isVisitDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
+      line4Html = `🗓 作業予定日:<b>${fmtDateShort(scheduledDt)} ${fmtSlotStart(scheduledTm)}</b> ${j.isStarted?`<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">▶️ 作業中(${esc(j.startedAt)})</span>`:''}`;
+    } else {
+      const compDateStr = j.completedDate || fmtDate(j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2));
+      const isCompDone = cRec >= 2;
+      rightItemHtml = `📷 報告写真:${cRec}/2点 ${isCompDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
+      line4Html = `✓ 対応完了日:<b>${fmtDateShort(compDateStr)}</b>`;
+    }
+    const line3Address = (tab === "done" || (tab === "before" && !j.customerDetailed)) ? getSimpleAddress(j) : getFullAddress(j);
+
+    // 顧客画面はデフォルト展開（ユーザーが明示的に閉じていなければ展開）
+    const isClosed = previouslyClosedIds.has(j.id);
+    const bodyDisplay = isClosed ? "none" : "block";
+
+    addChat("cChat", `<div class="job" id="cjob-${j.id}">
+      <div class="customer-job-head" style="display:flex;align-items:stretch;justify-content:space-between;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.3;">
+            <span style="font-size:11.5px;font-weight:900;color:var(--customer);">🛠 ${esc(j.service)}（${j.units}${PRICE[j.service]?.unit||"台"}）</span>
+            ${statusBadge}
+          </div>
+          <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:6px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <span style="overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">👤 <b style="font-size:11px;">${esc(lastName)}</b> ｜ 💰 <b style="font-size:11.5px;color:var(--customer);">¥${calcPrice(j).toLocaleString()}</b></span>
+            <span style="flex-shrink:0;font-size:9px;color:var(--muted);">${rightItemHtml}</span>
+          </div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
+            No. <b style="color:var(--ink);">${esc(j.id)}</b> ｜ 📍 ${esc(line3Address)}
+          </div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
+            ${line4Html}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-end;width:56px;flex-shrink:0;">
+          <button type="button" class="job-toggle-btn" style="width:100%;text-align:center;box-sizing:border-box;" onclick="toggleCustomerJob('${j.id}')">⇕ 開閉</button>
+        </div>
+      </div>
+      <div class="customer-job-body" id="cjob-body-${j.id}" style="display:${bodyDisplay};">
+        ${tabDetailHtml}
+        ${renderDirectChatBox(j, 'customer')}
+      </div>
+    </div>`);
+  });
+  if (resetAccordion) {
+    const cChatEl = document.getElementById("cChat");
+    if(cChatEl) cChatEl.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+  log("CUSTOMER_CASES_OPEN " + tab);
+}
+function renderCustomerCases(){ openCustomerCases(state.customerTab||"before"); }
+function outdoorRequired(j){
+  if(j.service!=="エアコン脱着分解クリーニング") return false;
+  return Object.values(j.unitOptions||{}).some(a=>a.includes("室外機洗浄"));
+}
+function requiredPhotoCount(j){return outdoorRequired(j)?3:2}
+function countRequiredPhotos(j){let ks=["install","model"];if(outdoorRequired(j))ks.push("outdoor");return ks.filter(k=>j.photos[k]).length}
+function getJob(id){return state.jobs.find(j=>j.id===id)}
+function renderCaseMessages(j){
+  const req=requiredPhotoCount(j), rec=countRequiredPhotos(j);
+  let msgs=[];
+  msgs.push(`<div class="case-message system">【システム】必須写真が揃うと、業者の訪問日時確定へ進みます。</div>`);
+  msgs.push(`<div class="case-photo-grid">
+    <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><button class="btn secondary" onclick="sendPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</button></div>
+    <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><button class="btn secondary" onclick="sendPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</button></div>
+  </div>`);
+  if(j.service==="エアコン脱着分解クリーニング")msgs.push(`<div class="case-photo-grid"><div class="photo ${j.photos.outdoor?'sent':''}">📷 ${outdoorRequired(j)?'必須：':'任意：'}室外機の写真<br><button class="btn secondary" onclick="sendPhoto('${j.id}','outdoor')">${j.photos.outdoor?'✓ 送信済み':'写真を追加'}</button></div><div class="photo ${j.photos.other?'sent':''}">📷 任意：その他（気になる場所）<br><button class="btn secondary" onclick="sendPhoto('${j.id}','other')">${j.photos.other?'✓ 送信済み':'写真を追加'}</button></div></div>`);
+  if(rec<req)msgs.push(`<div class="case-message system">必須写真：${rec}/${req}。残り${req-rec}点を受信するまで、業者側の訪問日時確定はできません。</div>`);
+  if(j.vendorChoice)msgs.push(`<div class="case-message system">【確認連絡】業者が <b>${esc(j.vendorChoice)}</b> で訪問日時を確定しました。<br><button class="btn secondary" onclick="simulateDayBefore()">前日になった状態を再現</button> <button class="btn secondary" onclick="simulateToday()">当日訪問前を再現</button></div>`);
+  if(j.customerDetailed)msgs.push(`<div class="case-message system">【前日連絡】訪問先詳細の入力をお願いします。<br>住所：${esc(j.address)}<br><button class="btn secondary" onclick="alert('詳細住所入力フォームを表示する想定')">詳細情報を入力</button> <button class="btn secondary" onclick="alert('位置情報共有を送信した想定')">📍位置情報を共有</button></div>`);
+  if(j.todayTime)msgs.push(`<div class="case-message system">【当日連絡】本日の訪問予定時間は <b>${esc(j.todayTime)}</b> です。</div>`);
+  if(j.completed)msgs.push(`<div class="case-message system">【完了】作業完了。完了案件へ移動しました。</div>`);
+  return msgs.join('');
+}
+function toggleCaseFixed(id){
+  const el=document.getElementById('case-fixed-'+id), btn=document.getElementById('case-toggle-'+id);if(!el)return;
+  const body=el.querySelector('.case-fixed-body');const hidden=body.style.display==='none';body.style.display=hidden?'block':'none';btn.textContent=hidden?'▲ 依頼内容を閉じる':'▼ 依頼内容を開く';
+}
+function openCustomerCaseDetail(id){
+  state.activeJobId=id||state.activeJobId;const j=getJob(state.activeJobId);if(!j)return;
+  const tab = j.completed ? "done" : (j.vendorChoice ? "progress" : "before");
+  openCustomerCases(tab);
+  const body = document.getElementById("cjob-body-" + j.id);
+  if(body) body.style.display = "block";
+  const btn = document.getElementById("cjob-btn-" + j.id);
+  if(btn) btn.textContent = "▲ 閉じる";
+  log('CUSTOMER_CASE_OPEN '+j.id);
+}
+function sendPhoto(id,key){
+  const j=getJob(id); if(!j) return;
+  j.photos[key]=true;
+  log(`PHOTO_RECEIVED ${id} ${key}`);
+  openCustomerCases(state.customerTab||"before", false);
+  if(state.vendorTab){
+    openVendorCases(state.vendorTab, false);
+  } else {
+    renderVendorHome();
+  }
+  renderSide();
+  saveAndSync();
+}
+function openCustomerCompleted(){
+  openCustomerCases('done');
+}
+function customerInquiry(){clearChat("cChat");document.getElementById("cView").textContent="お問合せ";addChat("cChat","お問合せ：予約内容／施工前相談／その他から選択する想定です。");}
+function customerInfo(){clearChat("cChat");document.getElementById("cView").textContent="info";addChat("cChat","【info】サービスの流れ／登録業者紹介／サービス一覧／施工事例などを表示する想定です。");}
+function customerOther(){clearChat("cChat");document.getElementById("cView").textContent="ご意見箱・その他";addChat("cChat","【第5フェーズ入口】ご意見箱・その他。将来のサービス拡張・協成等へつながる入口です。");}
+
+function openAvailability(){
+  vWizard=1;
+  state.vendorSelectedDate="";
+  state.vendorTempTimes=[];
+  openSheet("v","空き枠報告");
+  document.getElementById("vBack").style.display="none";
+  document.getElementById("vNext").style.display="none";
+  renderVBody();
+  log("VENDOR_AVAILABILITY_OPEN");
+}
+function renderVBody(){
+  const b=document.getElementById("vBody");
+  document.getElementById("vBack").style.display="none";document.getElementById("vNext").style.display="none";
+  
+  // 1画面コンパクトデザイン
+  b.innerHTML=`
+    <div style="font-size:9px;color:var(--accent);font-weight:900;letter-spacing:.05em;">SUPPLY / 空き枠報告</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h3 style="margin:0;font-size:13px;">対応可能日・時間</h3>
+      <span style="font-size:8.5px;color:var(--muted);">カレンダータップで日付選択</span>
+    </div>
+    <div style="margin-bottom:6px;">
+      ${calendarHTML("vendor")}
+    </div>
+    
+    <div style="background:#f1f8f5;border:1px solid #c2e4d5;border-radius:6px;padding:5px 8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:9.5px;color:var(--ink);">選択日: <strong style="color:var(--customer);">${state.vendorSelectedDate?fmtDate(state.vendorSelectedDate):"カレンダーで日付を選択"}</strong></span>
+      <div style="display:flex;gap:4px;">
+        <button type="button" class="btn secondary" style="font-size:8px;padding:2px 6px;" onclick="toggleVendorPeriod('AM', true)">午前一括</button>
+        <button type="button" class="btn secondary" style="font-size:8px;padding:2px 6px;" onclick="toggleVendorPeriod('PM', true)">午後一括</button>
+        <button type="button" class="btn secondary" style="font-size:8px;padding:2px 6px;" onclick="toggleAllVendorTimes(true)">終日</button>
+        <button type="button" class="btn secondary" style="font-size:8px;padding:2px 6px;" onclick="toggleAllVendorTimes(false)">解除</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:4px;margin-bottom:8px;">
+      ${TIMES.map(t=>{
+        const isSel = state.vendorTempTimes.includes(t);
+        const disabled = !state.vendorSelectedDate;
+        return `
+          <button type="button" 
+            style="border:1px solid ${isSel?'#0d6b57':'#cbd5e1'};background:${isSel?'#0d6b57':'#fff'};color:${isSel?'#fff':'#334155'};border-radius:5px;padding:5px 2px;font-size:9.5px;font-weight:${isSel?'bold':'normal'};cursor:${disabled?'not-allowed':'pointer'};opacity:${disabled?'0.4':'1'};" 
+            onclick="toggleVendorTime('${t}', ${!isSel})" ${disabled?'disabled':''}>
+            ${t.split('〜')[0]}〜
+          </button>
+        `;
+      }).join("")}
+    </div>
+
+    <div style="display:flex;gap:6px;margin-top:4px;">
+      <button class="btn primary" style="background:#0d6b57;padding:8px 6px;font-size:10.5px;" onclick="registerVendorAvailability(false)">この日で登録して完了</button>
+      <button class="btn secondary" style="padding:8px 6px;font-size:10.5px;" onclick="registerVendorAvailability(true)">登録して別の日も</button>
+    </div>
+  `;
+}
+function selectVendorDate(ds){state.vendorSelectedDate=ds;state.vendorTempTimes=[...(state.vendorAvailable[ds]||[])];renderVBody();}
+function toggleVendorTime(t,on){if(!state.vendorSelectedDate)return;if(on)state.vendorTempTimes=[...new Set([...state.vendorTempTimes,t])];else state.vendorTempTimes=state.vendorTempTimes.filter(x=>x!==t);renderVBody(true);}
+function toggleAllVendorTimes(on){if(!state.vendorSelectedDate){alert("先に可能日を選択してください");return}state.vendorTempTimes=on?[...TIMES]:[];renderVBody(true);}
+function isPeriodSelected(period){const range=period==="AM"?TIMES.slice(0,6):TIMES.slice(6,12);return range.every(t=>state.vendorTempTimes.includes(t));}
+function toggleVendorPeriod(period,on){if(!state.vendorSelectedDate){alert("先に可能日を選択してください");return}const range=period==="AM"?TIMES.slice(0,6):TIMES.slice(6,12);if(on)state.vendorTempTimes=[...new Set([...state.vendorTempTimes,...range])];else state.vendorTempTimes=state.vendorTempTimes.filter(t=>!range.includes(t));renderVBody(true);}
+function showVendorActionNotice(message){
+  const el=document.getElementById("vActionNotice");
+  if(!el)return;
+  el.innerHTML=message;
+  el.style.display="block";
+}
+function registerVendorAvailability(continueMode=false){
+  if(!state.vendorSelectedDate){alert("可能日を選択してください");return}
+  if(!state.vendorTempTimes.length){alert("時間枠を1つ以上選択してください");return}
+  const registeredDate=state.vendorSelectedDate;
+  state.vendorAvailable[registeredDate]=[...state.vendorTempTimes];
+  log("AVAILABILITY_REGISTERED "+registeredDate);
+  renderSide();
+  renderCustomerAvailabilityNote();
+  saveAndSync();
+  if(continueMode){
+    state.vendorSelectedDate="";
+    state.vendorTempTimes=[];
+    renderVBody();
+    showVendorActionNotice(`<b>空き枠を登録しました。</b><br>${fmtDate(registeredDate)} の対応可能時間を登録しました。<br>続けて次の日の登録ができます。`);
+  }else{
+    state.vendorSelectedDate="";
+    state.vendorTempTimes=[];
+    closeSheet("v");
+    renderVendorHome();
+    showVendorActionNotice(`<b>空き枠を登録しました。</b><br>${fmtDate(registeredDate)} の対応可能時間を登録完了しました。`);
+  }
+}
+function vendorHomeDate(ds){
+  const times=state.vendorAvailable[ds]||[];
+  alert(`${fmtDate(ds)}\n空き枠：${times.length?times.join(" / "):"なし"}\n\nこの通常画面では、業者自身の空き枠と予約案件を同一カレンダーで視認する想定です。`);
+}
+function renderVendorHome(){
+  clearChat("vChat");document.getElementById("vView").textContent="予定表示";
+  const keys=Object.keys(state.vendorAvailable).sort();
+  let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button></div></div>`;
+  const bookings=state.jobs.filter(j=>!j.completed);
+  if(bookings.length) html+=bookings.map(j=>{
+    const lastName = getCustomerLastNameWithHonorific(j.name);
+    const zipCode = formatZip(j.zip);
+    const addr = j.address ? esc(j.address) : "住所確認中";
+    return `<div class="job">
+      <b>${j.id}</b> <span class="badge ${j.vendorChoice?"ok":"warn"}">${j.vendorChoice?"予約確定":"新規"}</span>
+      <div style="font-size:11px;font-weight:900;color:var(--ink);margin:3px 0 1px;">👤 ${esc(lastName)}</div>
+      <div style="font-size:9.5px;color:var(--muted);margin-bottom:4px;">📍 〒${esc(zipCode)} ${addr}</div>
+      ${esc(j.service)} ／ ${fmtDate(j.date1)} ${esc(j.time1)}
+      <div class="meta">第2希望 ${fmtDate(j.date2)} ${esc(j.time2)}<br>作業時間：約${calcMinutes(j)}分</div>
+    </div>`;
+  }).join("");
+  addChat("vChat",html);document.getElementById("vStatus").textContent=bookings.length+"件";
+}
+function renderCustomerAvailabilityNote(){if(state.jobs.length)addChat("cChat","業者の空き枠が更新されました。予約窓口で最新の候補日を確認できます。");}
+
+function isPhotoReviewCompleted(j){
+  if(!j) return false;
+  const req = requiredPhotoCount(j);
+  const rec = countRequiredPhotos(j);
+  // 条件1: 必須写真受信完了（req===0 の場合も 0>=0 で成立）
+  if (rec < req) return false;
+  // 条件2: 現場写真確認後の追加項目有無が確定していること（未選択は不可）
+  if (!j.additionalFlag) return false;
+  // 条件3: 追加項目「あり」の場合は具体的な追加項目が1つ以上選択されていること
+  if (j.additionalFlag === "あり" && (!j.additionalItems || !j.additionalItems.length)) return false;
+  return true;
+}
+function openVendorCases(tab="before", resetAccordion=false){
+  state.vendorTab=tab;
+  try { localStorage.setItem("kkd_vendor_tab", tab); } catch(e){}
+  const labels={before:"訪問前（依頼受付）",progress:"対応中（予約確定）",done:"完了後（応対履歴）"};
+  document.getElementById("vView").textContent=labels[tab]||labels.before;
+  clearChat("vChat");
+  addChat("vChat",`<div class="tabs"><button class="${tab==="before"?"active":""}" onclick="openVendorCases('before', true)">訪問前（依頼受付）</button><button class="${tab==="progress"?"active":""}" onclick="openVendorCases('progress', true)">対応中（予約確定）</button><button class="${tab==="done"?"active":""}" onclick="openVendorCases('done', true)">完了後（応対履歴）</button></div>`);
+
+  const previouslyOpenIds = resetAccordion ? new Set() : getCurrentlyOpenCardIds("v");
+
+  // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
+  let jobs = [];
+  if(tab === "before"){
+    jobs = state.jobs.filter(j => (!j.vendorChoice || !j.customerDetailed) && !j.completed);
+  } else if(tab === "progress"){
+    jobs = state.jobs.filter(j => !!j.vendorChoice && !!j.customerDetailed && !j.completed);
+    // 作業予定日毎（昇順：直近の予定順）
+    jobs.sort((a, b) => {
+      const dateA = a.scheduledDate || (a.vendorChoice==="第1希望"?a.date1:a.date2) || "";
+      const dateB = b.scheduledDate || (b.vendorChoice==="第1希望"?b.date1:b.date2) || "";
+      const timeA = a.todayTime || a.scheduledTime || (a.vendorChoice==="第1希望"?a.time1:a.time2) || "";
+      const timeB = b.todayTime || b.scheduledTime || (b.vendorChoice==="第1希望"?b.time1:b.time2) || "";
+      return (dateA + timeA).localeCompare(dateB + timeB);
+    });
+  } else {
+    jobs = state.jobs.filter(j => !!j.completed);
+    // 対応完了日毎（降順：直近の完了順）
+    jobs.sort((a, b) => {
+      const dateA = a.completedAt || a.completedDate || "";
+      const dateB = b.completedAt || b.completedDate || "";
+      return dateB.localeCompare(dateA);
+    });
+  }
+
+  if(!jobs.length){
+    const emptyMsg = tab==="before"
+      ? "訪問前（依頼受付）の案件はありません（顧客の予約受付・住所入力待ち）。"
+      : (tab==="progress" ? "対応中（予約確定）の案件はありません。" : "完了後の案件はありません。");
+    addChat("vChat", emptyMsg);
+    return;
+  }
+
+  jobs.forEach(j=>{
+    const lastName = getCustomerLastNameWithHonorific(j.name);
+    const zipCode = formatZip(j.zip);
+    const req = requiredPhotoCount(j), rec = countRequiredPhotos(j);
+    const isPhotosDone = rec >= req;
+    const isReviewDone = isPhotoReviewCompleted(j);
+    const vRec = countVisitPhotos(j);
+    const cRec = countCompletionPhotos(j);
+
+    let statusBadge = "";
+    if(tab === "before"){
+      if(j.vendorChoice && !j.customerDetailed){
+        statusBadge = '<span class="badge ok">日時確定・住所待ち</span>';
+      } else {
+        statusBadge = isPhotosDone ? '<span class="badge ok">写真受領済</span>' : '<span class="badge warn">写真待ち</span>';
+      }
+    } else if(tab === "progress"){
+      statusBadge = j.isStarted ? '<span class="badge ok">▶️ 作業中</span>' : '<span class="badge ok">予約確定</span>';
+    } else {
+      statusBadge = '<span class="badge ok">完了</span>';
+    }
+
+    let detailHtml = "";
+    if(tab==="before"){
+      if(j.vendorChoice && !j.customerDetailed){
+        // 訪問日時確定後、顧客の住所入力待ち
+        const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
+        const scheduledTm = j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
+        detailHtml = `
+          <div class="notice ok" style="margin:4px 0 6px;">
+            【訪問日時確定済】確定枠：<b>${esc(j.vendorChoice)}（${fmtDateShort(scheduledDt)} ${fmtSlotStart(scheduledTm)}）</b>
+          </div>
+          <div class="notice warn" style="margin:4px 0 6px;line-height:1.5;">
+            ⏳ <b>顧客の詳細住所・訪問先情報入力待ち</b><br>
+            顧客が残りの番地・建物名・部屋番号等を入力完了すると、本案件は自動的に「対応中」へ移動し、完全住所でのマップ連携・現場直行が可能になります。
+          </div>
+          ${renderPriceBreakdown(j)}
+        `;
+      } else {
+        // 通常の訪問前：現場写真確認＆追加作業プルダウン
+        const photoReview = isPhotosDone ? `
+          <div class="field" style="margin:6px 0;">
+            <label>現場写真確認後　＜追加項目＞</label>
+            ${renderAdditionalChecklist(j, false)}
+          </div>
+        ` : "";
+
+        let actionHtml = "";
+        if (!isPhotosDone) {
+          actionHtml = `<div class="notice" style="margin-top:6px;">📷 必須写真待ち: 顧客からの写真送信をお待ちください（${rec}/${req}受信済）。</div>`;
+        } else if (!isReviewDone) {
+          actionHtml = `<div class="notice warn" style="margin-top:6px;">⚠️ 現場写真確認後、上記で＜追加項目＞を選択してください（なければ「追加項目なし」）。</div>`;
+        } else if (!j.vendorChoice) {
+          actionHtml = `<div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="chooseVendorDate('${j.id}')">訪問日時を選択</button></div>`;
+        } else {
+          actionHtml = `<div class="notice ok" style="margin-top:6px;">訪問日時確定済：${esc(j.vendorChoice)}</div>`;
+        }
+
+        detailHtml = `
+          <div class="meta" style="margin-top:4px;">
+            第1希望：${fmtDate(j.date1)} ${esc(j.time1)}
+            ${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}
+          </div>
+          ${renderPriceBreakdown(j)}
+          ${photoReview}
+          ${actionHtml}
+        `;
+      }
+    }else if(tab==="progress"){
+      const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
+      const confirmedTime = j.todayTime || j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
+      detailHtml = `
+        <div class="notice ok" style="margin:4px 0 6px;line-height:1.6;">
+          <div>【訪問日時確定】作業予定日：<b>${fmtDate(scheduledDt)} ${esc(confirmedTime)}</b>（確定枠：${esc(j.vendorChoice)}）</div>
+          <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #a7f3d0;">
+            【訪問住所確定】<b>${esc(getFullAddress(j))}</b>
+            <div style="font-size:8.5px;color:#065f46;margin-top:2px;">※番地・建物名・部屋番号まで確定済みです（マップ連携・現場直行可能）。</div>
+          </div>
+        </div>
+        ${j.visitInfo?.routeMemo ? `
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px;margin:4px 0;font-size:9px;line-height:1.4;">
+            <b>📍 訪問先情報・経路メモ:</b> ${esc(j.visitInfo.routeMemo)}
+          </div>
+        `: ""}
+        ${renderPriceBreakdown(j)}
+        <div class="field" style="margin:6px 0;">
+          <label>当日連絡（訪問予定時間）</label>
+          <select id="today-${j.id}">
+            ${TIMES.map(t=>`<option value="${esc(t)}" ${(j.todayTime||confirmedTime)===t?"selected":""}>${t}</option>`).join("")}
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="sendTodayNotice('${j.id}')">当日連絡</button>
+        </div>
+        <div class="field" style="margin:6px 0;">
+          <label>現場確認　＜追加項目＞（作業開始の前に確認）</label>
+          ${renderAdditionalChecklist(j, !!j.isStarted)}
+        </div>
+        <div class="actions">
+          ${j.isStarted?`
+            <div class="notice ok" style="flex:1;font-size:9.5px;padding:5px 8px;border-left:3px solid #0d6b57;background:#f0faf5;">
+              ▶️ <b>作業中</b>（開始：${esc(j.startedAt)} / 追加作業：${esc(additionalSummary(j))}）
+            </div>
+          `:`
+            <button class="btn secondary" onclick="startJob('${j.id}')">作業開始</button>
+          `}
+          <button class="btn primary" onclick="completeJob('${j.id}')">作業完了・会計へ</button>
+        </div>
+      `;
+    }else{
+      detailHtml = `
+        ${renderPriceBreakdown(j)}
+        ${j.photoReported ? `<div class="mini ok" style="margin-top:6px;font-weight:bold;">✓ 現場写真を報告済みです（顧客の[完了後]に表示されています）。</div>` : ""}
+        ${j.ratingSubmitted ? `
+          <div style="margin-top:6px;background:#fffbeb;border:1px solid #fef3c7;padding:6px 8px;border-radius:6px;">
+            <div style="font-size:9.5px;font-weight:bold;color:#b45309;">⭐ 顧客評価を受領しました：★${j.rating}.0点</div>
+            ${j.ratingComment ? `<div style="font-size:9px;color:var(--ink);margin-top:2px;">「${esc(j.ratingComment)}」</div>` : ""}
+          </div>
+        ` : ""}
+        <div class="actions" style="margin-top:6px;">
+          <button class="btn ${j.photoReported ? 'secondary' : 'primary'}" onclick="openPhotoReport('${j.id}')">現場写真${j.photoReported ? '（報告済み）' : ''}</button>
+          <button class="btn primary" onclick="openSquareMock('${j.id}')">Square決済へ</button>
+        </div>
+      `;
+    }
+
+    // 外側固定部（ヘッダー）：新4行構成（2行目と4行目を入れ替え、新2行目右端に:rec/req点バッジを統一配置）
+    let rightItemHtml = "";
+    let line4Html = "";
+
+    if(tab === "before"){
+      rightItemHtml = `📷 必須写真:${rec}/${req}点 ${isPhotosDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
+      line4Html = `🗓 希望日：第1:${fmtDateShort(j.date1)} ${fmtSlotStart(j.time1)}${j.date2&&j.time2?` / 第2:${fmtDateShort(j.date2)} ${fmtSlotStart(j.time2)}`:""}`;
+    } else if(tab === "progress"){
+      const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
+      const confirmedTime = j.todayTime || j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
+      const isVisitDone = vRec >= 2;
+      rightItemHtml = `📍 訪問先情報:${vRec}/2点 ${isVisitDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
+      line4Html = `🗓 作業予定日:<b>${fmtDateShort(scheduledDt)} ${fmtSlotStart(confirmedTime)}</b> ${j.isStarted?`<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">▶️ 作業中(${esc(j.startedAt)})</span>`:''}`;
+    } else {
+      const compDateStr = j.completedDate || fmtDate(j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2));
+      const isCompDone = cRec >= 2;
+      rightItemHtml = `📷 報告写真:${cRec}/2点 ${isCompDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
+      line4Html = `✓ 対応完了日:<b>${fmtDateShort(compDateStr)}</b>`;
+    }
+    const line3Address = (tab === "done" || (tab === "before" && !j.customerDetailed)) ? getSimpleAddress(j) : getFullAddress(j);
+
+    // 業者画面はデフォルト折り畳み（開いていたIDを維持）
+    const bodyDisplay = previouslyOpenIds.has(j.id) ? "block" : "none";
+
+    addChat("vChat",`<div class="job" id="vjob-${j.id}">
+      <div class="vendor-job-head" style="display:flex;align-items:stretch;justify-content:space-between;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.3;">
+            <span style="font-size:11.5px;font-weight:900;color:var(--customer);">🛠 ${esc(j.service)}（${j.units}${PRICE[j.service]?.unit||"台"}）</span>
+            ${statusBadge}
+          </div>
+          <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:6px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <span style="overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;">👤 <b style="font-size:11px;">${esc(lastName)}</b> ｜ 💰 <b style="font-size:11.5px;color:var(--customer);">¥${calcPrice(j).toLocaleString()}</b></span>
+            <span style="flex-shrink:0;font-size:9px;color:var(--muted);">${rightItemHtml}</span>
+          </div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
+            No. <b style="color:var(--ink);">${esc(j.id)}</b> ｜ 📍 ${esc(line3Address)}
+          </div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
+            ${line4Html}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;width:56px;flex-shrink:0;">
+          <button type="button" class="job-toggle-btn" style="width:100%;text-align:center;box-sizing:border-box;" onclick="toggleVendorJob('${j.id}')">⇕ 開閉</button>
+          ${tab !== "done" ? `<button type="button" class="map-btn" style="width:100%;text-align:center;box-sizing:border-box;" onclick="event.stopPropagation();openMapApp('${esc(getFullAddress(j))}')">🗺️ マップ</button>` : ""}
+        </div>
+      </div>
+      <div class="vendor-job-body" id="vjob-body-${j.id}" style="display:${bodyDisplay};">
+        ${detailHtml}
+        ${renderDirectChatBox(j, 'vendor')}
+        <div class="field" style="margin-top:8px;border-top:1px dashed #cbd5e1;padding-top:6px;">
+          <label style="font-size:10px;font-weight:bold;color:var(--muted);">社内連絡・業者専用メモ（非公開）</label>
+          <textarea id="vmemo-${j.id}" rows="2" style="width:100%;font-size:11px;padding:5px;border:1px solid #cbd5e1;border-radius:4px;resize:vertical;background:#fff;" placeholder="案件に関する業者内メモを入力..." oninput="updateJobMemo('${j.id}',this.value)">${esc(j.vendorMemo||"")}</textarea>
+        </div>
+      </div>
+    </div>`);
+  });
+  if (resetAccordion) {
+    const vChatEl = document.getElementById("vChat");
+    if(vChatEl) vChatEl.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+}
+function startJob(id){
+  const j=getJob(id);if(!j)return;
+  if(!j.additionalFlag){alert("現場確認：追加項目を選択してください（なければ「追加項目なし」）");return}
+  j.isStarted=true;
+  const now=new Date();
+  j.startedAt=now.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+  log(`JOB_START ${id} startedAt=${j.startedAt} additional=${additionalSummary(j)}`);
+  openVendorCases('progress', false);
+  const body = document.getElementById("vjob-body-" + id);
+  if(body) body.style.display = "block";
+  showVendorActionNotice(`<b>作業を開始しました（${j.startedAt}）</b><br>追加作業：<b>${esc(additionalSummary(j))}</b>`);
+  addChat("vChat",`案件 <b>${id}</b> の作業を開始しました（開始時刻：${j.startedAt}、追加作業：${esc(additionalSummary(j))}）。`,"me");
+  addChat("cChat",`【作業開始連絡】担当業者が <b>${j.startedAt}</b> に現場作業を開始いたしました。（追加作業：${esc(additionalSummary(j))}）`);
+  renderSide();
+  saveAndSync();
+}
+
+// ---- v13.5 写真報告：設定と通信の差し替え口 ----
+// 工程の枠（仮：モックと同じ「施工前／施工後」。確定後に差し替え）。GAS側の REPORT_STEPS と同じ並びにする
+var KKD135_REPORT_STEPS = ["before", "after"];
+var KKD135_REPORT_LABELS = { before: "施工前", after: "施工後" };
+// 単体のモック用（ページ内に保持。GASにつなぐときは、同じ4つの関数を持つ別の部品に差し替える）
+var KKD135_BACKEND = (function(){
+  var pricingFn = null;
+  var store = {};
+  function c(id){ return store[id] = store[id] || { photos: [], published: false }; }
+  return {
+    upload: function(caseId, unitNo, stepNo, raw, web, rid){
+      var s = c(caseId); if (!s.photos.some(function(p){ return p.rid === rid; })) s.photos.push({ photoId: "P" + (s.photos.length + 1), unitNo: unitNo, stepNo: stepNo, web: web, rid: rid });
+      return Promise.resolve({ status: "OK" });
+    },
+    report: function(caseId){ c(caseId).published = true; return Promise.resolve({ status: "OK" }); },
+    getPricing: function(){ return Promise.resolve({ status: "OK", pricing: KKD135_PRICING }); },
+    list: function(caseId){ var s = c(caseId); return Promise.resolve({ status: "OK", photos: s.published ? s.photos.map(function(p){ return { photoId: p.photoId, unitNo: p.unitNo, stepNo: p.stepNo }; }) : [] }); },
+    file: function(caseId, photoId){ var p = c(caseId).photos.filter(function(x){ return x.photoId === photoId; })[0]; return Promise.resolve(p ? { status: "OK", base64: p.web } : { status: "ERROR" }); }
+  };
+})();
+
+
+// ---- v13.5 価格：料金マスタ（GASの getPricing）が唯一の元。通信できない単体のモックでは、下の控え（料金マスタと同じ値）を使う ----
+var KKD135_PRICING = {
+  unitPrice: 33000, minUnits: 2, maxUnits: 6,
+  options: [
+    { code: "OPT_ANTI_MOLD", name: "防カビ抗菌コート", price: 2200, unit: "台" },
+    { code: "OPT_AUTO_CLEANING", name: "お掃除機能付き機種", price: 11000, unit: "台" },
+    { code: "OPT_SPECIAL_FAN", name: "特殊形状ファン分解", price: 11000, unit: "台" },
+    { code: "OPT_NO_REMOVE_PARTS", name: "脱着不可：部品分解", price: 0, unit: "台" },
+    { code: "OPT_NO_REMOVE_BACK", name: "脱着不可：背抜分解", price: 0, unit: "台" },
+    { code: "OPT_HIGH_PLACE", name: "高所作業：床上3m迄", price: 4400, unit: "台" }
+  ],
+  extraFees: { travelFee: 0, parkingFee: 0 }
+};
+// 顧客の予約画面（STEP 2）に出すオプション（顧客が機種を見て分かるもの）。他は、業者が写真確認・現場確認で選ぶ
+var KKD135_CUSTOMER_OPTION_CODES = ["OPT_AUTO_CLEANING", "OPT_ANTI_MOLD"];
+function pricingOptions(){ return (KKD135_PRICING && KKD135_PRICING.options) || []; }
+function customerOptions(){ return pricingOptions().filter(function(o){ return KKD135_CUSTOMER_OPTION_CODES.indexOf(o.code) >= 0; }); }
+function optPriceByName(name){ var o = pricingOptions().filter(function(x){ return x.name === name; })[0]; return o ? o.price : 3000; /* 料金マスタに無い旧の名前は、従来の3,000円 */ }
+function applyPricing(m){
+  if(!m || typeof m.unitPrice !== "number" || !Array.isArray(m.options)) return;
+  KKD135_PRICING = m;
+  if(PRICE["エアコン脱着分解クリーニング"]) PRICE["エアコン脱着分解クリーニング"].base = m.unitPrice;
+}
+function additionalSummary(j){
+  if(!j || !Array.isArray(j.additionalItems) || !j.additionalItems.length) return "なし";
+  return j.additionalItems.map(function(x){ return x.name + (x.qty > 1 ? "×" + x.qty : ""); }).join("、");
+}
+// 追加項目のチェック式（訪問前＝写真確認後／対応中＝現場確認）。「追加項目なし」か、1つ以上のチェックで、確認済みになる
+function renderAdditionalChecklist(j, locked){
+  var units = Math.max(1, Number(j.units) || 1), items = Array.isArray(j.additionalItems) ? j.additionalItems : [];
+  var none = j.additionalFlag === "なし";
+  var dis = locked ? "disabled" : "";
+  var rows = pricingOptions().map(function(o){
+    var it = items.filter(function(x){ return x.id === o.code; })[0];
+    var qtySel = (it && units > 1 && o.unit === "台") ? '<select style="width:auto;flex:none;font-size:10px;padding:2px 4px;" ' + dis + ' onchange="setAdditionalQty(\'' + j.id + '\',\'' + o.code + '\',this.value)">' +
+      Array.from({length: units}, function(_, k){ return '<option value="' + (k + 1) + '"' + ((it.qty || 1) === k + 1 ? " selected" : "") + '>' + (k + 1) + '台分</option>'; }).join("") + '</select>' : "";
+    return '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef2f7;"><input type="checkbox" style="width:18px;height:18px;flex:none;margin:0;" ' + dis + ' ' + (it ? "checked" : "") + ' onchange="toggleAdditional(\'' + j.id + '\',\'' + o.code + '\',this.checked)">' +
+      '<span style="flex:1;font-size:11px;">' + esc(o.name) + '</span><span class="mini" style="white-space:nowrap;">+¥' + o.price.toLocaleString() + '／' + esc(o.unit) + '</span>' + qtySel + '</label>';
+  }).join("");
+  return '<div class="additional-checklist" style="margin:4px 0;">' +
+    '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef2f7;font-weight:bold;"><input type="checkbox" style="width:18px;height:18px;flex:none;margin:0;" ' + dis + ' ' + (none ? "checked" : "") + ' onchange="setAdditionalNone(\'' + j.id + '\',this.checked)"><span style="flex:1;font-size:11px;">追加項目なし</span></label>' + rows +
+    '<div class="mini">金額は料金マスタに連動します。チェックした項目は、お見積りに加わります。</div></div>';
+}
+function afterAdditionalChange(id, note){
+  if(state.vendorTab){ openVendorCases(state.vendorTab, false); } else { renderVendorHome(); }
+  var body = document.getElementById("vjob-body-" + id);
+  if(body) body.style.display = "block";
+  renderSide();
+  log(note);
+  saveAndSync();
+}
+function setAdditionalNone(id, on){
+  var j = getJob(id); if(!j || j.isStarted) return;
+  if(on){ j.additionalItems = []; j.additionalFlag = "なし"; } else { j.additionalFlag = ""; }
+  afterAdditionalChange(id, "ADDITIONAL_NONE " + id + " " + on);
+}
+function toggleAdditional(id, code, on){
+  var j = getJob(id); if(!j || j.isStarted) return;
+  var o = pricingOptions().filter(function(x){ return x.code === code; })[0]; if(!o) return;
+  var items = (Array.isArray(j.additionalItems) ? j.additionalItems : []).filter(function(x){ return x.id !== code; });
+  if(on) items.push({ id: o.code, name: o.name, qty: 1, mins: 0, price: o.price });
+  j.additionalItems = items;
+  j.additionalFlag = items.length ? "あり" : "";
+  afterAdditionalChange(id, "ADDITIONAL_ITEM " + id + " " + code + " " + on);
+}
+function setAdditionalQty(id, code, qty){
+  var j = getJob(id); if(!j || j.isStarted) return;
+  var it = (j.additionalItems || []).filter(function(x){ return x.id === code; })[0]; if(!it) return;
+  var n = Math.max(1, Math.min(Number(j.units) || 1, Number(qty) || 1));
+  it.qty = n;
+  afterAdditionalChange(id, "ADDITIONAL_QTY " + id + " " + code + " " + n);
+}
+
+try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
+function openPhotoReport(id){
+  const j = getJob(id); if(!j) return;
+  openSheet("v", "現場写真");
+  document.getElementById("vBody").innerHTML = '<div class="summary"><b>' + esc(j.id) + '</b><br>' + esc(j.service) + '</div><div id="photoReportRoot"></div>' +
+    '<div style="display:flex;gap:6px;margin-top:10px;"><button type="button" class="btn secondary" style="flex:1;" onclick="closeSheet(\'v\')">閉じる</button></div>';
+  document.getElementById("vBack").style.display = "none";
+  document.getElementById("vNext").style.display = "none";
+  const units = Math.max(1, Object.keys(j.unitOptions || {}).length);
+  KKD135PhotoUI.renderVendor(document.getElementById("photoReportRoot"), {
+    caseId: j.id, units: units, steps: KKD135_REPORT_STEPS, labels: KKD135_REPORT_LABELS, backend: KKD135_BACKEND, alreadyReported: !!j.photoReported,
+    onReported: function(){
+      j.photoReported = true; j.completionPhotos = { before: true, after: true };
+      addChat("vChat", "案件 <b>" + j.id + "</b> の現場写真を報告しました。", "me");
+      addChat("cChat", "【施工報告】業者より現場写真が届きました。「完了後」タブの「施工写真を確認」からご確認いただけます。");
+      log("VENDOR_PHOTO_REPORT " + j.id); saveAndSync(); openVendorCases('done'); renderSide();
+    }
+  });
+}
+function chooseVendorDate(id){
+  const j=getJob(id);if(!j)return;
+  const req=requiredPhotoCount(j), rec=countRequiredPhotos(j);
+  if(rec < req){
+    alert(`必須写真が揃っていません（${rec}/${req}受信済）。`);
+    return;
+  }
+  if(!j.additionalFlag){
+    alert("現場写真確認後、＜追加項目＞を選択してください（なければ「追加項目なし」）。");
+    return;
+  }
+  if(j.additionalFlag==="あり" && (!j.additionalItems || !j.additionalItems.length)){
+    alert("追加項目を選択してください（なければ「追加項目なし」）。");
+    return;
+  }
+  clearChat("vChat");document.getElementById("vView").textContent="訪問日時確定";
+  const second=j.date2&&j.time2?`<div class="field"><label><input type="radio" name="vendor-choice-${id}" value="第2希望"> 第2希望　${fmtDate(j.date2)} ${esc(j.time2)}</label></div>`:"";
+  addChat("vChat",`<div class="job"><b>${j.id}</b><br><span class="meta">${esc(j.service)} ／ 必須写真 ${rec}/${req}</span>
+    <div class="field"><label><input type="radio" name="vendor-choice-${id}" value="第1希望"> 第1希望　${fmtDate(j.date1)} ${esc(j.time1)}</label></div>
+    ${second}
+    <div class="notice">第2希望が未登録の場合は、第1希望のみを確定候補として表示します。</div>
+    <div class="actions"><button class="btn primary" onclick="confirmSelectedVendorDate('${id}')">確定</button><button class="btn secondary" onclick="openVendorCases('before')">キャンセル</button></div></div>`);
+}
+function confirmSelectedVendorDate(id){
+  const selected=document.querySelector(`input[name="vendor-choice-${id}"]:checked`);if(!selected){alert('第1希望または第2希望を選択してください');return}vendorConfirm(id,selected.value);
+}
+function vendorConfirm(id,which){
+  const j=getJob(id);if(!j)return;
+  j.vendorChoice=which;
+  j.scheduledDate=which==="第1希望"?j.date1:j.date2;
+  j.scheduledTime=which==="第1希望"?j.time1:j.time2;
+
+  // 重要：詳細住所（番地・建物名等）は顧客に入力してもらうため、案件は[訪問前]にとどまる
+  addChat("cChat",`【確認連絡】業者が <b>${which}</b>（${fmtDateShort(j.scheduledDate)} ${fmtSlotStart(j.scheduledTime)}）を選択しました。訪問に向けて、残りの番地・建物名・部屋番号等の詳細住所をご入力ください。`);
+  renderSide();log(`VENDOR_DATE_CONFIRMED ${id} ${which}`);
+  openVendorCases('before', false);
+  const body = document.getElementById("vjob-body-" + id);
+  if(body) body.style.display = "block";
+  showVendorActionNotice(`<b>訪問日時を選択しました（${which}）</b><br>顧客の詳細住所（番地・建物名等）入力をお待ちください。`);
+  saveAndSync();
+}
+function simulateDayBefore(){
+  const j=state.jobs.find(x=>x.vendorChoice&&!x.customerDetailed&&!x.completed);
+  if(!j){alert("訪問日時が確定した案件がありません。先に必須写真を送り、業者側で第1/第2希望を確定してください。");return}
+  j.customerDetailed=true;
+  if(!j.addressBlock) j.addressBlock="1-2-3";
+  if(!j.buildingName) j.buildingName="グランドハイツ";
+  if(!j.roomNumber) j.roomNumber="201";
+  j.detailAddress=[j.addressBlock,j.buildingName,j.roomNumber].filter(Boolean).join(" ");
+  openCustomerCaseDetail(j.id);
+  addChat("cChat",`【前日連絡】明日の訪問に向け、住所の完成と詳細情報をご入力ください。<div class="address-completion"><div class="field"><label>郵便番号</label><input value="${esc(formatZip(j.zip))}" readonly></div><div class="field"><label>郵便番号から自動表示された住所</label><input value="${esc(j.address||"")}" readonly></div><div class="field"><label>番地</label><input id="daybefore-block-${j.id}" value="${esc(j.addressBlock||"")}" type="tel" inputmode="numeric" pattern="[0-9０-９A-Za-zＡ-Ｚａ-ｚ０-９－ー−―-]*" placeholder="例：1-2-3" oninput="forceHalfWidthInput(this,'address');normalizeDayBeforeField(this,'block')" oncompositionend="forceHalfWidthInput(this,'address');normalizeDayBeforeField(this,'block')" onblur="forceHalfWidthInput(this,'address');normalizeDayBeforeField(this,'block')"></div><div class="field"><label>建物名</label><input id="daybefore-building-${j.id}" value="${esc(j.buildingName||"")}" placeholder="例：○○マンション"></div><div class="field"><label>部屋番号</label><input id="daybefore-room-${j.id}" value="${esc(j.roomNumber||"")}" type="tel" inputmode="numeric" pattern="[0-9０-９A-Za-zＡ-Ｚａ-ｚ０-９－ー−―-]*" placeholder="例：101" oninput="forceHalfWidthInput(this,'address');normalizeDayBeforeField(this,'room')" oncompositionend="forceHalfWidthInput(this,'address');normalizeDayBeforeField(this,'room')" onblur="forceHalfWidthInput(this,'address');normalizeDayBeforeField(this,'room')"></div><div class="map-mock" id="map-mock-${j.id}">${j.addressBlock?`地図表示可能：${esc(getFullAddress(j))}`:"番地まで入力すると地図表示可能になります。"}</div></div><button class="btn primary" onclick="saveDayBeforeAddress('${j.id}')">住所を確定して地図表示</button><br><label class="check"><input type="checkbox" checked>駐車場あり</label><div class="field"><label>入口経路</label><textarea placeholder="正面玄関から入り、右手のエレベーター"></textarea></div><button class="btn secondary" onclick="alert('詳細情報を保存した想定')">詳細情報を保存</button><br><button class="btn secondary" onclick="openMapApp('${esc(getFullAddress(j))}')">📍 マップアプリを起動</button>`);
+  openVendorCases("progress");renderSide();log("SIMULATE_DAY_BEFORE "+j.id);
+}
+function normalizeDayBeforeField(el,type){
+  if(!el)return;
+  const v=normalizeHalfWidthAddressValue(el.value);
+  el.value=v;
+  return v;
+}
+function saveDayBeforeAddress(id){
+  const j=getJob(id);if(!j)return;
+  const blockEl=document.getElementById(`daybefore-block-${id}`);
+  const buildingEl=document.getElementById(`daybefore-building-${id}`);
+  const roomEl=document.getElementById(`daybefore-room-${id}`);
+  j.addressBlock=normalizeHalfWidthAddressValue(blockEl?.value||"").trim();
+  j.buildingName=(buildingEl?.value||"").trim();
+  j.roomNumber=normalizeHalfWidthAddressValue(roomEl?.value||"").trim();
+  j.detailAddress=[j.addressBlock,j.buildingName,j.roomNumber].filter(Boolean).join(" ");
+  if(!j.addressBlock){alert("番地を入力してください");return}
+  openCustomerCaseDetail(id);
+  addChat("cChat",`【前日連絡】住所を確定しました。<br><div class="map-mock">地図表示：${esc(getFullAddress(j))}<br><span class="mini">※郵便番号＋住所＋番地まで揃ったため、地図表示可能状態を再現しています。</span></div>`);
+  openVendorCases("progress");
+  renderSide();log(`DAYBEFORE_ADDRESS_CONFIRMED ${id}`);
+  saveAndSync();
+}
+function sendTodayNotice(id){
+  const j=getJob(id), sel=document.getElementById("today-"+id);
+  const confirmedTime=j.vendorChoice==="第1希望"?j.time1:j.time2;
+  j.todayTime=sel?sel.value:(confirmedTime||TIMES[2]);
+  addChat("vChat",`${id}：訪問予定時間 <b>${esc(j.todayTime)}</b> を顧客へ自動通知しました。`,"me");
+  addChat("cChat",`【当日連絡】本日の訪問予定時間は <b>${esc(j.todayTime)}</b> です。`);
+  openVendorCases("progress", false);
+  const body = document.getElementById("vjob-body-" + id);
+  if(body) body.style.display = "block";
+  renderSide();log("TODAY_NOTICE_SENT "+id);
+  saveAndSync();
+}
+function simulateToday(){
+  const j=state.jobs.find(x=>x.customerDetailed&&!x.completed);
+  if(!j){alert("前日シナリオが完了した案件がありません。");return}
+  if(!j.todayTime)j.todayTime=TIMES[2];
+  openVendorCases("progress");addChat("vChat",`【当日シナリオ】訪問前の時間選択を確認できます。`);log("SIMULATE_TODAY "+j.id);
+}
+function completeJob(id){
+  const j=getJob(id);j.completed=true;
+  const now=new Date();
+  const dStr=`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}`;
+  const dayName=["日","月","火","水","木","金","土"][now.getDay()];
+  j.completedDate=`${dStr}(${dayName})`;
+  j.completedAt=now.toLocaleString("ja-JP");
+  addChat("cChat",`【完了】${id} の施工が完了しました。「完了後」タブより施工写真の確認・評価・領収書発行がご利用いただけます。`);
+  renderSide();log("JOB_COMPLETED "+id);
+  openVendorCases('done', false);
+  const body = document.getElementById("vjob-body-" + id);
+  if(body) body.style.display = "block";
+  showVendorActionNotice(`<b>作業完了報告を受け付けました</b><br>案件 <b>${id}</b> は「完了後（応対履歴）」へ移動しました。`);
+  saveAndSync();
+}
+function openSquareMock(id){
+  const j=getJob(id);openSheet("v","Square入力画面（モック）");
+  document.getElementById("vBody").innerHTML=`<h3>会計処理への引き渡し</h3><div class="summary"><b>${id}</b><br>${esc(j.service)}<br>見積目安：${calcPrice(j).toLocaleString()}円〜</div><div class="notice">ここはSquareの実画面ではありません。実装時はSquare側で採用する決済方式（決済リンク／請求／POS等）を確定し、その導線へ遷移させる想定です。</div><button class="btn primary" onclick="alert('Square連携ポイントを通過した想定')">Squareへ進む</button>`;
+  document.getElementById("vBack").style.display="none";document.getElementById("vNext").style.display="none";log("SQUARE_HANDOFF_POINT "+id);
+}
+function vendorHistory(){
+  clearChat("vChat");document.getElementById("vView").textContent="お問合せ";
+  const done=state.jobs.filter(j=>j.completed);if(!done.length){addChat("vChat","対応履歴はまだありません。");return}
+  done.forEach(j=>addChat("vChat",`<div class="job"><b>${j.id}</b><br>${esc(j.service)} ／ 完了<div class="tabs"><button class="active">内容</button><button>メッセージ</button></div><div class="meta">作業内容・会計情報・チャット履歴へ分離表示する想定。</div></div>`));
+}
+function vendorInventory(){clearChat("vChat");addChat("vChat","【第3フェーズ入口／共有】在庫利用・貸出申請：在庫一覧 → 貸出申請 → 返却 → 履歴、の流れを後続実装する想定です。");}
+function vendorFacility(){clearChat("vChat");addChat("vChat","【第4フェーズ入口／教育】技術継承・資格学習：分解・洗浄・組立の実戦練習、資格学習等へ進む想定です。");}
+function vendorOther(){clearChat("vChat");addChat("vChat","【第5フェーズ入口／協成・M＆A・補助金助成金利活用】ご相談箱・その他へ進む想定です。");}
+function calcMinutes(j){
+  if(!j) return 60;
+  const p=PRICE[j.service]||{mins:60};
+  let optCount=0;
+  if(j.unitOptions && typeof j.unitOptions==="object"){
+    optCount+=Object.values(j.unitOptions).reduce((n,a)=>n+(Array.isArray(a)?a.length:0),0);
+  }
+  if(Array.isArray(j.options)){
+    optCount+=j.options.length;
+  }
+  let addMins=0;
+  if(Array.isArray(j.additionalItems) && j.additionalItems.length>0){
+    addMins+=j.additionalItems.reduce((sum,item)=>sum+(Number(item.mins)||0),0);
+  }
+  return (p.mins*(j.units||1))+(optCount*20)+addMins;
+}
+function calcPrice(j){
+  if(!j) return 0;
+  const p=PRICE[j.service]||{base:0};
+  let optTotal=0;
+  if(j.unitOptions && typeof j.unitOptions==="object"){
+    Object.values(j.unitOptions).forEach(a=>{ (Array.isArray(a)?a:[]).forEach(n=>{ optTotal+=optPriceByName(n); }); });
+  }
+  if(Array.isArray(j.options)){
+    j.options.forEach(n=>{ optTotal+=optPriceByName(n); });
+  }
+  let addTotal=0;
+  if(Array.isArray(j.additionalItems) && j.additionalItems.length>0){
+    addTotal+=j.additionalItems.reduce((sum,item)=>sum+(Number(item.price)||0)*(Number(item.qty)||1),0);
+  }
+  return (p.base*(j.units||1))+optTotal+addTotal;
+}
+function newBookingDemo(){
+  if(!Object.keys(state.vendorAvailable).length)seedAvailability(false);
+  openCustomerBooking();log("NEW_BOOKING_DEMO_OPEN");
+}
+function seedAvailability(show=true){
+  const base=new Date();base.setDate(1);state.vendorAvailable={};
+  [3,6,9,12,15,18,22,25].forEach(day=>{
+    const d=new Date(base);d.setDate(day);const ds=dateKey(d);
+    // デモでは連続枠を十分に確保し、2.5時間のエアコン分解クリーニング等も候補にできるようにする。
+    state.vendorAvailable[ds]=[...TIMES.slice(0,5),...TIMES.slice(5,10)];
+  });
+  if(show){addChat("vChat","デモ用に業者の空き枠を登録しました。顧客側の予約可能カレンダーへ即時反映されます。","me");renderVendorHome();renderCustomerAvailabilityNote();}
+  log("DEMO_AVAILABILITY_SEEDED");renderSide();
+}
+function customerHome(){ renderCustomerServiceCatalog(); }
+
+function managementStatus(j){
+  if(!j) return "未案件";
+  if(j.completed) return "作業完了";
+  if(j.todayTime) return "当日訪問";
+  if(j.customerDetailed) return "訪問前確認";
+  if(j.vendorChoice) return "訪問日時確定";
+  if(countRequiredPhotos(j) >= requiredPhotoCount(j)) return "日時確認待ち";
+  return "写真待ち";
+}
+function managementStatusClass(s){
+  if(["作業完了","当日訪問","訪問前確認","訪問日時確定"].includes(s)) return "ok";
+  if(s==="写真待ち") return "warn";
+  return "";
+}
+function vendorForJob(j){
+  if(!j || !j.vendorId) return "未割当";
+  const v=state.vendorMaster.find(x=>x.id===j.vendorId);
+  return v ? v.name : j.vendorId;
+}
+function assignVendor(id,vendorId){
+  const j=getJob(id); if(!j)return;
+  j.vendorId=vendorId;
+  addChat("vChat",`案件 <b>${id}</b> が管理室から割り当てられました。`);
+  renderVendorHome(); renderSide(); renderManagement();
+  log(`ADMIN_VENDOR_ASSIGNED ${id} ${vendorId}`);
+  saveAndSync();
+}
+function managementIntervene(id){
+  const j=getJob(id); if(!j)return;
+  state.activeJobId=id;
+  addChat("cChat",`【管理室連絡】現在、訪問可能日時の調整を行っています。案件 <b>${id}</b> の状況を確認しています。`);
+  addChat("vChat",`【管理室】案件 <b>${id}</b> を要対応として確認しました。`);
+  renderCustomerCases(); renderVendorHome(); renderManagement();
+  log(`ADMIN_INTERVENTION ${id}`);
+}
+function managementReleaseNotice(id){
+  const j=getJob(id); if(!j)return;
+  j.adminNote="再調整が必要";
+  addChat("cChat",`【管理室】訪問可能日時の再調整が必要です。改めて候補日時をご案内します。`);
+  renderCustomerCases(); renderManagement();
+  log(`ADMIN_RESCHEDULE_NOTICE ${id}`);
+}
+function openManagement(tab){
+  state.managementTab=tab;
+  ["Dashboard","Cases","Vendors","Alerts","Audit"].forEach(x=>{
+    const el=document.getElementById("mNav"+x); if(el) el.classList.toggle("active", x.toLowerCase()===(tab==="dashboard"?"dashboard":tab));
+  });
+  renderManagement();
+}
+function renderManagement(){
+  const b=document.getElementById("managementBody"); if(!b)return;
+  const jobs=state.jobs;
+  const pending=jobs.filter(j=>!j.completed && !j.vendorChoice);
+  const photoWait=jobs.filter(j=>!j.completed && countRequiredPhotos(j)<requiredPhotoCount(j));
+  const confirmed=jobs.filter(j=>!j.completed && !!j.vendorChoice);
+  const done=jobs.filter(j=>j.completed);
+  let h="";
+  if(state.managementTab==="dashboard"){
+    h=`<div class="sync-note">顧客・業者の操作結果を同一案件状態として監視。管理室は事実を勝手に上書きせず、必要時のみ介入・通知・割当を行う設計です。</div>
+      <div class="kpi-grid">
+        <div class="kpi"><b>${jobs.length}</b><span>総案件</span></div>
+        <div class="kpi"><b>${pending.length}</b><span>日時調整中</span></div>
+        <div class="kpi"><b>${confirmed.length}</b><span>訪問日時確定</span></div>
+        <div class="kpi"><b>${photoWait.length}</b><span>必須写真待ち</span></div>
+        <div class="kpi"><b>${jobs.filter(j=>j.customerDetailed&&!j.completed).length}</b><span>訪問前確認</span></div>
+        <div class="kpi"><b>${done.length}</b><span>完了</span></div>
+      </div>
+      <div class="admin-card"><div class="admin-card-head"><b>現在の運行状態</b><span>${Object.keys(state.vendorAvailable).length}日分の空き枠</span></div>
+        <div class="statebar"><strong>顧客窓口</strong><span>予約受付 → 案件生成 → 写真 → 確定 → 完了</span></div>
+        <div class="statebar"><strong>業者</strong><span>空き枠 → 案件受領 → 写真確認 → 日時確定 → 当日 → 完了</span></div>
+        <div class="statebar"><strong>管理室</strong><span>監視 → 調整 → 割当 → 例外介入 → 証跡</span></div>
+      </div>
+      <div class="admin-section-title">要対応案件</div>
+      ${jobs.filter(j=>!j.completed).slice(0,8).map(j=>`
+        <div class="admin-card">
+          <div class="admin-card-head"><b>${esc(j.id)}</b><span class="badge ${managementStatusClass(managementStatus(j))==='warn'?'warn':'ok'}">${esc(managementStatus(j))}</span></div>
+          <small>${esc(j.service)} ／ 業者：${esc(vendorForJob(j))}</small>
+          <div class="admin-actions"><button onclick="openManagement('cases')">案件詳細</button>${!j.vendorChoice?`<button class="primary" onclick="managementIntervene('${j.id}')">調整介入</button>`:""}${j.vendorChoice&&!j.customerDetailed?`<button class="warn" onclick="managementReleaseNotice('${j.id}')">再調整通知</button>`:""}</div>
+        </div>`).join("") || `<div class="admin-card">現在、未完了案件はありません。</div>`}`;
+  } else if(state.managementTab==="cases"){
+    h=`<div class="sync-note">案件は顧客・業者の共通単位。管理室では「誰が・何を・どの状態にしたか」を追跡し、顧客向け内部事情は表示しません。</div>
+      ${jobs.map(j=>`<div class="admin-card">
+        <div class="admin-card-head"><b>${esc(j.id)}</b><span class="badge">${esc(managementStatus(j))}</span></div>
+        <small>${esc(j.category)} ／ ${esc(j.service)} ／ ${j.units}${PRICE[j.service]?.unit||"式"}</small>
+        <table class="admin-table">
+          <tr><th>顧客</th><td>${esc(j.name||"—")}</td><th>業者</th><td>${esc(vendorForJob(j))}</td></tr>
+          <tr><th>希望</th><td colspan="3">${fmtDate(j.date1)} ${esc(j.time1)} ／ ${fmtDate(j.date2)} ${esc(j.time2)}</td></tr>
+          <tr><th>写真</th><td>${countRequiredPhotos(j)}/${requiredPhotoCount(j)}</td><th>確定</th><td>${esc(j.vendorChoice||"未確定")}</td></tr>
+          <tr><th>当日</th><td colspan="3">${esc(j.todayTime||"未設定")}</td></tr>
+        </table>
+        <div class="admin-actions">
+          <button onclick="state.activeJobId='${j.id}';openCustomerCaseDetail('${j.id}')">顧客側を確認</button>
+          <button onclick="openVendorCases('${j.customerDetailed?'progress':'before'}')">業者側を確認</button>
+          ${!j.vendorChoice?`<button class="primary" onclick="managementIntervene('${j.id}')">調整介入</button>`:""}
+        </div>
+      </div>`).join("") || `<div class="admin-card">案件なし</div>`}`;
+  } else if(state.managementTab==="vendors"){
+    h=`<div class="sync-note">業者マスタは供給側の基礎情報。優先順位・評価は将来の自動配分へ接続し、管理室は必要時に割当を介入できます。</div>
+      <div class="admin-card"><b>業者稼働状況</b>${state.vendorMaster.map(v=>`
+        <div class="cardline"><span><b>${esc(v.name)}</b><br><span class="mini">優先 ${v.priority} ／ 評価 ${v.score}（${v.ratings}件）</span></span><span class="badge ok">${esc(v.status)}</span></div>`).join("")}</div>
+      <div class="admin-section-title">案件別割当</div>
+      ${jobs.filter(j=>!j.completed).map(j=>`
+        <div class="admin-card"><div class="admin-card-head"><b>${esc(j.id)}</b><span>${esc(vendorForJob(j))}</span></div>
+          <select onchange="assignVendor('${j.id}',this.value)"><option value="">業者を選択</option>${state.vendorMaster.map(v=>`<option value="${v.id}" ${j.vendorId===v.id?"selected":""}>${esc(v.name)}（優先${v.priority}）</option>`).join("")}</select>
+        </div>`).join("") || `<div class="admin-card">対象案件なし</div>`}`;
+  } else if(state.managementTab==="alerts"){
+    const alerts=[];
+    jobs.filter(j=>!j.completed && countRequiredPhotos(j)<requiredPhotoCount(j)).forEach(j=>alerts.push(`<div class="alert-row warn"><b>${esc(j.id)}</b> 必須写真待ち：${countRequiredPhotos(j)}/${requiredPhotoCount(j)}<br><span class="mini">顧客側の写真受信が必要。管理室から内容を勝手に補完しない。</span></div>`));
+    jobs.filter(j=>!j.completed && !j.vendorChoice && countRequiredPhotos(j)>=requiredPhotoCount(j)).forEach(j=>alerts.push(`<div class="alert-row"><b>${esc(j.id)}</b> 訪問日時未確定<br><span class="mini">業者側の日時確定待ち。必要に応じて管理室が調整介入。</span><div class="admin-actions"><button class="primary" onclick="managementIntervene('${j.id}')">介入</button></div></div>`));
+    jobs.filter(j=>j.adminNote).forEach(j=>alerts.push(`<div class="alert-row warn"><b>${esc(j.id)}</b> ${esc(j.adminNote)}</div>`));
+    h=`<div class="sync-note">ここは「例外を見つけて前に進める」ための管理室。通常フローを管理室が奪わない。</div>${alerts.join("")||`<div class="admin-card"><b>要対応なし</b><br><span class="mini">通常フローで進行しています。</span></div>`}`;
+  } else {
+    h=`<div class="sync-note">一次証跡に近いイベントログを管理室から確認。自己申告だけでPASSにはしません。</div>
+      <div class="admin-card"><b>案件状態集計</b><table class="admin-table">
+      <tr><th>状態</th><th>件数</th></tr>
+      <tr><td>写真待ち</td><td>${photoWait.length}</td></tr>
+      <tr><td>日時調整中</td><td>${pending.length}</td></tr>
+      <tr><td>訪問日時確定</td><td>${confirmed.length}</td></tr>
+      <tr><td>訪問前確認</td><td>${jobs.filter(j=>j.customerDetailed&&!j.completed).length}</td></tr>
+      <tr><td>完了</td><td>${done.length}</td></tr></table></div>
+      <div class="admin-card"><b>イベントログ</b><div class="admin-log">${state.logs.map(esc).join("<br>")||"ログなし"}</div></div>`;
+  }
+  b.innerHTML=h;
+}
+function renderSide(){
+  const s=state.jobs;
+  const active=state.activeJobId?getJob(state.activeJobId):s[s.length-1];
+  const cStatus=document.getElementById("cStatus");
+  if(cStatus)cStatus.textContent=active?managementStatus(active):"未予約";
+  const vStatus=document.getElementById("vStatus");
+  if(vStatus)vStatus.textContent=s.filter(j=>!j.completed).length+"件";
+  renderManagement();
+}
+function resetMock(){
+  state={
+    jobs:[],activeJobId:null,vendorAvailable:{},monthOffset:0, vendorMonthOffset:0,
+    booking:{category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",addressBlock:"",buildingName:"",roomNumber:"",note:""},
+    bookingStep:1,vendorSelectedDate:"",vendorTempTimes:[],serviceCategoryOpen:"",vendorTab:"before",customerTab:"before",managementTab:"dashboard",managementFilter:"all",
+    vendorMaster:[
+      {id:"V-001",name:"デモ業者A",priority:1,status:"稼働中",score:4.8,ratings:126},
+      {id:"V-002",name:"デモ業者B",priority:2,status:"稼働中",score:4.6,ratings:74},
+      {id:"V-003",name:"デモ業者C",priority:3,status:"稼働中",score:4.4,ratings:38}
+    ],
+    logs:[]
+  };
+  try {
+    localStorage.removeItem("kkd_state_jobs");
+    localStorage.removeItem("kkd_state_vendor_avail");
+    localStorage.removeItem("kkd_customer_tab");
+    localStorage.removeItem("kkd_vendor_tab");
+  } catch(e){}
+  closeSheet("c");closeSheet("v");clearChat("cChat");clearChat("vChat");
+  renderCustomerServiceCatalog();addChat("vChat","まず「空き枠報告」から可能日・可能時間を登録してください。");
+  log("RESET");renderSide();
+  saveAndSync();
+}
+function renderVendorHomeAndCustomer(){renderVendorHome();customerHome();renderSide();}
+renderSide();
+renderManagement();
+if (!state.jobs || state.jobs.length === 0) {
+  renderCustomerServiceCatalog();
+  addChat("vChat","まず「空き枠報告」から可能日・可能時間を登録してください。");
+}
+
+/* --- ロール別フルスクリーン切り替えロジック --- */
+function switchRole(role) {
+  document.body.classList.remove('standalone-mode', 'role-customer', 'role-vendor', 'role-admin');
+  ['btnRoleCustomer', 'btnRoleVendor', 'btnRoleAdmin', 'btnRoleAll'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  const label = document.getElementById('currentRoleLabel');
+
+  if (role === 'customer') {
+    document.body.classList.add('standalone-mode', 'role-customer');
+    document.getElementById('btnRoleCustomer')?.classList.add('active');
+    if (label) label.textContent = '📱 [顧客] 画面:';
+    document.title = "綺麗快適デザイン（KKD）- ご予約・ご依頼";
+    if (state.customerTab && state.customerTab !== 'before') {
+      openCustomerCases(state.customerTab);
+    } else {
+      renderCustomerServiceCatalog();
+    }
+  } else if (role === 'vendor') {
+    document.body.classList.add('standalone-mode', 'role-vendor');
+    document.getElementById('btnRoleVendor')?.classList.add('active');
+    if (label) label.textContent = '🛠️ [業者] 案件管理:';
+    document.title = "KKD WORKS 施工管理";
+    openVendorCases(state.vendorTab || 'before');
+  } else if (role === 'admin') {
+    document.body.classList.add('standalone-mode', 'role-admin');
+    document.getElementById('btnRoleAdmin')?.classList.add('active');
+    if (label) label.textContent = '📊 [管理室] 監視:';
+    document.title = "KKD 管理ダッシュボード";
+    openManagement(state.managementTab || 'dashboard');
+  } else {
+    // 全表示（PC検証用）
+    document.getElementById('btnRoleAll')?.classList.add('active');
+    if (label) label.textContent = '💻 全体表示:';
+    document.title = "KKD WORKS — LINE UI Interactive Mock v13.4";
+  }
+}
+
+// 初期化時にURLパラメータまたは画面幅で初期ロールを設定
+(function initRoleView() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const role = urlParams.get('role');
+  
+  if (role) {
+    switchRole(role);
+    // URLで直接 role が指定されている場合は、上の切り替えバーすら消してネイティブ化も可能だが、
+    // 切り替えバーは邪魔にならないように小さく残すか、クエリ ?pure=1 で完全非表示にできる
+    if (urlParams.get('pure') === '1') {
+      const bar = document.getElementById('mobileRoleBar');
+      if (bar) bar.style.display = 'none';
+    }
+  } else {
+    // スマホ判定 (幅768px以下): デフォルトで「顧客画面」を表示
+    if (window.innerWidth <= 768) {
+      switchRole('customer');
+    } else {
+      switchRole('all');
+    }
+  }
+})();
+
+/* --- リッチメニュー表示／非表示トグル機能 --- */
+function toggleRichMenu(side) {
+  const rich = document.getElementById(`${side}Rich`);
+  const text = document.getElementById(`${side}RichToggleText`);
+  if (!rich) return;
+  rich.classList.toggle('collapsed');
+  const isCollapsed = rich.classList.contains('collapsed');
+  if (text) {
+    text.textContent = isCollapsed ? '▲ リッチメニューを開く' : '▼ リッチメニューを閉じる';
+  }
+}
+
+/* --- 端末間リアルタイム同期（別端末スマホ連携） --- */
+let lastSyncVersion = 0;
+let isSyncing = false;
+
+async function pushSharedState() {
+  if (isSyncing) return;
+  try {
+    const payload = {
+      vendorAvailable: state.vendorAvailable,
+      jobs: state.jobs
+    };
+    const res = await fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data && data.version) {
+      lastSyncVersion = data.version;
+    }
+  } catch (e) {
+    // オフライン/ローカルファイル時は無視
+  }
+}
+
+async function fetchSharedState() {
+  if (isSyncing) return;
+  try {
+    const res = await fetch('/api/sync');
+    const data = await res.json();
+    if (data && data.state) {
+      const serverVer = data.state.version || 0;
+      const serverJobs = data.state.jobs || [];
+      const serverAvail = data.state.vendorAvailable || {};
+
+      const serverJobsStr = JSON.stringify(serverJobs);
+      const localJobsStr = JSON.stringify(state.jobs);
+      const serverAvailStr = JSON.stringify(serverAvail);
+      const localAvailStr = JSON.stringify(state.vendorAvailable);
+
+      const hasJobsDiff = serverJobsStr !== localJobsStr;
+      const hasAvailDiff = serverAvailStr !== localAvailStr;
+      const isNewer = serverVer > lastSyncVersion;
+
+      if (isNewer || hasJobsDiff || hasAvailDiff) {
+        lastSyncVersion = Math.max(lastSyncVersion, serverVer);
+        isSyncing = true;
+
+        if (hasAvailDiff && Object.keys(serverAvail).length > 0) {
+          state.vendorAvailable = Object.assign({}, state.vendorAvailable, serverAvail);
+        }
+        if (hasJobsDiff && (serverJobs.length > 0 || state.jobs.length === 0)) {
+          state.jobs = serverJobs;
+        }
+
+        try {
+          localStorage.setItem("kkd_state_jobs", JSON.stringify(state.jobs));
+          localStorage.setItem("kkd_state_vendor_avail", JSON.stringify(state.vendorAvailable));
+        } catch(e){}
+
+        // 全体ステータス更新
+        renderSide();
+        renderCustomerAvailabilityNote();
+
+        // 業者画面の再描画（表示中タブがあれば自動更新）
+        const vViewEl = document.getElementById("vView");
+        const vViewText = vViewEl ? vViewEl.textContent : "";
+        if (vViewText === "予定表示" || vViewText === "空き枠管理") {
+          renderVendorHome();
+        } else if (vViewText.includes("訪問前") || vViewText.includes("対応中") || vViewText.includes("完了後")) {
+          openVendorCases(state.vendorTab || "before", false);
+        }
+
+        // 顧客画面の再描画（案件一覧を開いていれば自動更新）
+        const cViewEl = document.getElementById("cView");
+        const cViewText = cViewEl ? cViewEl.textContent : "";
+        if (cViewText.includes("訪問前") || cViewText.includes("対応中") || cViewText.includes("完了後")) {
+          openCustomerCases(state.customerTab || "before", false);
+        }
+
+        // 管理画面の再描画
+        const mBody = document.getElementById("managementBody");
+        if (mBody && mBody.innerHTML.trim().length > 0) {
+          renderManagement();
+        }
+
+        // チャットが開かれていれば最新化
+        if (state.activeJobId) {
+          updateDirectChatDOM(state.activeJobId);
+        }
+
+        isSyncing = false;
+      }
+    }
+  } catch (e) {
+    // オフライン時は無視
+  }
+}
+
+// 起動時に初回同期＆1.5秒ごとの高速定期同期
+fetchSharedState();
+setInterval(fetchSharedState, 1500);
+window.addEventListener('focus', fetchSharedState);
+</script>
+
+
+<script src="../assets/app_boot.js"></script>
+</body>
+</html>
