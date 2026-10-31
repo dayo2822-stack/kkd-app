@@ -538,7 +538,7 @@ function getCustomerLastNameWithHonorific(fullName){
   return (parts[0] || fullName) + " 様";
 }
 function changeUnits(delta){
-  const next = Math.max(1, Math.min(99, Number(state.booking.units||1) + delta));
+  const next = Math.max(kkd135MinUnits(), Math.min(kkd135MaxUnits(), Number(state.booking.units||1) + delta));
   setUnits(next);
 }
 function toggleVendorJob(id){
@@ -1079,7 +1079,7 @@ function shiftMonth(n,mode){
 }
 function renderCurrentCalendar(){if(document.getElementById("cOverlay").style.display==="flex")renderCBody();if(document.getElementById("vOverlay").style.display==="flex")renderVBody();if(document.getElementById("vView").textContent==="予定表示")renderVendorHome();}
 
-function resetBooking(){state.booking={category:"",service:"",units:1,options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",detailAddress:"",note:""};state.serviceCategoryOpen="";cWizard=1;}
+function resetBooking(){state.booking={category:"",service:"",units:kkd135MinUnits(),options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",detailAddress:"",note:""};state.serviceCategoryOpen="";cWizard=1;}
 function openCustomerBooking(){
   resetBooking();cWizard=1;document.getElementById("cView").textContent="予約窓口";openSheet("c","予約窓口");renderCBody();log("CUSTOMER_BOOKING_OPEN");
 }
@@ -1406,6 +1406,8 @@ function cNext(){
   if(cWizard<6){cWizard++;renderCBody();}else confirmBooking();
 }
 function cBack(){if(cWizard>1){cWizard--;renderCBody();}}
+function kkd135MinUnits(){ return (KKD135_PRICING && KKD135_PRICING.minUnits) || 1; }
+function kkd135MaxUnits(){ return (KKD135_PRICING && KKD135_PRICING.maxUnits) || 99; }
 function kkd135Hm(t){ var m = String(t || "").match(/(\d{1,2}):(\d{2})/); return m ? ("0" + m[1]).slice(-2) + ":" + m[2] : ""; }
 function kkd135Selections(){
   var codeByName = {}, sel = {};
@@ -1413,13 +1415,14 @@ function kkd135Selections(){
   Object.keys(state.booking.unitOptions || {}).forEach(function(u){ (state.booking.unitOptions[u] || []).forEach(function(n){ var c = codeByName[n]; if(c) sel[c] = (sel[c] || 0) + 1; }); });
   return sel;
 }
-var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（台数・氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
 function confirmBooking(){
   var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
   if(!be || typeof be.createBooking !== "function" || env.role !== "customer") return confirmBookingLocal(null);
   if(window.__kkd135Booking) return;
   var b = state.booking;
   b.requestId = b.requestId || ("R" + Date.now() + Math.floor(Math.random() * 1000000)); // 再送しても、二重に作られない
+  if(b.units < kkd135MinUnits() || b.units > kkd135MaxUnits()){ alert("台数は" + kkd135MinUnits() + "〜" + kkd135MaxUnits() + "台で、ご予約ください。（数量を、確認画面の前の手順で変えられます）"); return; }
   window.__kkd135Booking = true;
   be.createBooking({ requestId: b.requestId, units: b.units, selections: kkd135Selections(), date1: b.date1, time1: kkd135Hm(b.time1), date2: b.date2 || "", time2: b.date2 ? kkd135Hm(b.time2) : "", name: b.name, phone: b.phone || "", zip: b.zip, address: b.address, note: b.note || "" }).then(function(r){
     window.__kkd135Booking = false;
