@@ -50,6 +50,12 @@ var KKD135Jobs = (function () {
   // GASの1件 → 画面の案件
   function fromGas(r, names) {
     var j = fromGasBase(r, names);
+    if (j && r && r.completion && typeof r.completion === 'object') {
+      j.compShowReview = r.completion.showReview !== false; j.compShowInvoice = r.completion.showInvoice !== false; j.compShowInstaller = r.completion.showInstaller === true;
+      j.compInstallers = Array.isArray(r.completion.installers) ? r.completion.installers.map(String) : [];
+      j.profileHas = { review: !!(r.profileHas && r.profileHas.review), invoice: !!(r.profileHas && r.profileHas.invoice) };
+      j.compRoster = Array.isArray(r.roster) ? r.roster.map(function (x) { return String(x.name); }) : [];
+    }
     return (j && r && r.visitInfo) ? applyVisitInfo(j, r.visitInfo) : j;
   }
   function fromGasBase(r, names) {
@@ -138,6 +144,7 @@ var KKD135Jobs = (function () {
       photos: photosOf(b.photos, { install: false, model: false, outdoor: false, other: false }), visitPhotos: visitPhotosOf(b.photos),
       vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
       todayTime: '', scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
+      reviewUrl: String(b.reviewUrl || ''), invoiceNo: String(b.invoiceNo || ''), installers: Array.isArray(b.installers) ? b.installers.map(String) : [],
       completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
       rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: isWorking(b.status) || done, startedAt: String(b.startedAt || '')
     };

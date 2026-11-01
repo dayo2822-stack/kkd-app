@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "c5e2b4e079", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "83f07dada5", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=c5e2b4e079"></script>
-<script src="../assets/photo_report_ui.js?v=c5e2b4e079"></script>
-<script src="../assets/gas_backend.js?v=c5e2b4e079"></script>
-<script src="../assets/jobs_from_gas.js?v=c5e2b4e079"></script>
+<script src="../assets/photo_report_logic.js?v=83f07dada5"></script>
+<script src="../assets/photo_report_ui.js?v=83f07dada5"></script>
+<script src="../assets/gas_backend.js?v=83f07dada5"></script>
+<script src="../assets/jobs_from_gas.js?v=83f07dada5"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -945,16 +945,16 @@ function openReceiptModal(id){
   const withoutTax = total - tax;
   const issueDate = j.completedDate || fmtDate(new Date().toISOString().slice(0,10));
   const receiptNo = `REC-${j.id}`;
-  const isInvoice = (j.isInvoiceIssuer !== undefined) ? j.isInvoiceIssuer : currentReceiptInvoiceMode;
+  const isInvoice = j.gas ? !!j.invoiceNo : ((j.isInvoiceIssuer !== undefined) ? j.isInvoiceIssuer : currentReceiptInvoiceMode);
 
   openSheet("c", "電子領収書");
   document.getElementById("cBody").innerHTML = `
-    <div style="max-width:320px;margin:0 auto 6px;display:flex;justify-content:flex-end;align-items:center;gap:6px;font-size:10px;color:#475569;">
+    ${j.gas ? "" : `    <div style="max-width:320px;margin:0 auto 6px;display:flex;justify-content:flex-end;align-items:center;gap:6px;font-size:10px;color:#475569;">
       <label style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;user-select:none;background:#f1f5f9;padding:3px 8px;border-radius:12px;border:1px solid #cbd5e1;">
         <input type="checkbox" id="receiptInvoiceToggle" ${isInvoice ? 'checked' : ''} onchange="toggleReceiptInvoice('${id}', this.checked)">
         <span>インボイス（適格請求書）表記</span>
       </label>
-    </div>
+    </div>`}
     <div class="receipt-sheet" id="printableReceipt">
       <div class="receipt-title">${isInvoice ? "領 収 書（適格簡易請求書）" : "領 収 書"}</div>
       <div class="receipt-meta">
@@ -985,8 +985,9 @@ function openReceiptModal(id){
       </table>
       <div class="receipt-issuer">
         <b>発行者：綺麗快適デザイン（KKD）／ KKD WORKS</b><br>
-        ${isInvoice ? '適格請求書発行事業者登録番号：T1234567890123<br>' : ''}
-        担当施工者：${esc(vendorForJob(j))}<br>
+        ${isInvoice ? '適格請求書発行事業者登録番号：' + esc(j.gas ? j.invoiceNo : 'T1234567890123') + '<br>' : ''}
+        ${(j.gas && Array.isArray(j.installers) && j.installers.length) ? '担当施工者：' + j.installers.map(esc).join('、') + '<br>' : ''}
+        ${j.gas ? '' : '担当施工者：' + esc(vendorForJob(j)) + '<br>'}
         電子交付：本領収書は電子的に発行された正規の証明書です。
       </div>
       <div style="display:flex;gap:6px;margin-top:10px;">
@@ -1695,6 +1696,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
           施工が完了いたしました。ご利用ありがとうございました。<br>
           <span class="mini">Squareキャッシュレス決済完了・領収書即時発行可能</span>
         </div>
+        ${kkd135ReviewButton(j)}
         ${renderPriceBreakdown(j)}
         <div style="margin:6px 0;display:flex;gap:6px;flex-wrap:wrap;">
           <button type="button" class="btn secondary" style="font-size:10px;padding:5px 10px;display:inline-flex;align-items:center;gap:4px;" onclick="openCustomerPhotoModal('${j.id}')">
@@ -1950,7 +1952,7 @@ function vendorHomeDate(ds){
 function renderVendorHome(){
   clearChat("vChat");document.getElementById("vView").textContent="予定表示";
   const keys=Object.keys(state.vendorAvailable).sort();
-  let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button></div></div>`;
+  let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button> <button class="btn secondary" onclick="openVendorProfile()">⚙ 登録情報</button></div></div>`;
   const bookings=state.jobs.filter(j=>!j.completed);
   if(bookings.length) html+=bookings.map(j=>{
     const lastName = getCustomerLastNameWithHonorific(j.name);
@@ -2143,6 +2145,7 @@ function openVendorCases(tab="before", resetAccordion=false){
             ${j.ratingComment ? `<div style="font-size:9px;color:var(--ink);margin-top:2px;">「${esc(j.ratingComment)}」</div>` : ""}
           </div>
         ` : ""}
+        ${renderCompletionSettings(j)}
         <div class="actions" style="margin-top:6px;">
           <button class="btn ${j.photoReported ? 'secondary' : 'primary'}" onclick="openPhotoReport('${j.id}')">現場写真${j.photoReported ? '（報告済み）' : ''}</button>
           <button class="btn primary" onclick="openSquareMock('${j.id}')">Square決済へ</button>
@@ -2615,6 +2618,180 @@ function kkd135CheckArea(address) {
     if (seq !== __kkd135AreaSeq) return;
     if (r && r.status === "OK") { state.booking.areaOk = r.available === true; kkd135ShowAreaMsg(); }
   }, function () {});
+}
+
+// ---- 口コミ投稿（Google）：担当業者がGoogleビジネスのリンクを登録していれば、確定金額の近くにボタンを出す（評価の高低で、出し分けない） ----
+function kkd135ReviewButton(j) {
+  if (!j || !j.reviewUrl || !/^https:\/\//.test(j.reviewUrl)) return "";
+  return '<div style="margin:6px 0;"><button type="button" class="btn primary" style="font-size:10.5px;padding:6px 12px;background:#1a73e8;" data-u="' + esc(j.reviewUrl) + '" onclick="kkd135OpenReview(this.dataset.u)">⭐ Googleに口コミを投稿する</button></div>';
+}
+function kkd135OpenReview(url) {
+  if (!/^https:\/\//.test(url)) return;
+  try { if (window.liff && typeof liff.openWindow === "function") { liff.openWindow({ url: url, external: true }); return; } } catch (e) {}
+  window.open(url, "_blank", "noopener");
+}
+
+// ---- 業者の登録情報（Googleビジネスのリンク・担当施工者・インボイス番号・対応エリア） ----
+var KKD135_PROFILE = null; // { url, name, invoice, sel: {"都道府県|市区町村": true}, open: {都道府県: true}, master: [{name, items:[{name,parent}]}] }
+var KKD135_PROFILE_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（リンクは、Googleのものだけ。インボイス番号は、T＋13桁）。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+function openVendorProfile() {
+  var be = window.KKD135_BACKEND;
+  openSheet("v", "登録情報");
+  document.getElementById("vBack").style.display = "none"; document.getElementById("vNext").style.display = "none";
+  var body = document.getElementById("vBody");
+  if (!be || typeof be.getMyProfile !== "function") { body.innerHTML = '<div class="notice">この画面は、GASに接続したときだけ使えます（試験用の単体の画面では、保存できません）。</div>'; return; }
+  body.innerHTML = '<div class="notice">読み込み中…</div>';
+  Promise.all([be.getMyProfile(), be.getAreaMaster()]).then(function (rs) {
+    var p = rs[0], m = rs[1];
+    if (!p || p.status !== "OK" || !m || m.status !== "OK") { body.innerHTML = '<div class="notice warn">読み込めませんでした（' + esc((p && p.errorCode) || (m && m.errorCode) || "NETWORK") + '）。閉じて、もう一度お試しください。</div>'; return; }
+    var sel = {}; (p.areas || []).forEach(function (a) { sel[a.pref + "|" + a.name] = true; });
+    var d = p.profile.defaults || { review: true, installer: false, invoice: true };
+    KKD135_PROFILE = { url: p.profile.googleReviewUrl || "", invoice: p.profile.invoiceNo || "", defaults: { review: d.review !== false, installer: d.installer === true, invoice: d.invoice !== false },
+      roster: (p.profile.roster || []).map(function (x) { return { name: x.name, default: x.default === true }; }), sel: sel, open: {}, master: m.prefectures || [] };
+    kkd135DrawProfile();
+  }, function () { body.innerHTML = '<div class="notice warn">読み込めませんでした。通信を確かめて、閉じて、もう一度お試しください。</div>'; });
+}
+function kkd135DrawProfile() {
+  var P = KKD135_PROFILE, body = document.getElementById("vBody"); if (!P) return;
+  var fld = 'style="width:100%;font-size:12px;padding:7px;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;"';
+  var cb = 'style="width:18px;height:18px;margin:0;flex:none;"', lbl = 'style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11.5px;"';
+  body.innerHTML = '<div style="padding:4px 2px;">' +
+    '<div class="field"><label>Googleビジネスのリンク（口コミ投稿の先）</label><input type="url" inputmode="url" ' + fld + ' placeholder="https://g.page/r/…" value="' + esc(P.url) + '" oninput="KKD135_PROFILE.url=this.value"></div>' +
+    '<div class="field"><label>インボイス番号（T＋13桁。ない場合は空欄）</label><input type="text" ' + fld + ' maxlength="20" placeholder="T1234567890123" value="' + esc(P.invoice) + '" oninput="KKD135_PROFILE.invoice=this.value"></div>' +
+    '<div style="margin:10px 0 2px;font-weight:bold;font-size:12px;">施工者の名簿（完了後の画面で、選べます。最大10名）</div>' +
+    '<div class="mini" style="margin-bottom:2px;">「既定で選択」にチェックした方は、完了後の画面で、最初から選ばれた状態になります。</div>' +
+    '<div id="kkd135RosterBox"></div>' +
+    '<div style="margin:10px 0 2px;font-weight:bold;font-size:12px;">お客様への表示の既定（完了後の画面で、案件ごとに変えられます）</div>' +
+    '<label ' + lbl + '><input type="checkbox" ' + cb + (P.defaults.review ? " checked" : "") + ' onchange="KKD135_PROFILE.defaults.review=this.checked"><span>Googleビジネスのリンク（口コミのボタン）を、表示する</span></label>' +
+    '<label ' + lbl + '><input type="checkbox" ' + cb + (P.defaults.installer ? " checked" : "") + ' onchange="KKD135_PROFILE.defaults.installer=this.checked"><span>担当施工者を、領収書に表示する</span></label>' +
+    '<label ' + lbl + '><input type="checkbox" ' + cb + (P.defaults.invoice ? " checked" : "") + ' onchange="KKD135_PROFILE.defaults.invoice=this.checked"><span>インボイス番号を、領収書に表示する</span></label>' +
+    '<div style="margin:10px 0 4px;font-weight:bold;font-size:12px;">対応エリア（チェックした地域の、お客様のご予約を、受け付けます）</div>' +
+    '<div id="kkd135AreaBox"></div>' +
+    '<div style="margin-top:12px;"><button type="button" class="btn primary" style="width:100%;padding:11px;" onclick="kkd135SaveProfile()">保存する</button></div>' +
+    '<div class="mini" id="kkd135ProfileMsg" style="margin-top:6px;"></div></div>';
+  kkd135DrawRoster();
+  kkd135DrawAreas();
+}
+function kkd135DrawRoster() {
+  var P = KKD135_PROFILE, box = document.getElementById("kkd135RosterBox"); if (!P || !box) return;
+  box.innerHTML = P.roster.map(function (x, i) {
+    return '<div style="display:flex;align-items:center;gap:6px;margin:3px 0;"><input type="text" maxlength="40" placeholder="施工者のお名前" value="' + esc(x.name) + '" style="flex:1;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;" oninput="KKD135_PROFILE.roster[' + i + '].name=this.value">' +
+      '<label style="display:flex;align-items:center;gap:3px;font-size:10px;white-space:nowrap;"><input type="checkbox" style="width:16px;height:16px;margin:0;" ' + (x.default ? "checked" : "") + ' onchange="KKD135_PROFILE.roster[' + i + '].default=this.checked">既定で選択</label>' +
+      '<button type="button" class="btn secondary" style="font-size:10px;padding:4px 8px;" onclick="kkd135RosterDel(' + i + ')">削除</button></div>';
+  }).join("") + (P.roster.length < 10 ? '<button type="button" class="btn secondary" style="font-size:10px;padding:4px 10px;margin-top:2px;" onclick="kkd135RosterAdd()">＋ 施工者を追加</button>' : "");
+}
+function kkd135RosterAdd() { if (KKD135_PROFILE.roster.length < 10) KKD135_PROFILE.roster.push({ name: "", default: false }); kkd135DrawRoster(); }
+function kkd135RosterDel(i) { KKD135_PROFILE.roster.splice(i, 1); kkd135DrawRoster(); }
+function kkd135AreaKey(p, n) { return p + "|" + n; }
+function kkd135DrawAreas() {
+  var P = KKD135_PROFILE, box = document.getElementById("kkd135AreaBox"); if (!P || !box) return;
+  var h = P.master.map(function (pref) {
+    var items = pref.items, cities = items.filter(function (x) { return x.parent === ""; });
+    var count = items.filter(function (x) { return P.sel[kkd135AreaKey(pref.name, x.name)]; }).length;
+    var open = !!P.open[pref.name];
+    var rows = "";
+    if (open) {
+      cities.forEach(function (c) {
+        var wards = items.filter(function (x) { return x.parent === c.name; });
+        var cKey = kkd135AreaKey(pref.name, c.name), cOn = !!P.sel[cKey];
+        rows += '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef2f7;"><input type="checkbox" style="width:18px;height:18px;margin:0;" ' + (cOn ? "checked" : "") + ' onchange="kkd135ToggleArea(\'' + esc(pref.name) + '\',\'' + esc(c.name) + '\',this.checked)"><span style="flex:1;font-size:12px;">' + esc(c.name) + (wards.length ? "（全域）" : "") + '</span></label>';
+        wards.forEach(function (w) {
+          var wOn = cOn || !!P.sel[kkd135AreaKey(pref.name, w.name)];
+          rows += '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px 5px 26px;border-bottom:1px solid #f4f6fa;' + (cOn ? "opacity:.55;" : "") + '"><input type="checkbox" style="width:17px;height:17px;margin:0;" ' + (wOn ? "checked" : "") + (cOn ? " disabled" : "") + ' onchange="kkd135ToggleArea(\'' + esc(pref.name) + '\',\'' + esc(w.name) + '\',this.checked)"><span style="flex:1;font-size:11.5px;">' + esc(w.name.slice(c.name.length)) + '</span></label>';
+        });
+      });
+    }
+    return '<div style="border:1px solid #e2e8f0;border-radius:8px;margin:6px 0;"><div style="display:flex;align-items:center;gap:6px;padding:8px;"><button type="button" class="btn secondary" style="flex:1;text-align:left;font-size:12px;padding:6px 8px;" onclick="kkd135TogglePref(\'' + esc(pref.name) + '\')">' + (open ? "▼ " : "▶ ") + esc(pref.name) + '（選択 ' + count + '）</button>' +
+      '<button type="button" class="btn secondary" style="font-size:10px;padding:5px 8px;" onclick="kkd135PrefAll(\'' + esc(pref.name) + '\',true)">全域</button><button type="button" class="btn secondary" style="font-size:10px;padding:5px 8px;" onclick="kkd135PrefAll(\'' + esc(pref.name) + '\',false)">解除</button></div>' +
+      (open ? '<div style="padding:0 8px 6px;">' + rows + '</div>' : "") + '</div>';
+  }).join("");
+  box.innerHTML = h;
+}
+function kkd135TogglePref(pref) { KKD135_PROFILE.open[pref] = !KKD135_PROFILE.open[pref]; kkd135DrawAreas(); }
+// 市（政令市）を選ぶと、その区の個別の選択は消える（市の全域に含まれるため）。区を1つ選ぶと、市の全域は外れる
+function kkd135ToggleArea(pref, name, on) {
+  var P = KKD135_PROFILE, items = P.master.filter(function (x) { return x.name === pref; })[0].items;
+  var it = items.filter(function (x) { return x.name === name; })[0];
+  if (on) {
+    P.sel[kkd135AreaKey(pref, name)] = true;
+    if (it && it.parent === "") items.forEach(function (w) { if (w.parent === name) delete P.sel[kkd135AreaKey(pref, w.name)]; });
+  } else delete P.sel[kkd135AreaKey(pref, name)];
+  kkd135DrawAreas();
+}
+function kkd135PrefAll(pref, on) {
+  var P = KKD135_PROFILE, items = P.master.filter(function (x) { return x.name === pref; })[0].items;
+  items.forEach(function (x) { delete P.sel[kkd135AreaKey(pref, x.name)]; });
+  if (on) items.forEach(function (x) { if (x.parent === "") P.sel[kkd135AreaKey(pref, x.name)] = true; });
+  kkd135DrawAreas();
+}
+function kkd135SaveProfile() {
+  var P = KKD135_PROFILE, be = window.KKD135_BACKEND, msg = document.getElementById("kkd135ProfileMsg"); if (!P || !be) return;
+  if (window.__kkd135ProfileSaving) return;
+  var roster = P.roster.map(function (x) { return { name: String(x.name).trim(), default: x.default === true }; }).filter(function (x) { return x.name !== ""; });
+  var seen = {}; for (var i = 0; i < roster.length; i++) { if (seen[roster[i].name]) { if (msg) { msg.style.color = "#b45309"; msg.textContent = "施工者のお名前が、重複しています。"; } return; } seen[roster[i].name] = 1; }
+  window.__kkd135ProfileSaving = true;
+  if (msg) { msg.style.color = "#475569"; msg.textContent = "保存中…"; }
+  var areas = []; Object.keys(P.sel).forEach(function (k) { var i2 = k.indexOf("|"); areas.push({ pref: k.slice(0, i2), name: k.slice(i2 + 1) }); });
+  be.saveMyProfile({ googleReviewUrl: P.url.trim(), invoiceNo: P.invoice.trim(), defaults: { review: !!P.defaults.review, installer: !!P.defaults.installer, invoice: !!P.defaults.invoice }, roster: roster }).then(function (r) {
+    if (!r || r.status !== "OK") return r;
+    return be.saveMyAreas(areas);
+  }).then(function (r) {
+    window.__kkd135ProfileSaving = false;
+    if (r && r.status === "OK") { P.roster = roster; kkd135DrawRoster(); if (msg) { msg.style.color = "#0d6b57"; msg.textContent = "保存しました（対応エリア " + areas.length + " 件）。"; } return; }
+    if (msg) { msg.style.color = "#b45309"; msg.textContent = KKD135_PROFILE_ERRORS[r && r.errorCode] || "保存できませんでした。通信を確かめて、もう一度お試しください。（入力内容は、残っています）"; }
+  }, function () { window.__kkd135ProfileSaving = false; if (msg) { msg.style.color = "#b45309"; msg.textContent = "保存できませんでした。通信を確かめて、もう一度お試しください。"; } });
+}
+
+// ---- 業者の完了後：お客様への表示設定（Googleビジネスのリンク／担当施工者（名簿から選ぶ＋その場で追加。合わせて5名まで）／インボイス番号）。保存すると、顧客の完了後の画面・領収書に反映される ----
+var KKD135_COMP_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（担当施工者を表示する場合は、お名前が必要です。1人40文字、5人まで）。", NOT_COMPLETED: "作業の完了の後に、設定できます。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+function renderCompletionSettings(j) {
+  if (!j || !j.gas || !j.completed || j.compShowReview === undefined) return "";
+  var id = esc(j.id), has = j.profileHas || {};
+  var lbl = 'style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:11px;"', cb = 'style="width:18px;height:18px;margin:0;flex:none;"';
+  return '<div id="comp-' + id + '" style="margin-top:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">' +
+    '<div style="font-size:10.5px;font-weight:bold;margin-bottom:2px;">お客様への表示設定（完了後）</div>' +
+    '<label ' + lbl + '><input type="checkbox" ' + cb + ' ' + (has.review ? "" : "disabled ") + (j.compShowReview && has.review ? "checked " : "") + 'onchange="kkd135CompSet(\'' + id + '\',\'review\',this.checked)"><span>Googleビジネスのリンク（お客様の完了後画面に、口コミのボタンを表示）' + (has.review ? "" : '<br><span class="mini" style="color:#b45309;">リンクが未登録です。ホームの［⚙ 登録情報］で、登録してください。</span>') + '</span></label>' +
+    '<label ' + lbl + '><input type="checkbox" ' + cb + ' ' + (j.compShowInstaller ? "checked " : "") + 'onchange="kkd135CompSet(\'' + id + '\',\'installer\',this.checked)"><span>担当施工者（お客様の領収書に表示）</span></label>' +
+    '<div id="comp-names-' + id + '" style="margin:0 0 4px 26px;">' + kkd135CompNamesHtml(j) + '</div>' +
+    '<label ' + lbl + '><input type="checkbox" ' + cb + ' ' + (has.invoice ? "" : "disabled ") + (j.compShowInvoice && has.invoice ? "checked " : "") + 'onchange="kkd135CompSet(\'' + id + '\',\'invoice\',this.checked)"><span>インボイス番号（お客様の領収書に表示）' + (has.invoice ? "" : '<br><span class="mini" style="color:#b45309;">番号が未登録です。ホームの［⚙ 登録情報］で、登録してください。</span>') + '</span></label>' +
+    '<button type="button" class="btn primary" style="width:100%;padding:9px;margin-top:4px;" onclick="kkd135CompSave(\'' + id + '\')">表示設定を保存</button><div class="mini" id="comp-msg-' + id + '" style="margin-top:4px;"></div></div>';
+}
+// 選ばれた施工者：j.compInstallers（名簿の人と、その場で足した人。順番を保つ）。名簿の人はチェック、足した人は入力欄
+function kkd135CompNamesHtml(j) {
+  var id = esc(j.id), roster = Array.isArray(j.compRoster) ? j.compRoster : [], sel = j.compInstallers = Array.isArray(j.compInstallers) ? j.compInstallers : [];
+  var extras = []; sel.forEach(function (n, i) { if (roster.indexOf(n) < 0) extras.push(i); });
+  var h = roster.map(function (n, ri) {
+    return '<label style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11.5px;"><input type="checkbox" style="width:17px;height:17px;margin:0;" ' + (sel.indexOf(n) >= 0 ? "checked " : "") + 'onchange="kkd135CompRoster(\'' + id + '\',' + ri + ',this.checked)"><span>' + esc(n) + '</span></label>';
+  }).join("");
+  h += extras.map(function (i) {
+    return '<div style="display:flex;gap:4px;margin:3px 0;"><input type="text" maxlength="40" value="' + esc(sel[i]) + '" placeholder="その他の施工者のお名前" style="flex:1;font-size:12px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;" oninput="getJob(\'' + id + '\').compInstallers[' + i + ']=this.value"><button type="button" class="btn secondary" style="font-size:10px;padding:4px 8px;" onclick="kkd135CompDel(\'' + id + '\',' + i + ')">削除</button></div>';
+  }).join("");
+  if (sel.length < 5) h += '<button type="button" class="btn secondary" style="font-size:10px;padding:4px 10px;margin-top:2px;" onclick="kkd135CompAdd(\'' + id + '\')">＋ その他の施工者を追加（合わせて5名まで）</button>';
+  return h;
+}
+function kkd135CompNames(id) { var j = getJob(id), box = document.getElementById("comp-names-" + id); if (j && box) box.innerHTML = kkd135CompNamesHtml(j); }
+function kkd135CompRoster(id, ri, on) {
+  var j = getJob(id); if (!j) return; var n = j.compRoster[ri]; j.compInstallers = j.compInstallers || [];
+  var at = j.compInstallers.indexOf(n);
+  if (on && at < 0) { if (j.compInstallers.length >= 5) { alert("担当施工者は、5名までです。"); } else j.compInstallers.push(n); }
+  else if (!on && at >= 0) j.compInstallers.splice(at, 1);
+  kkd135CompNames(id);
+}
+function kkd135CompAdd(id) { var j = getJob(id); if (!j) return; j.compInstallers = j.compInstallers || []; if (j.compInstallers.length < 5) j.compInstallers.push(""); kkd135CompNames(id); }
+function kkd135CompDel(id, i) { var j = getJob(id); if (!j) return; j.compInstallers.splice(i, 1); kkd135CompNames(id); }
+function kkd135CompSet(id, which, on) {
+  var j = getJob(id); if (!j) return;
+  if (which === "review") j.compShowReview = on; else if (which === "invoice") j.compShowInvoice = on; else j.compShowInstaller = on;
+}
+function kkd135CompSave(id) {
+  var j = getJob(id), be = window.KKD135_BACKEND, msg = document.getElementById("comp-msg-" + id); if (!j || !be || typeof be.saveCompletionInfo !== "function") return;
+  var seen = {}, names = (j.compInstallers || []).map(function (n) { return String(n).trim(); }).filter(function (n) { if (n === "" || seen[n]) return false; seen[n] = 1; return true; });
+  if (j.compShowInstaller && names.length === 0) { if (msg) { msg.style.color = "#b45309"; msg.textContent = "担当施工者を表示する場合は、お名前を選ぶか、入力してください。"; } return; }
+  if (msg) { msg.style.color = "#475569"; msg.textContent = "保存中…"; }
+  be.saveCompletionInfo(id, { showReview: !!(j.compShowReview && (j.profileHas || {}).review), showInvoice: !!(j.compShowInvoice && (j.profileHas || {}).invoice), showInstaller: !!j.compShowInstaller, installers: names }).then(function (r) {
+    if (r && r.status === "OK") { j.compInstallers = r.completion.installers.slice(); kkd135CompNames(id); if (msg) { msg.style.color = "#0d6b57"; msg.textContent = "保存しました。お客様の画面・領収書に反映されます。"; } return; }
+    if (msg) { msg.style.color = "#b45309"; msg.textContent = KKD135_COMP_ERRORS[r && r.errorCode] || "保存できませんでした。通信を確かめて、もう一度お試しください。"; }
+  }, function () { if (msg) { msg.style.color = "#b45309"; msg.textContent = "保存できませんでした。通信を確かめて、もう一度お試しください。"; } });
 }
 
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
@@ -3161,6 +3338,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=c5e2b4e079"></script>
+<script src="../assets/app_boot.js?v=83f07dada5"></script>
 </body>
 </html>
