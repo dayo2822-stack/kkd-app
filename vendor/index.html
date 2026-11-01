@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "b43fcb7ddb"};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "999a359826", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=b43fcb7ddb"></script>
-<script src="../assets/photo_report_ui.js?v=b43fcb7ddb"></script>
-<script src="../assets/gas_backend.js?v=b43fcb7ddb"></script>
-<script src="../assets/jobs_from_gas.js?v=b43fcb7ddb"></script>
+<script src="../assets/photo_report_logic.js?v=999a359826"></script>
+<script src="../assets/photo_report_ui.js?v=999a359826"></script>
+<script src="../assets/gas_backend.js?v=999a359826"></script>
+<script src="../assets/jobs_from_gas.js?v=999a359826"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1647,13 +1647,13 @@ function openCustomerCases(tab="before", resetAccordion=false){
           ${renderPriceBreakdown(j)}
           <div class="notice" style="margin:4px 0 6px;">📷 <b>現場写真提出</b><br>作業を円滑に進めるため、現場写真を送信してください。必須写真が揃うと業者側の訪問日時確定へ進みます。</div>
           <div class="case-photo-grid">
-            <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</button></div>
-            <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</button></div>
+            <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</label></div>
+            <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</label></div>
           </div>
           ${j.service==="エアコン脱着分解クリーニング"?`
           <div class="case-photo-grid" style="margin-top:5px;">
-            <div class="photo ${j.photos.outdoor?'sent':''}">📷 ${outdoorRequired(j)?'必須：':'任意：'}室外機の写真<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','outdoor')">${j.photos.outdoor?'✓ 送信済み':'写真を追加'}</button></div>
-            <div class="photo ${j.photos.other?'sent':''}">📷 任意：その他（気になる場所）<br><button type="button" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;" onclick="sendPhoto('${j.id}','other')">${j.photos.other?'✓ 送信済み':'写真を追加'}</button></div>
+            <div class="photo ${j.photos.outdoor?'sent':''}">📷 ${outdoorRequired(j)?'必須：':'任意：'}室外機の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','outdoor')">${j.photos.outdoor?'✓ 送信済み':'写真を追加'}</label></div>
+            <div class="photo ${j.photos.other?'sent':''}">📷 任意：その他（気になる場所）<br><label for="kkd135PhotoInput" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','other')">${j.photos.other?'✓ 送信済み':'写真を追加'}</label></div>
           </div>`:""}
           <div class="summary" style="margin-top:6px;font-size:9px;">必須写真：<b>${rec}/${req}</b> ${rec>=req?'<span class="badge ok">送信完了・日時調整中</span>':'<span class="badge warn">残り'+(req-rec)+'点必要</span>'}</div>
         `;
@@ -1805,10 +1805,10 @@ function renderCaseMessages(j){
   let msgs=[];
   msgs.push(`<div class="case-message system">【システム】必須写真が揃うと、業者の訪問日時確定へ進みます。</div>`);
   msgs.push(`<div class="case-photo-grid">
-    <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><button class="btn secondary" onclick="sendPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</button></div>
-    <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><button class="btn secondary" onclick="sendPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</button></div>
+    <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</label></div>
+    <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</label></div>
   </div>`);
-  if(j.service==="エアコン脱着分解クリーニング")msgs.push(`<div class="case-photo-grid"><div class="photo ${j.photos.outdoor?'sent':''}">📷 ${outdoorRequired(j)?'必須：':'任意：'}室外機の写真<br><button class="btn secondary" onclick="sendPhoto('${j.id}','outdoor')">${j.photos.outdoor?'✓ 送信済み':'写真を追加'}</button></div><div class="photo ${j.photos.other?'sent':''}">📷 任意：その他（気になる場所）<br><button class="btn secondary" onclick="sendPhoto('${j.id}','other')">${j.photos.other?'✓ 送信済み':'写真を追加'}</button></div></div>`);
+  if(j.service==="エアコン脱着分解クリーニング")msgs.push(`<div class="case-photo-grid"><div class="photo ${j.photos.outdoor?'sent':''}">📷 ${outdoorRequired(j)?'必須：':'任意：'}室外機の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','outdoor')">${j.photos.outdoor?'✓ 送信済み':'写真を追加'}</label></div><div class="photo ${j.photos.other?'sent':''}">📷 任意：その他（気になる場所）<br><label for="kkd135PhotoInput" class="btn secondary" style="display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','other')">${j.photos.other?'✓ 送信済み':'写真を追加'}</label></div></div>`);
   if(rec<req)msgs.push(`<div class="case-message system">必須写真：${rec}/${req}。残り${req-rec}点を受信するまで、業者側の訪問日時確定はできません。</div>`);
   if(j.vendorChoice)msgs.push(`<div class="case-message system">【確認連絡】業者が <b>${esc(j.vendorChoice)}</b> で訪問日時を確定しました。<br><button class="btn secondary" onclick="simulateDayBefore()">前日になった状態を再現</button> <button class="btn secondary" onclick="simulateToday()">当日訪問前を再現</button></div>`);
   if(j.customerDetailed)msgs.push(`<div class="case-message system">【前日連絡】訪問先詳細の入力をお願いします。<br>住所：${esc(j.address)}<br><button class="btn secondary" onclick="alert('詳細住所入力フォームを表示する想定')">詳細情報を入力</button> <button class="btn secondary" onclick="alert('位置情報共有を送信した想定')">📍位置情報を共有</button></div>`);
@@ -2386,29 +2386,54 @@ function setAdditionalQty(id, code, qty){
 var KKD135_PHOTO_KINDS = [["install", "設置状況"], ["model", "型番"], ["outdoor", "室外機"], ["other", "その他"]];
 var KKD135_PHOTO_ERRORS = { INVALID_INPUT: "写真を送れませんでした（形式か大きさが合いません）。別の写真でお試しください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", NOT_FOUND: "案件が見つかりません。画面を開き直してください。", CASE_COMPLETED: "この案件は完了しているため、写真を送れません。" };
 
-function sendPhoto(id, key) {
-  var j = getJob(id), be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
-  if (!j || !j.gas || !be || typeof be.uploadBookingPhoto !== "function" || env.role !== "customer" || typeof KKD135PhotoUI === "undefined") return sendPhotoLocal(id, key);
+// 写真を選ぶ入力欄：最初から1つだけ画面に置く（隠さずに、見えない大きさ・位置で）。ラベル（写真を追加）のタップが、直接、写真選択を開く。
+function kkd135EnsurePhotoInput() {
   var inp = document.getElementById("kkd135PhotoInput");
-  if (!inp) { inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = "kkd135PhotoInput"; inp.style.display = "none"; document.body.appendChild(inp); }
-  inp.onchange = function () {
-    var f = inp.files && inp.files[0]; inp.value = "";
-    if (!f) return;
-    var notice = document.createElement("div");
-    notice.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:99999;padding:8px 12px;background:#0d6b57;color:#fff;font-size:12px;text-align:center;";
-    notice.textContent = "写真を送信中…"; document.body.appendChild(notice);
-    function done() { if (notice.parentNode) notice.parentNode.removeChild(notice); }
-    KKD135PhotoUI.makeWebB64(f).then(function (b64) {
-      var rid = "P" + Date.now() + Math.floor(Math.random() * 1000000);
-      return be.uploadBookingPhoto(id, key, b64, rid);
-    }).then(function (r) {
-      done();
-      if (r && r.status === "OK") { sendPhotoLocal(id, key); return; }
-      alert((r && KKD135_PHOTO_ERRORS[r.errorCode]) || "写真を送れませんでした。通信を確かめて、もう一度お試しください。");
-    }, function () { done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
-  };
-  inp.click();
+  if (inp || !document.body) return inp;
+  inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = "kkd135PhotoInput";
+  inp.style.cssText = "position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;";
+  inp.addEventListener("change", function () {
+    var f = inp.files && inp.files[0], t = window.__kkd135PhotoTarget; inp.value = "";
+    if (!f || !t) return;
+    kkd135UploadPhoto(t.id, t.key, f);
+  });
+  document.body.appendChild(inp);
+  return inp;
 }
+function kkd135GasPhotoReady(j) {
+  var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
+  return !!(j && j.gas && be && typeof be.uploadBookingPhoto === "function" && env.role === "customer" && typeof KKD135PhotoUI !== "undefined");
+}
+// ラベル（写真を追加）のタップ：GAS接続の案件は、送り先を覚えて、そのまま写真選択を開く。それ以外（試験用）は、その場の印だけ
+function kkd135PickPhoto(id, key) {
+  var j = getJob(id);
+  if (!kkd135GasPhotoReady(j)) { try { event.preventDefault(); } catch (e) {} sendPhotoLocal(id, key); return; }
+  window.__kkd135PhotoTarget = { id: id, key: key };
+  kkd135EnsurePhotoInput();
+}
+function sendPhoto(id, key) { // 互換（プログラムからの呼び出し）
+  var j = getJob(id);
+  if (!kkd135GasPhotoReady(j)) return sendPhotoLocal(id, key);
+  window.__kkd135PhotoTarget = { id: id, key: key };
+  var inp = kkd135EnsurePhotoInput(); if (inp) inp.click();
+}
+function kkd135UploadPhoto(id, key, f) {
+  var j = getJob(id), be = window.KKD135_BACKEND;
+  if (!kkd135GasPhotoReady(j)) return;
+  var notice = document.createElement("div");
+  notice.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:99999;padding:8px 12px;background:#0d6b57;color:#fff;font-size:12px;text-align:center;";
+  notice.textContent = "写真を送信中…"; document.body.appendChild(notice);
+  function done() { if (notice.parentNode) notice.parentNode.removeChild(notice); }
+  KKD135PhotoUI.makeWebB64(f).then(function (b64) {
+    var rid = "P" + Date.now() + Math.floor(Math.random() * 1000000);
+    return be.uploadBookingPhoto(id, key, b64, rid);
+  }).then(function (r) {
+    done();
+    if (r && r.status === "OK") { sendPhotoLocal(id, key); return; }
+    alert((r && KKD135_PHOTO_ERRORS[r.errorCode]) || "写真を送れませんでした。通信を確かめて、もう一度お試しください。");
+  }, function () { done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
+}
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", kkd135EnsurePhotoInput); } else { kkd135EnsurePhotoInput(); }
 
 function renderBookingPhotoButtons(j) {
   if (!j || !j.gas || !j.photos) return "";
@@ -3016,12 +3041,12 @@ async function fetchSharedState() {
 }
 
 // 起動時に初回同期＆1.5秒ごとの高速定期同期
-fetchSharedState();
+if(!window.KKD135_ENV){ fetchSharedState();
 setInterval(fetchSharedState, 1500);
-window.addEventListener('focus', fetchSharedState);
+window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=b43fcb7ddb"></script>
+<script src="../assets/app_boot.js?v=999a359826"></script>
 </body>
 </html>

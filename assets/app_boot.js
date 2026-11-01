@@ -32,7 +32,21 @@
     var pricingDone = backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
     var namesP = pricingDone.then(function () { var names = {}; ((window.KKD135_PRICING && KKD135_PRICING.options) || []).forEach(function (o) { names[o.code] = o.name; }); return names; });
     // 案件を読み込んでいる間の表示（数秒かかる。何も出ないと、案件が無いように見えるため）
+    function loadingOverlay(on) {
+      var ov = document.getElementById('kkd135LoadingMedia');
+      if (!on) { if (ov) ov.parentNode.removeChild(ov); return; }
+      if (ov || !env.loadingMedia) return;
+      ov = document.createElement('div'); ov.id = 'kkd135LoadingMedia';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:16px;';
+      var m = /\.(mp4|webm)$/i.test(env.loadingMedia) ? document.createElement('video') : document.createElement('img');
+      if (m.tagName === 'VIDEO') { m.muted = true; m.autoplay = true; m.loop = true; m.setAttribute('playsinline', ''); m.setAttribute('webkit-playsinline', ''); m.src = env.loadingMedia; m.play && m.play().catch(function () {}); }
+      else { m.src = env.loadingMedia; m.alt = ''; }
+      m.style.cssText = 'max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;';
+      var t = document.createElement('div'); t.textContent = '読み込み中…'; t.style.cssText = 'font-size:13px;color:#0d6b57;';
+      ov.appendChild(m); ov.appendChild(t); document.body.appendChild(ov);
+    }
     function loading(on, msg) {
+      loadingOverlay(on);
       var el = document.getElementById('kkd135Loading');
       if (!on && !msg) { if (el) el.parentNode.removeChild(el); return; }
       if (!el) { el = document.createElement('div'); el.id = 'kkd135Loading'; el.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99999;padding:8px 12px;background:#0d6b57;color:#fff;font-size:12px;text-align:center;'; document.body.appendChild(el); }
