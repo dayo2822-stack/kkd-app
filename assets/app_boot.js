@@ -6,6 +6,9 @@
   'use strict';
   var env = window.KKD135_ENV || {};
 
+  if (env.build) { // 版の表示（どの版の画面が開いているかを、確かめられるように）
+    var ver = document.createElement('div'); ver.textContent = '版 ' + env.build; ver.style.cssText = 'position:fixed;left:6px;bottom:2px;z-index:99998;font-size:9px;color:#94a3b8;pointer-events:none;'; document.body.appendChild(ver);
+  }
   if (env.role && typeof switchRole === 'function') {
     var bar = document.getElementById('mobileRoleBar');
     if (bar) bar.style.display = 'none';
@@ -51,6 +54,7 @@
       loading(true, '案件を読み込み中…');
       KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
+    if (env.role === 'customer' && typeof kkd135RefreshBusy === 'function') kkd135RefreshBusy();
     if (env.role === 'customer' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
       // 顧客：予約はGASが持つ。保存（localStorage）は、試験用（モック）の案件だけ
       window.saveAndSync = function () {

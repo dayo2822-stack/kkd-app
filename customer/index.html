@@ -455,12 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec"};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "b43fcb7ddb"};</script>
+<script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js"></script>
-<script src="../assets/photo_report_ui.js"></script>
-<script src="../assets/gas_backend.js"></script>
-<script src="../assets/jobs_from_gas.js"></script>
+<script src="../assets/photo_report_logic.js?v=b43fcb7ddb"></script>
+<script src="../assets/photo_report_ui.js?v=b43fcb7ddb"></script>
+<script src="../assets/gas_backend.js?v=b43fcb7ddb"></script>
+<script src="../assets/jobs_from_gas.js?v=b43fcb7ddb"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1081,6 +1082,7 @@ function renderCurrentCalendar(){if(document.getElementById("cOverlay").style.di
 
 function resetBooking(){state.booking={category:"",service:"",units:kkd135MinUnits(),options:[],unitOptions:{},date1:"",time1:"",date2:"",time2:"",name:"",zip:"",address:"",detailAddress:"",note:""};state.serviceCategoryOpen="";cWizard=1;}
 function openCustomerBooking(){
+  kkd135RefreshBusy(function(){ try{ if(document.getElementById("cBody") && typeof renderCBody==="function") renderCBody(); }catch(e){} });
   resetBooking();cWizard=1;document.getElementById("cView").textContent="予約窓口";openSheet("c","予約窓口");renderCBody();log("CUSTOMER_BOOKING_OPEN");
 }
 function startBookingForService(serviceName){
@@ -1330,10 +1332,10 @@ function durationHoursForBooking(){
   return Math.max(1,Math.ceil((p.mins*state.booking.units+optionCount*20)/60));
 }
 function durationHoursForJob(j){return Math.max(1,Math.ceil(calcMinutes(j)/60));}
-function timeIndex(t){return TIMES.indexOf(t);}
+function timeIndex(t){var i=TIMES.indexOf(t); if(i>=0||!t) return i; var m=String(t).match(/^(\d{1,2}):(\d{2})/); if(!m) return -1; var key=("0"+m[1]).slice(-2)+":"+m[2]; return TIMES.findIndex(function(x){return x.indexOf(key)===0;});}
 function reservedStartsAndBlocks(ds){
   const blocked=new Set();
-  state.jobs.filter(j=>!j.completed).forEach(j=>{
+  state.jobs.concat(state.busyJobs||[]).filter(j=>!j.completed).forEach(j=>{
     // 業者が訪問日時を確定するまでは第1・第2希望を仮押さえ。
     // 確定後は選択された側だけを予約枠として残し、選ばれなかった希望枠を再び予約可能に戻す。
     const pairs=j.vendorChoice
@@ -1415,7 +1417,7 @@ function kkd135Selections(){
   Object.keys(state.booking.unitOptions || {}).forEach(function(u){ (state.booking.unitOptions[u] || []).forEach(function(n){ var c = codeByName[n]; if(c) sel[c] = (sel[c] || 0) + 1; }); });
   return sel;
 }
-var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（台数・氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（台数・氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", SLOT_TAKEN: "選んだ日時は、すでに予約が入りました。別の日時を選んでください。" };
 function confirmBooking(){
   var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
   if(!be || typeof be.createBooking !== "function" || env.role !== "customer") return confirmBookingLocal(null);
@@ -2461,6 +2463,21 @@ function toggleAddOpen(id) {
   if (body) body.style.display = "block";
 }
 
+// ---- 予約の枠：すでに塞がっている枠（全顧客分・GASから）を、判定に含める ----
+function kkd135RefreshBusy(done) {
+  var be = window.KKD135_BACKEND;
+  if (!be || typeof be.getBusySlots !== "function") { if (done) done(); return; }
+  be.getBusySlots().then(function (r) {
+    if (r && r.status === "OK" && Array.isArray(r.slots)) {
+      state.busyJobs = r.slots.map(function (s) {
+        var names = []; for (var i = 0; i < (Number(s.options) || 0); i++) names.push("x");
+        return { id: "BUSY", service: "エアコン脱着分解クリーニング", units: s.units, unitOptions: names.length ? { 1: names } : {}, options: [], date1: s.date, time1: s.time, date2: "", time2: "", vendorChoice: "", completed: false };
+      });
+    }
+    if (done) done();
+  }, function () { if (done) done(); });
+}
+
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
 function openPhotoReport(id){
   const j = getJob(id); if(!j) return;
@@ -3005,6 +3022,6 @@ window.addEventListener('focus', fetchSharedState);
 </script>
 
 
-<script src="../assets/app_boot.js"></script>
+<script src="../assets/app_boot.js?v=b43fcb7ddb"></script>
 </body>
 </html>
