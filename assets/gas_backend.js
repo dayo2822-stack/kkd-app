@@ -88,6 +88,7 @@ var KKD135Gas = (function () {
       saveCompletionInfo: function (caseId, p) { return vendor(Object.assign({ action: 'saveCompletionInfo', caseId: caseId }, p || {})); },
       saveMyAreas: function (areas) { return vendor({ action: 'saveMyAreas', areas: areas }); },
       startWork: function (caseId) { return vendor({ action: 'startWork', caseId: caseId }); },
+      sendTodayNotice: function (caseId, time) { return vendor({ action: 'sendTodayNotice', caseId: caseId, time: time }); },
       completeWork: function (caseId) { return vendor({ action: 'completeWork', caseId: caseId }); },
       confirmVisit: function (caseId, choice) { return vendor({ action: 'confirmVisit', caseId: caseId, choice: choice }); },
       // 試験・診断用

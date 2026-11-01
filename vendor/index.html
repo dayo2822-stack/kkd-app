@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "a9b81373d5", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ddf4cbd24b", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=a9b81373d5"></script>
-<script src="../assets/photo_report_ui.js?v=a9b81373d5"></script>
-<script src="../assets/gas_backend.js?v=a9b81373d5"></script>
-<script src="../assets/jobs_from_gas.js?v=a9b81373d5"></script>
+<script src="../assets/photo_report_logic.js?v=ddf4cbd24b"></script>
+<script src="../assets/photo_report_ui.js?v=ddf4cbd24b"></script>
+<script src="../assets/gas_backend.js?v=ddf4cbd24b"></script>
+<script src="../assets/jobs_from_gas.js?v=ddf4cbd24b"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1694,7 +1694,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
           </div>
         `: ""}
         ${renderPriceBreakdown(j)}
-        ${j.todayTime?`<div class="notice ok" style="margin:4px 0 6px;">【当日連絡】本日の訪問予定時間は <b>${esc(j.todayTime)}</b> です。</div>`:""}
+        ${j.noticeEta?`<div class="notice ok" style="margin:4px 0 6px;">【当日連絡】担当業者が、<b>${esc(j.noticeEta)}</b>でお伺いします。${j.noticeAt?`（${esc(j.noticeAt)} 連絡）`:""}</div>`:""}
         ${j.isStarted?`
         <div class="notice ok" style="margin:4px 0 6px;border-left:3px solid #0d6b57;background:#f0faf5;">
           ▶️ <b>【作業中】</b>業者が <b>${esc(j.startedAt)}</b> より作業を開始しております。（追加作業：${esc(additionalSummary(j))}）
@@ -1832,7 +1832,7 @@ function renderCaseMessages(j){
   if(rec<req)msgs.push(`<div class="case-message system">必須写真：${rec}/${req}。残り${req-rec}点を受信するまで、業者側の訪問日時確定はできません。</div>`);
   if(j.vendorChoice)msgs.push(`<div class="case-message system">【確認連絡】業者が <b>${esc(j.vendorChoice)}</b> で訪問日時を確定しました。<br><button class="btn secondary" onclick="simulateDayBefore()">前日になった状態を再現</button> <button class="btn secondary" onclick="simulateToday()">当日訪問前を再現</button></div>`);
   if(j.customerDetailed)msgs.push(`<div class="case-message system">【前日連絡】訪問先詳細の入力をお願いします。<br>住所：${esc(j.address)}<br><button class="btn secondary" onclick="alert('詳細住所入力フォームを表示する想定')">詳細情報を入力</button> <button class="btn secondary" onclick="alert('位置情報共有を送信した想定')">📍位置情報を共有</button></div>`);
-  if(j.todayTime)msgs.push(`<div class="case-message system">【当日連絡】本日の訪問予定時間は <b>${esc(j.todayTime)}</b> です。</div>`);
+  if(j.noticeEta)msgs.push(`<div class="case-message system">【当日連絡】担当業者が、<b>${esc(j.noticeEta)}</b>でお伺いします。${j.noticeAt?`（${esc(j.noticeAt)} 連絡）`:""}</div>`);
   if(j.completed)msgs.push(`<div class="case-message system">【完了】作業完了。完了案件へ移動しました。</div>`);
   return msgs.join('');
 }
@@ -2124,13 +2124,15 @@ function openVendorCases(tab="before", resetAccordion=false){
         `: ""}
         ${renderPriceBreakdown(j)}
         <div class="field" style="margin:6px 0;">
-          <label>当日連絡（訪問予定時間）</label>
-          <select id="today-${j.id}">
-            ${TIMES.map(t=>`<option value="${esc(t)}" ${(j.todayTime||confirmedTime)===t?"selected":""}>${t}</option>`).join("")}
+          <label>当日連絡（到着の目安）</label>
+          <select id="today-${j.id}" ${j.noticeAt?"disabled":""}>
+            ${KKD135_ETA.map(t=>`<option value="${esc(t)}" ${(j.noticeEta||KKD135_ETA[0])===t?"selected":""}>${t}</option>`).join("")}
           </select>
         </div>
         <div class="actions">
-          <button class="btn primary" onclick="sendTodayNotice('${j.id}')">当日連絡</button>
+          ${j.noticeAt
+            ? `<button class="btn secondary" disabled style="opacity:.75;">当日連絡（連絡済：${esc(j.noticeAt)}）</button>`
+            : `<button class="btn primary" onclick="sendTodayNotice('${j.id}')">当日連絡</button>`}
         </div>
         <div class="field" style="margin:6px 0;">
           <label>現場確認　＜追加項目＞（作業開始の前に確認）</label>
@@ -2605,6 +2607,37 @@ function kkd135WorkCall(id, kind, local) {
     alert((r && KKD135_WORK_ERRORS[r.errorCode]) || "保存できませんでした。通信を確かめて、もう一度お試しください。");
   }, function () { window.__kkd135Work = false; alert("保存できませんでした。通信を確かめて、もう一度お試しください。"); });
 }
+// ---- 当日連絡（業者）：［はい］［いいえ］の確認 → GASに保存 → 時間とボタンを固定し、押した時刻を出す ----
+var KKD135_ETA = ["あと10〜20分程", "あと30〜40分程", "あと50〜60分程"];
+function kkd135AskYesNo(message, onYes) {
+  var old = document.getElementById("kkd135Ask"); if (old) old.remove();
+  var wrap = document.createElement("div"); wrap.id = "kkd135Ask";
+  wrap.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;";
+  var box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:12px;padding:16px;max-width:320px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px;line-height:1.6;";
+  var msg = document.createElement("div"); msg.innerHTML = message; box.appendChild(msg);
+  var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;margin-top:12px;";
+  function mk(label, cls, fn) { var b = document.createElement("button"); b.type = "button"; b.className = "btn " + cls; b.style.flex = "1"; b.textContent = label; b.onclick = function () { wrap.remove(); if (fn) fn(); }; return b; }
+  row.appendChild(mk("いいえ", "secondary")); row.appendChild(mk("はい", "primary", onYes));
+  box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap);
+}
+var KKD135_NOTICE_ERRORS = { NOT_CONFIRMED: "訪問日時の確定の後に、連絡できます。", CASE_COMPLETED: "この案件は、すでに完了しています。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", INVALID_INPUT: "選択が正しくありません。選び直してください。" };
+function sendTodayNotice(id) {
+  var j = getJob(id); if (!j || j.noticeAt) return;
+  var sel = document.getElementById("today-" + id), time = sel ? sel.value : "";
+  if (KKD135_ETA.indexOf(time) < 0) { alert("到着の目安を選んでください。"); return; }
+  kkd135AskYesNo("<b>" + esc(time) + "</b> で当日連絡しますか？<br><span style=\"font-size:11px;color:#64748b;\">お客様へ通知されます。連絡は1回です。変更や再連絡は、メッセージでお知らせください。</span>", function () {
+    var be = window.KKD135_BACKEND;
+    if (!j.gas || !be || typeof be.sendTodayNotice !== "function") { sendTodayNoticeLocal(id); return; }
+    if (window.__kkd135Notice) return;
+    window.__kkd135Notice = true;
+    be.sendTodayNotice(id, time).then(function (r) {
+      window.__kkd135Notice = false;
+      if (r && r.status === "OK") { j.noticeEta = r.noticeTime || time; j.noticeAt = r.noticeAt || ""; sendTodayNoticeLocal(id); return; }
+      alert((r && KKD135_NOTICE_ERRORS[r.errorCode]) || "連絡できませんでした。通信を確かめて、もう一度お試しください。");
+    }, function () { window.__kkd135Notice = false; alert("連絡できませんでした。通信を確かめて、もう一度お試しください。"); });
+  });
+}
 function startJob(id) { kkd135WorkCall(id, "start", startJobLocal); }
 function completeJob(id) { kkd135WorkCall(id, "complete", completeJobLocal); }
 
@@ -2951,12 +2984,12 @@ function saveDayBeforeAddress(id){
   renderSide();log(`DAYBEFORE_ADDRESS_CONFIRMED ${id}`);
   saveAndSync();
 }
-function sendTodayNotice(id){
+function sendTodayNoticeLocal(id){
   const j=getJob(id), sel=document.getElementById("today-"+id);
   const confirmedTime=j.vendorChoice==="第1希望"?j.time1:j.time2;
-  j.todayTime=sel?sel.value:(confirmedTime||TIMES[2]);
-  addChat("vChat",`${id}：訪問予定時間 <b>${esc(j.todayTime)}</b> を顧客へ自動通知しました。`,"me");
-  addChat("cChat",`【当日連絡】本日の訪問予定時間は <b>${esc(j.todayTime)}</b> です。`);
+  if(!j.noticeAt){j.noticeEta=sel?sel.value:KKD135_ETA[0];j.noticeAt=new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});}
+  addChat("vChat",`${id}：<b>${esc(j.noticeEta)}</b> で到着すると、顧客へ通知しました。`,"me");
+  addChat("cChat",`【当日連絡】担当業者が、<b>${esc(j.noticeEta)}</b>でお伺いします。`);
   openVendorCases("progress", false);
   const body = document.getElementById("vjob-body-" + id);
   if(body) body.style.display = "block";
@@ -3390,6 +3423,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=a9b81373d5"></script>
+<script src="../assets/app_boot.js?v=ddf4cbd24b"></script>
 </body>
 </html>

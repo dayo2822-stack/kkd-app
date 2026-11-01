@@ -67,7 +67,7 @@ var KKD135Jobs = (function () {
       photos: photosOf(r.photos, { install: true, model: true, outdoor: true, other: false }), visitPhotos: visitPhotosOf(r.photos),
       vendorChoice: choiceOf(r), vendorId: 'V-001', adminNote: '', vendorMemo: '',
       additionalFlag: '', additionalItems: [], customerDetailed: r.detailed !== false,
-      todayTime: '', scheduledDate: String(r.date || ''), scheduledTime: String(r.startTime || ''),
+      todayTime: '', noticeEta: String(r.noticeTime || ''), noticeAt: String(r.noticeAt || ''), scheduledDate: String(r.date || ''), scheduledTime: String(r.startTime || ''),
       completed: done, completedDate: done ? String(r.date || '') : '', completedAt: done ? String(r.completedAt || '') : '', isStarted: isWorking(r.status) || done, startedAt: String(r.startedAt || ''),
       completionPhotos: { before: reported, after: reported }, photoReported: reported,
       rating: 0, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: []
@@ -145,7 +145,7 @@ var KKD135Jobs = (function () {
       name: String(b.name || ''), zip: String(b.zip || ''), address: String(b.address || ''), note: String(b.note || ''),
       photos: photosOf(b.photos, { install: false, model: false, outdoor: false, other: false }), visitPhotos: visitPhotosOf(b.photos),
       vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
-      todayTime: '', scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
+      todayTime: '', noticeEta: String(b.noticeTime || ''), noticeAt: String(b.noticeAt || ''), scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
       reviewUrl: String(b.reviewUrl || ''), invoiceNo: String(b.invoiceNo || ''), installers: Array.isArray(b.installers) ? b.installers.map(String) : [],
       completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
       rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: isWorking(b.status) || done, startedAt: String(b.startedAt || '')
