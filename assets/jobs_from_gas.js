@@ -104,7 +104,9 @@ var KKD135Jobs = (function () {
       var r = both[0], names = both[1];
       if (!r || r.status !== 'OK' || !Array.isArray(r.jobs)) return r || { status: 'ERROR', errorCode: 'NETWORK' };
       var jobs = r.jobs.map(function (x) { return fromGas(x, names); }).filter(Boolean);
+      var embedded = {}; r.jobs.forEach(function (x) { if (x && x.caseId && x.additional && typeof x.additional === 'object') embedded[String(x.caseId)] = x.additional; });
       return Promise.all(jobs.map(function (j) {
+        if (embedded[j.id]) return applyAdditional(j, embedded[j.id]); // 一覧に同梱されている分は、追加の問い合わせをしない
         if (typeof backend.getAdditional !== 'function') return j;
         return backend.getAdditional(j.id).then(function (g) { return (g && g.status === 'OK') ? applyAdditional(j, g.additional) : j; }, function () { return j; });
       })).then(function (list) {

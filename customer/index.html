@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "fe603a3e76", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "a9b81373d5", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=fe603a3e76"></script>
-<script src="../assets/photo_report_ui.js?v=fe603a3e76"></script>
-<script src="../assets/gas_backend.js?v=fe603a3e76"></script>
-<script src="../assets/jobs_from_gas.js?v=fe603a3e76"></script>
+<script src="../assets/photo_report_logic.js?v=a9b81373d5"></script>
+<script src="../assets/photo_report_ui.js?v=a9b81373d5"></script>
+<script src="../assets/gas_backend.js?v=a9b81373d5"></script>
+<script src="../assets/jobs_from_gas.js?v=a9b81373d5"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -2826,10 +2826,21 @@ function registerVendorAvailability(continueMode) {
   var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
   if (env.role !== "vendor" || !be || typeof be.saveMyAvailability !== "function") return registerVendorAvailabilityLocal(continueMode);
   if (!state.vendorSelectedDate) { alert("可能日を選択してください"); return; }
-  if (!state.vendorTempTimes.length) { alert("時間枠を1つ以上選択してください"); return; }
+  var delMode = !state.vendorTempTimes.length;
+  if (delMode) { // 選択を、すべて外した状態で登録＝その日の空き枠を、削除する（すでに登録がある日だけ）
+    if (!(state.vendorAvailable[state.vendorSelectedDate] || []).length) { alert("時間枠を1つ以上選択してください"); return; }
+    if (!confirm(state.vendorSelectedDate + " の空き枠を、すべて削除します。よろしいですか？")) return;
+  }
   if (window.__kkd135Avail) return; window.__kkd135Avail = true;
   be.saveMyAvailability(state.vendorSelectedDate, state.vendorTempTimes.slice()).then(function (r) {
     window.__kkd135Avail = false;
+    if (r && r.status === "OK" && delMode) {
+      delete state.vendorAvailable[state.vendorSelectedDate]; state.vendorSelectedDate = ""; state.vendorTempTimes = [];
+      try { renderSide(); saveAndSync(); } catch (e) {}
+      if (continueMode) renderVBody(); else { closeSheet("v"); renderVendorHome(); }
+      showVendorActionNotice("<b>空き枠を削除しました。</b>");
+      return;
+    }
     if (r && r.status === "OK") { registerVendorAvailabilityLocal(continueMode); return; }
     alert((r && KKD135_AVAIL_ERRORS[r.errorCode]) || "保存できませんでした。通信を確かめて、もう一度お試しください。（選んだ内容は、残っています）");
   }, function () { window.__kkd135Avail = false; alert("保存できませんでした。通信を確かめて、もう一度お試しください。"); });
@@ -3379,6 +3390,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=fe603a3e76"></script>
+<script src="../assets/app_boot.js?v=a9b81373d5"></script>
 </body>
 </html>
