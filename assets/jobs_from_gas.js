@@ -121,6 +121,7 @@ var KKD135Jobs = (function () {
   function fromBooking(b, names) {
     var j = fromBookingBase(b, names);
     if (j && b && b.detail) { applyDetail(j, b.detail); j.customerDetailed = true; }
+    if (j && b && b.additional) applyAdditional(j, b.additional); // 業者が選んだ追加項目（見積・内訳を、業者の画面と同じにする）
     return j;
   }
   function fromBookingBase(b, names) {

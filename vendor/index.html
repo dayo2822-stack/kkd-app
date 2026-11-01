@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "0a7f44a819", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "c91ca65271", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=0a7f44a819"></script>
-<script src="../assets/photo_report_ui.js?v=0a7f44a819"></script>
-<script src="../assets/gas_backend.js?v=0a7f44a819"></script>
-<script src="../assets/jobs_from_gas.js?v=0a7f44a819"></script>
+<script src="../assets/photo_report_logic.js?v=c91ca65271"></script>
+<script src="../assets/photo_report_ui.js?v=c91ca65271"></script>
+<script src="../assets/gas_backend.js?v=c91ca65271"></script>
+<script src="../assets/jobs_from_gas.js?v=c91ca65271"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -2280,12 +2280,12 @@ function applyPricing(m){
   if(PRICE["エアコン脱着分解クリーニング"]) PRICE["エアコン脱着分解クリーニング"].base = m.unitPrice;
 }
 function itemsTotal(items){ return (Array.isArray(items) ? items : []).reduce(function(s, x){ return s + (Number(x.price) || 0) * (Number(x.qty) || 1); }, 0); }
-// 事前見積：基本＋顧客が予約で選んだオプション＋訪問前（写真確認後）に確定した追加項目。現場で項目を変えても、変わらない
+// 初期見積（折り畳み時の金額）：基本＋顧客が予約で選んだオプションだけ。業者の追加項目・現場の変更では、変わらない（PM確定 2026-11-01）。開いた内訳が、その後の進捗を反映した金額
 function estimatePrice(j){
   var p = PRICE[j.service] || { base: 0 }, opt = 0;
   if(j.unitOptions && typeof j.unitOptions === "object") Object.values(j.unitOptions).forEach(function(a){ (Array.isArray(a) ? a : []).forEach(function(n){ opt += optPriceByName(n); }); });
   if(Array.isArray(j.options)) j.options.forEach(function(n){ opt += optPriceByName(n); });
-  return p.base * (j.units || 1) + opt + itemsTotal(j.reviewItems);
+  return p.base * (j.units || 1) + opt;
 }
 function headerPrice(j){ return j.completed ? calcPrice(j) : estimatePrice(j); }
 function headerPriceLabel(j){ return j.completed ? "確定" : "見積"; }
@@ -3112,6 +3112,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=0a7f44a819"></script>
+<script src="../assets/app_boot.js?v=c91ca65271"></script>
 </body>
 </html>
