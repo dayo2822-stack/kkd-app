@@ -72,6 +72,8 @@ var KKD135Gas = (function () {
       // --- 予約（顧客）：作成・自分の予約の取得 ---
       createBooking: function (payload) { return vendor(Object.assign({ action: 'createBooking' }, payload || {})); },
       listMyBookings: function () { return vendor({ action: 'listMyBookings' }); },
+      uploadBookingPhoto: function (caseId, kind, webB64, requestId) { return vendor({ action: 'uploadBookingPhoto', caseId: caseId, kind: kind, webBase64: webB64, requestId: requestId }); },
+      getBookingPhotoFile: function (caseId, kind) { return vendor({ action: 'getBookingPhotoFile', caseId: caseId, kind: kind }); },
       // --- 担当案件（業者） ---
       listMyJobs: function () { return vendor({ action: 'listMyJobs' }); },
       confirmVisit: function (caseId, choice) { return vendor({ action: 'confirmVisit', caseId: caseId, choice: choice }); },

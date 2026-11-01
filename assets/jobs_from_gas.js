@@ -21,6 +21,12 @@ var KKD135Jobs = (function () {
     return uo;
   }
 
+  // 写真の状況（GASの {install, model, outdoor, other}）。GASが返さない（予約の無い旧の案件）なら、既定値
+  function photosOf(p, dflt) {
+    if (!p || typeof p !== 'object') return dflt;
+    return { install: p.install === true, model: p.model === true, outdoor: p.outdoor === true, other: p.other === true };
+  }
+
   // 訪問日時が確定済みなら、第1・第2希望のどちらか（希望日時の無い案件は、第1希望）。未確定（日時が空）なら、空
   function choiceOf(r) {
     var d = String(r.date || ''); if (!d) return '';
@@ -35,7 +41,7 @@ var KKD135Jobs = (function () {
     return {
       id: String(r.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: unitOptionsFrom(r.selections, units, names),
       date1: String(r.date1 || r.date || ''), time1: String(r.time1 || r.startTime || ''), date2: String(r.date2 || ''), time2: String(r.time2 || ''), name: 'お客様', zip: '', address: String(r.areaName || ''), note: '',
-      photos: { install: true, model: true, outdoor: true, other: false },
+      photos: photosOf(r.photos, { install: true, model: true, outdoor: true, other: false }),
       vendorChoice: choiceOf(r), vendorId: 'V-001', adminNote: '', vendorMemo: '',
       additionalFlag: '', additionalItems: [], customerDetailed: r.detailed !== false,
       todayTime: '', scheduledDate: String(r.date || ''), scheduledTime: String(r.startTime || ''),
@@ -94,7 +100,7 @@ var KKD135Jobs = (function () {
       id: String(b.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: uo, options: [],
       date1: String(b.date1 || ''), time1: String(b.time1 || ''), date2: String(b.date2 || ''), time2: String(b.time2 || ''),
       name: String(b.name || ''), zip: String(b.zip || ''), address: String(b.address || ''), note: String(b.note || ''),
-      photos: { install: false, model: false, outdoor: false, other: false },
+      photos: photosOf(b.photos, { install: false, model: false, outdoor: false, other: false }),
       vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
       todayTime: '', scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
       completed: done, completedDate: done ? visitDate : '', completedAt: '', completionPhotos: { before: false, after: false },

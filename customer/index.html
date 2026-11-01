@@ -1794,10 +1794,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
   log("CUSTOMER_CASES_OPEN " + tab);
 }
 function renderCustomerCases(){ openCustomerCases(state.customerTab||"before"); }
-function outdoorRequired(j){
-  if(j.service!=="エアコン脱着分解クリーニング") return false;
-  return Object.values(j.unitOptions||{}).some(a=>a.includes("室外機洗浄"));
-}
+function outdoorRequired(j){ return false; /* 必須は設置状況・型番の2点。室外機は任意（PM確定 2026-11-01） */ }
 function requiredPhotoCount(j){return outdoorRequired(j)?3:2}
 function countRequiredPhotos(j){let ks=["install","model"];if(outdoorRequired(j))ks.push("outdoor");return ks.filter(k=>j.photos[k]).length}
 function getJob(id){return state.jobs.find(j=>j.id===id)}
@@ -1831,7 +1828,7 @@ function openCustomerCaseDetail(id){
   if(btn) btn.textContent = "▲ 閉じる";
   log('CUSTOMER_CASE_OPEN '+j.id);
 }
-function sendPhoto(id,key){
+function sendPhotoLocal(id,key){
   const j=getJob(id); if(!j) return;
   j.photos[key]=true;
   log(`PHOTO_RECEIVED ${id} ${key}`);
@@ -2061,6 +2058,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         const photoReview = isPhotosDone ? `
           <div class="field" style="margin:6px 0;">
             <label>現場写真確認後　＜追加項目＞</label>
+            ${renderBookingPhotoButtons(j)}
             ${renderAdditionalChecklist(j, false)}
           </div>
         ` : "";
@@ -2255,9 +2253,10 @@ var KKD135_PRICING = {
     { code: "OPT_OUTDOOR_CLEAN", name: "室外機洗浄", price: 4400, unit: "台" },
     { code: "OPT_AUTO_CLEANING", name: "お掃除機能付き機種", price: 11000, unit: "台" },
     { code: "OPT_SPECIAL_FAN", name: "特殊形状ファン分解", price: 11000, unit: "台" },
-    { code: "OPT_HIGH_PLACE", name: "高所作業：床上3m迄", price: 4400, unit: "台" },
-    { code: "OPT_HIGH_6M", name: "高所作業：床上6m迄", price: 8800, unit: "台" },
-    { code: "OPT_HIGH_9M", name: "高所作業：床上9m迄", price: 13200, unit: "台" }
+    { code: "OPT_HIGH_INDOOR_3M", name: "高所作業：室内3m迄", price: 4400, unit: "箇所" },
+    { code: "OPT_HIGH_OUTDOOR_3M", name: "高所作業：屋外3m迄", price: 4400, unit: "箇所" },
+    { code: "OPT_HIGH_OUTDOOR_6M", name: "高所作業：屋外6m迄", price: 8800, unit: "箇所" },
+    { code: "OPT_HIGH_OUTDOOR_9M", name: "高所作業：屋外9m迄", price: 13200, unit: "箇所" }
   ],
   freeOptions: [
     { code: "FREE_NO_REMOVE_PARTS", name: "【無償】脱着不可：部品分解" },
@@ -2318,14 +2317,14 @@ function additionalSummary(j){
   return j.additionalItems.map(function(x){ return x.name + (x.qty > 1 ? "×" + x.qty : ""); }).join("、");
 }
 // 追加項目のチェック式（訪問前＝写真確認後／対応中＝現場確認）。「追加項目なし」か、1つ以上のチェックで、確認済みになる
-function renderAdditionalChecklist(j, locked){
+function renderAdditionalFull(j, locked){
   var units = Math.max(1, Number(j.units) || 1), items = Array.isArray(j.additionalItems) ? j.additionalItems : [];
   var none = j.additionalFlag === "なし";
   var dis = locked ? "disabled" : "";
   var rows = pricingOptions().map(function(o){
     var it = items.filter(function(x){ return x.id === o.code; })[0];
-    var qtySel = (it && units > 1 && o.unit === "台") ? '<select style="width:auto;flex:none;font-size:10px;padding:2px 4px;" ' + dis + ' onchange="setAdditionalQty(\'' + j.id + '\',\'' + o.code + '\',this.value)">' +
-      Array.from({length: units}, function(_, k){ return '<option value="' + (k + 1) + '"' + ((it.qty || 1) === k + 1 ? " selected" : "") + '>' + (k + 1) + '台分</option>'; }).join("") + '</select>' : "";
+    var qtySel = (it && units > 1 && o.unit !== "件") ? '<select style="width:auto;flex:none;font-size:10px;padding:2px 4px;" ' + dis + ' onchange="setAdditionalQty(\'' + j.id + '\',\'' + o.code + '\',this.value)">' +
+      Array.from({length: units}, function(_, k){ return '<option value="' + (k + 1) + '"' + ((it.qty || 1) === k + 1 ? " selected" : "") + '>' + (k + 1) + (o.unit === "箇所" ? '箇所' : '台分') + '</option>'; }).join("") + '</select>' : "";
     return '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef2f7;"><input type="checkbox" style="width:18px;height:18px;flex:none;margin:0;" ' + dis + ' ' + (it ? "checked" : "") + ' onchange="toggleAdditional(\'' + j.id + '\',\'' + o.code + '\',this.checked)">' +
       '<span style="flex:1;font-size:11px;">' + esc(o.name) + '</span><span class="mini" style="white-space:nowrap;">+¥' + o.price.toLocaleString() + '／' + esc(o.unit) + '</span>' + qtySel + '</label>';
   }).join("");
@@ -2360,7 +2359,7 @@ function afterAdditionalChange(id, note, free){
 }
 function setAdditionalNone(id, on){
   var j = getJob(id); if(!j || j.isStarted) return;
-  if(on){ j.additionalItems = []; j.additionalFlag = "なし"; } else { j.additionalFlag = ""; }
+  if(on){ j.additionalItems = []; j.additionalFlag = "なし"; j._addOpen = false; } else { j.additionalFlag = ""; }
   afterAdditionalChange(id, "ADDITIONAL_NONE " + id + " " + on);
 }
 function toggleAdditional(id, code, on){
@@ -2378,6 +2377,88 @@ function setAdditionalQty(id, code, qty){
   var n = Math.max(1, Math.min(Number(j.units) || 1, Number(qty) || 1));
   it.qty = n;
   afterAdditionalChange(id, "ADDITIONAL_QTY " + id + " " + code + " " + n);
+}
+
+// ---- v13.5 追加：顧客の事前の現場写真（GAS連携）。make_index_v13_5.py が、index_v13_5.html に差し込む ----
+// 顧客：サービス・案件に合わせて、写真を選び、縮小して、GASへ送る。業者：顧客の写真を、種類ごとに見る。
+var KKD135_PHOTO_KINDS = [["install", "設置状況"], ["model", "型番"], ["outdoor", "室外機"], ["other", "その他"]];
+var KKD135_PHOTO_ERRORS = { INVALID_INPUT: "写真を送れませんでした（形式か大きさが合いません）。別の写真でお試しください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", NOT_FOUND: "案件が見つかりません。画面を開き直してください。", CASE_COMPLETED: "この案件は完了しているため、写真を送れません。" };
+
+function sendPhoto(id, key) {
+  var j = getJob(id), be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
+  if (!j || !j.gas || !be || typeof be.uploadBookingPhoto !== "function" || env.role !== "customer" || typeof KKD135PhotoUI === "undefined") return sendPhotoLocal(id, key);
+  var inp = document.getElementById("kkd135PhotoInput");
+  if (!inp) { inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = "kkd135PhotoInput"; inp.style.display = "none"; document.body.appendChild(inp); }
+  inp.onchange = function () {
+    var f = inp.files && inp.files[0]; inp.value = "";
+    if (!f) return;
+    var notice = document.createElement("div");
+    notice.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:99999;padding:8px 12px;background:#0d6b57;color:#fff;font-size:12px;text-align:center;";
+    notice.textContent = "写真を送信中…"; document.body.appendChild(notice);
+    function done() { if (notice.parentNode) notice.parentNode.removeChild(notice); }
+    KKD135PhotoUI.makeWebB64(f).then(function (b64) {
+      var rid = "P" + Date.now() + Math.floor(Math.random() * 1000000);
+      return be.uploadBookingPhoto(id, key, b64, rid);
+    }).then(function (r) {
+      done();
+      if (r && r.status === "OK") { sendPhotoLocal(id, key); return; }
+      alert((r && KKD135_PHOTO_ERRORS[r.errorCode]) || "写真を送れませんでした。通信を確かめて、もう一度お試しください。");
+    }, function () { done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
+  };
+  inp.click();
+}
+
+function renderBookingPhotoButtons(j) {
+  if (!j || !j.gas || !j.photos) return "";
+  var b = KKD135_PHOTO_KINDS.filter(function (k) { return j.photos[k[0]]; }).map(function (k) {
+    return '<button type="button" class="btn secondary" style="font-size:10px;padding:5px 8px;margin:2px;" data-id="' + esc(j.id) + '" data-k="' + k[0] + '" onclick="viewBookingPhoto(this.dataset.id,this.dataset.k)">📷 ' + k[1] + '</button>';
+  }).join("");
+  return b ? '<div style="margin:4px 0;font-size:10px;">顧客の写真：' + b + '</div>' : "";
+}
+
+function viewBookingPhoto(id, kind) {
+  var be = window.KKD135_BACKEND;
+  if (!be || typeof be.getBookingPhotoFile !== "function") { alert("写真を表示できません。"); return; }
+  be.getBookingPhotoFile(id, kind).then(function (r) {
+    if (!r || r.status !== "OK") { alert("写真を取得できませんでした。通信を確かめて、もう一度お試しください。"); return; }
+    var ov = document.createElement("div");
+    ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:12px;";
+    var img = document.createElement("img");
+    img.src = "data:image/jpeg;base64," + r.base64;
+    img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain;";
+    ov.appendChild(img);
+    ov.addEventListener("click", function () { if (ov.parentNode) ov.parentNode.removeChild(ov); });
+    document.body.appendChild(ov);
+  }, function () { alert("写真を取得できませんでした。"); });
+}
+
+// ---- 追加項目の欄：初めは1行（未確認／なし／選んだ項目の要約）。相違があるときだけ、チェック欄を広げる ----
+function additionalLineText(j) {
+  var items = Array.isArray(j.additionalItems) ? j.additionalItems : [];
+  if (j.additionalFlag === "なし") return "なし（相違なし）";
+  if (items.length) return items.map(function (x) { return esc(x.name) + (x.qty > 1 ? "×" + x.qty : ""); }).join("、") + "（+¥" + itemsTotal(items).toLocaleString() + "）";
+  return "未確認";
+}
+function renderAdditionalChecklist(j, locked) {
+  var confirmed = j.additionalFlag === "なし" || (Array.isArray(j.additionalItems) && j.additionalItems.length > 0);
+  var open = !locked && !!j._addOpen;
+  var btn = 'style="font-size:10px;padding:5px 9px;margin-left:4px;"';
+  var actions = "";
+  if (!locked) {
+    if (open) actions = '<button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">閉じる</button>';
+    else if (!confirmed) actions = '<button type="button" class="btn primary" ' + btn + ' onclick="setAdditionalNone(\'' + j.id + '\',true)">相違なし</button><button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">相違あり</button>';
+    else actions = '<button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">変更</button>';
+  }
+  return '<div class="additional-line" style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin:4px 0;padding:6px 2px;border-bottom:1px solid #eef2f7;">' +
+    '<span style="flex:1;min-width:0;font-size:11px;">追加項目：<b>' + additionalLineText(j) + '</b></span><span style="flex:none;white-space:nowrap;">' + actions + '</span></div>' +
+    (open ? renderAdditionalFull(j, false) : "");
+}
+function toggleAddOpen(id) {
+  var j = getJob(id); if (!j) return;
+  j._addOpen = !j._addOpen;
+  if (state.vendorTab) { openVendorCases(state.vendorTab, false); } else { renderVendorHome(); }
+  var body = document.getElementById("vjob-body-" + id);
+  if (body) body.style.display = "block";
 }
 
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
