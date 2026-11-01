@@ -73,6 +73,7 @@ var KKD135Gas = (function () {
       createBooking: function (payload) { return vendor(Object.assign({ action: 'createBooking' }, payload || {})); },
       listMyBookings: function () { return vendor({ action: 'listMyBookings' }); },
       getBusySlots: function () { return vendor({ action: 'getBusySlots' }); },
+      checkArea: function (address) { return vendor({ action: 'checkArea', address: address }); },
       submitAddressDetail: function (p) { return vendor(Object.assign({ action: 'submitAddressDetail' }, p || {})); },
       uploadBookingPhoto: function (caseId, kind, webB64, requestId) { return vendor({ action: 'uploadBookingPhoto', caseId: caseId, kind: kind, webBase64: webB64, requestId: requestId }); },
       getBookingPhotoFile: function (caseId, kind) { return vendor({ action: 'getBookingPhotoFile', caseId: caseId, kind: kind }); },

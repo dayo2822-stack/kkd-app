@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "29a4040165", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "c5e2b4e079", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=29a4040165"></script>
-<script src="../assets/photo_report_ui.js?v=29a4040165"></script>
-<script src="../assets/gas_backend.js?v=29a4040165"></script>
-<script src="../assets/jobs_from_gas.js?v=29a4040165"></script>
+<script src="../assets/photo_report_logic.js?v=c5e2b4e079"></script>
+<script src="../assets/photo_report_ui.js?v=c5e2b4e079"></script>
+<script src="../assets/gas_backend.js?v=c5e2b4e079"></script>
+<script src="../assets/jobs_from_gas.js?v=c5e2b4e079"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -531,6 +531,8 @@ function saveAndSync(){
   }
 }
 let cWizard=1, vWizard=1;
+const CSTEP_ORDER=[1,2,5,3,4,6]; // 位置1〜6に出す中身の番号
+function cStep(){return CSTEP_ORDER[cWizard-1];}
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
 function getCustomerLastNameWithHonorific(fullName){
@@ -1238,7 +1240,7 @@ function renderCBody(){
   back.style.display=cWizard===1?"none":"block";
   next.textContent=cWizard===6?"予約を確定":"次へ";
   let h="";
-  if(cWizard===1){
+  if(cStep()===1){
     h=`<div class="step">STEP 1 / 6</div><h3>サービスメニュー</h3>
       <div class="notice">サービスカテゴリを押すと、その直下に該当するサービスメニューを一覧表示します。</div>
       <div class="service-category-buttons">${Object.entries(SERVICES).map(([cat,list])=>{
@@ -1246,7 +1248,7 @@ function renderCBody(){
         return `<div class="service-category-block"><button type="button" class="service-category-button ${open?"open":""}" onclick="toggleServiceCategory('${esc(cat)}')">${esc(cat)}<span>${open?"▲":"▼"}</span></button>${open?`<div class="service-menu-list">${list.map(s=>`<button type="button" class="service-menu-item ${state.booking.service===s?"selected":""}" onclick="selectServiceCategoryMenu('${esc(cat)}','${esc(s)}')">${esc(s)}</button>`).join("")}</div>`:""}</div>`;
       }).join("")}</div>
       ${state.booking.service?`<div class="summary">選択中：<b>${esc(state.booking.category)}</b> ／ <b>${esc(state.booking.service)}</b></div>`:`<div class="notice">サービスカテゴリを選択し、表示されたサービスメニューから1つ選択してください。</div>`}`;
-  } else if(cWizard===2){
+  } else if(cStep()===2){
     const isAC=state.booking.service==="エアコン脱着分解クリーニング";
     h=`<div class="step">STEP 2 / 6</div><h3>条件・オプション</h3>`;
     if(isAC){
@@ -1261,12 +1263,12 @@ function renderCBody(){
       for(let i=1;i<=state.booking.units;i++){const o=state.booking.unitOptions[i]||[];h+=`<div class="job"><b>${i}台目</b>${customerOptions().map(x=>`<label class="check"><input type="checkbox" data-n="${esc(x.name)}" ${o.includes(x.name)?"checked":""} onchange="toggleUnitOption(${i},this.dataset.n,this.checked)">${esc(x.name)}（+¥${x.price.toLocaleString()}）</label>`).join("")}</div>`}
     } else h+=`<div class="notice">サービス固有の条件・オプションをサービスマスタから表示する想定です。</div>`;
     h+=priceSummary();
-  } else if(cWizard===3){
-    h=`<div class="step">STEP 3 / 6</div><h3>第1希望：予約可能枠</h3>${calendarHTML("customer1")}<div class="field"><label>希望時間</label><div class="available-slot-info">必要作業時間：約${durationHoursForBooking()}時間（${priceSummaryMinutes()}分）。開始時刻から必要時間分を連続して業者空き枠として確保できる候補のみ表示します。</div><div class="slots">${availableTimes(state.booking.date1).map(t=>`<button class="slot ${state.booking.time1===t?"selected":""}" onclick="state.booking.time1='${t}';renderCBody()">${t}</button>`).join("")||'<div class="notice">業者が報告した空き枠のない日は予約できません。</div>'}</div></div><div class="summary">第1希望：${state.booking.date1?fmtDate(state.booking.date1):"未選択"} ${esc(state.booking.time1||"")}</div>`;
-  } else if(cWizard===4){
-    h=`<div class="step">STEP 4 / 6</div><h3>第2希望：予約可能枠 <span class="mini">任意</span></h3><div class="notice">第2希望は任意です。第1希望だけで進むことができます。第1希望の ${state.booking.date1?fmtDate(state.booking.date1):"日付"} は第2希望では選択できません。</div>${calendarHTML("customer2")}<div class="field"><label>希望時間</label><div class="available-slot-info">必要作業時間：約${durationHoursForBooking()}時間（${priceSummaryMinutes()}分）。第1希望で選択した日付は除外されています。</div><div class="slots">${availableTimes(state.booking.date2).map(t=>`<button class="slot ${state.booking.time2===t?"selected":""}" onclick="state.booking.time2='${t}';renderCBody()">${t}</button>`).join("")||'<div class="notice">第2希望を設定しない場合は、そのまま［次へ］へ進めます。</div>'}</div></div><div class="summary">第2希望：${state.booking.date2?fmtDate(state.booking.date2):"未選択"} ${esc(state.booking.time2||"")} ${!state.booking.date2?'<span class="badge">任意・未選択</span>':""}</div>`;
-  } else if(cWizard===5){
-    h=`<div class="step">STEP 5 / 6</div><h3>訪問先情報</h3><div class="field"><label>お名前（又は表札名）</label><input value="${esc(state.booking.name)}" oninput="state.booking.name=this.value"></div><div class="field"><label>郵便番号</label><input data-zip="1" type="tel" inputmode="numeric" autocomplete="postal-code" maxlength="8" pattern="[0-9-]*" placeholder="150-0001" value="${esc(formatZip(state.booking.zip))}" oninput="forceHalfWidthInput(this,'zip')" oncompositionend="forceHalfWidthInput(this,'zip')" onblur="forceHalfWidthInput(this,'zip')"></div><div class="field"><label>住所（郵便番号から自動表示）</label><input data-address="auto" value="${esc(state.booking.address)}" readonly placeholder="7桁入力後に表示"></div><div class="field"><label>ご要望・備考</label><textarea oninput="state.booking.note=this.value">${esc(state.booking.note)}</textarea></div><div class="notice">郵便番号は全角・半角・ハイフン有無を問わず受け付け、7桁に正規化して「XXX-XXXX」で表示します。</div>`;
+  } else if(cStep()===3){
+    h=`<div class="step">STEP 4 / 6</div><h3>第1希望：予約可能枠</h3>${calendarHTML("customer1")}<div class="field"><label>希望時間</label><div class="available-slot-info">必要作業時間：約${durationHoursForBooking()}時間（${priceSummaryMinutes()}分）。開始時刻から必要時間分を連続して業者空き枠として確保できる候補のみ表示します。</div><div class="slots">${availableTimes(state.booking.date1).map(t=>`<button class="slot ${state.booking.time1===t?"selected":""}" onclick="state.booking.time1='${t}';renderCBody()">${t}</button>`).join("")||'<div class="notice">業者が報告した空き枠のない日は予約できません。</div>'}</div></div><div class="summary">第1希望：${state.booking.date1?fmtDate(state.booking.date1):"未選択"} ${esc(state.booking.time1||"")}</div>`;
+  } else if(cStep()===4){
+    h=`<div class="step">STEP 5 / 6</div><h3>第2希望：予約可能枠 <span class="mini">任意</span></h3><div class="notice">第2希望は任意です。第1希望だけで進むことができます。第1希望の ${state.booking.date1?fmtDate(state.booking.date1):"日付"} は第2希望では選択できません。</div>${calendarHTML("customer2")}<div class="field"><label>希望時間</label><div class="available-slot-info">必要作業時間：約${durationHoursForBooking()}時間（${priceSummaryMinutes()}分）。第1希望で選択した日付は除外されています。</div><div class="slots">${availableTimes(state.booking.date2).map(t=>`<button class="slot ${state.booking.time2===t?"selected":""}" onclick="state.booking.time2='${t}';renderCBody()">${t}</button>`).join("")||'<div class="notice">第2希望を設定しない場合は、そのまま［次へ］へ進めます。</div>'}</div></div><div class="summary">第2希望：${state.booking.date2?fmtDate(state.booking.date2):"未選択"} ${esc(state.booking.time2||"")} ${!state.booking.date2?'<span class="badge">任意・未選択</span>':""}</div>`;
+  } else if(cStep()===5){
+    h=`<div class="step">STEP 3 / 6</div><h3>訪問先情報</h3><div class="field"><label>お名前（又は表札名）</label><input value="${esc(state.booking.name)}" oninput="state.booking.name=this.value"></div><div class="field"><label>郵便番号</label><input data-zip="1" type="tel" inputmode="numeric" autocomplete="postal-code" maxlength="8" pattern="[0-9-]*" placeholder="150-0001" value="${esc(formatZip(state.booking.zip))}" oninput="forceHalfWidthInput(this,'zip')" oncompositionend="forceHalfWidthInput(this,'zip')" onblur="forceHalfWidthInput(this,'zip')"></div><div class="field"><label>住所（郵便番号から自動表示）</label><input data-address="auto" value="${esc(state.booking.address)}" readonly placeholder="7桁入力後に表示"></div><div class="field"><label>ご要望・備考</label><textarea oninput="state.booking.note=this.value">${esc(state.booking.note)}</textarea></div><div class="notice">郵便番号は全角・半角・ハイフン有無を問わず受け付け、7桁に正規化して「XXX-XXXX」で表示します。</div>`;
   } else {
     h=`<div class="step">STEP 6 / 6</div><h3>予約内容の確認</h3><div class="summary"><b>${esc(state.booking.service)}</b><br>カテゴリ：${esc(state.booking.category)}<br>数量：${state.booking.units}${PRICE[state.booking.service]?.unit||"式"}<br>第1希望：${fmtDate(state.booking.date1)} ${esc(state.booking.time1)}<br>第2希望：${fmtDate(state.booking.date2)} ${esc(state.booking.time2)}<br>${esc(state.booking.name)} ／ ${esc(state.booking.zip)}<br>${esc(state.booking.address)}</div>${priceSummary()}<div class="notice ok">予約確定後は既存案件とは別の案件IDとして「案件一覧」に追加されます。</div>`;
   }
@@ -1381,6 +1383,7 @@ async function zipLookup(v){
         const fullAddr = `${r.address1}${r.address2}${r.address3}`;
         state.booking.address = fullAddr;
         if(addressEl) addressEl.value = fullAddr;
+        kkd135CheckArea(fullAddr);
         return;
       }
     } catch(e) {}
@@ -1395,16 +1398,18 @@ async function zipLookup(v){
   } else {
     state.booking.address = "";
     if(addressEl) addressEl.value = "";
+    kkd135CheckArea("");
   }
 }
 function cNext(){
-  if(cWizard===1&&(!state.booking.category||!state.booking.service)){alert("サービスカテゴリとサービスメニューを選択してください");return}
-  if(cWizard===2&&!state.booking.service){alert("サービスメニューを選択してください");return}
-  if(cWizard===3&&(!state.booking.date1||!state.booking.time1)){alert("第1希望の日付と時間を選択してください");return}
-  if(cWizard===3 && !availableTimes(state.booking.date1).includes(state.booking.time1)){alert("第1希望の開始時刻から必要作業時間分の空き枠を確保できません。再選択してください。");return}
-  if(cWizard===4 && ((state.booking.date2 && !state.booking.time2) || (!state.booking.date2 && state.booking.time2))){alert("第2希望を選択する場合は、日付と時間をセットで選択してください。未選択のままでも次へ進めます。");return}
-  if(cWizard===4 && state.booking.date2 && !availableTimes(state.booking.date2).includes(state.booking.time2)){alert("第2希望の開始時刻から必要作業時間分の空き枠を確保できません。再選択してください。");return}
-  if(cWizard===5&&(!state.booking.name||state.booking.zip.length!==7)){alert("お名前と7桁の郵便番号を入力してください");return}
+  if(cStep()===1&&(!state.booking.category||!state.booking.service)){alert("サービスカテゴリとサービスメニューを選択してください");return}
+  if(cStep()===2&&!state.booking.service){alert("サービスメニューを選択してください");return}
+  if(cStep()===3&&(!state.booking.date1||!state.booking.time1)){alert("第1希望の日付と時間を選択してください");return}
+  if(cStep()===3 && !availableTimes(state.booking.date1).includes(state.booking.time1)){alert("第1希望の開始時刻から必要作業時間分の空き枠を確保できません。再選択してください。");return}
+  if(cStep()===4 && ((state.booking.date2 && !state.booking.time2) || (!state.booking.date2 && state.booking.time2))){alert("第2希望を選択する場合は、日付と時間をセットで選択してください。未選択のままでも次へ進めます。");return}
+  if(cStep()===4 && state.booking.date2 && !availableTimes(state.booking.date2).includes(state.booking.time2)){alert("第2希望の開始時刻から必要作業時間分の空き枠を確保できません。再選択してください。");return}
+  if(cStep()===5&&(!state.booking.name||state.booking.zip.length!==7)){alert("お名前と7桁の郵便番号を入力してください");return}
+  if(cStep()===5&&state.booking.areaOk===false){alert(KKD135_AREA_NG);return}
   if(cWizard<6){cWizard++;renderCBody();}else confirmBooking();
 }
 function cBack(){if(cWizard>1){cWizard--;renderCBody();}}
@@ -1417,7 +1422,7 @@ function kkd135Selections(){
   Object.keys(state.booking.unitOptions || {}).forEach(function(u){ (state.booking.unitOptions[u] || []).forEach(function(n){ var c = codeByName[n]; if(c) sel[c] = (sel[c] || 0) + 1; }); });
   return sel;
 }
-var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（台数・氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", SLOT_TAKEN: "選んだ日時は、すでに予約が入りました。別の日時を選んでください。" };
+var KKD135_BOOKING_ERRORS = { INVALID_INPUT: "入力内容を確かめてください（台数・氏名・郵便番号・住所・日時など）。", TOO_MANY_OPEN: "未完了の予約が多すぎます。完了後に、もう一度お試しください。", PRICING_INVALID: "料金を取得できませんでした。しばらくしてから、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", SLOT_TAKEN: "選んだ日時は、すでに予約が入りました。別の日時を選んでください。", AREA_UNAVAILABLE: "ご予約が混雑しています、改めてお申し込み下さい" };
 function confirmBooking(){
   var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
   if(!be || typeof be.createBooking !== "function" || env.role !== "customer") return confirmBookingLocal(null);
@@ -2587,6 +2592,31 @@ function kkd135WorkCall(id, kind, local) {
 function startJob(id) { kkd135WorkCall(id, "start", startJobLocal); }
 function completeJob(id) { kkd135WorkCall(id, "complete", completeJobLocal); }
 
+// ---- 対応エリアの案内（予約の郵便番号の欄の下）：受付可能／混雑のご案内 ----
+var KKD135_AREA_OK = "受付可能です";
+var KKD135_AREA_NG = "ご予約が混雑しています、改めてお申し込み下さい";
+function kkd135ShowAreaMsg() {
+  var el = document.getElementById("kkd135AreaMsg"), st = state.booking.areaOk;
+  var addrEl = document.querySelector('#cBody input[data-address="auto"]');
+  if (!el && addrEl && addrEl.parentNode) { el = document.createElement("div"); el.id = "kkd135AreaMsg"; el.style.cssText = "margin-top:4px;font-size:11px;font-weight:bold;"; addrEl.parentNode.appendChild(el); }
+  if (!el) return;
+  if (st === true) { el.textContent = KKD135_AREA_OK; el.style.color = "#0d6b57"; }
+  else if (st === false) { el.textContent = KKD135_AREA_NG; el.style.color = "#b45309"; }
+  else el.textContent = "";
+}
+// 住所が決まったら、GASに問い合わせる（GAS接続時のみ）。連続入力で、古い問い合わせの結果が、新しい結果を上書きしないようにする
+var __kkd135AreaSeq = 0;
+function kkd135CheckArea(address) {
+  var be = window.KKD135_BACKEND;
+  state.booking.areaOk = undefined; kkd135ShowAreaMsg();
+  if (!address || !be || typeof be.checkArea !== "function") return;
+  var seq = ++__kkd135AreaSeq;
+  be.checkArea(address).then(function (r) {
+    if (seq !== __kkd135AreaSeq) return;
+    if (r && r.status === "OK") { state.booking.areaOk = r.available === true; kkd135ShowAreaMsg(); }
+  }, function () {});
+}
+
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
 function openPhotoReport(id){
   const j = getJob(id); if(!j) return;
@@ -3131,6 +3161,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=29a4040165"></script>
+<script src="../assets/app_boot.js?v=c5e2b4e079"></script>
 </body>
 </html>
