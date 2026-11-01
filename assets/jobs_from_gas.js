@@ -68,7 +68,8 @@ var KKD135Jobs = (function () {
 
   // 読み込み：担当案件を取り、案件の追加項目も取り、state.jobs を置き換える（失敗したら、置き換えない）
   // namesP：{OPT_コード: 項目名} か、それを返す Promise（価格の取得を待たずに、案件の取得を並行して始められる）
-  function load(backend, state, render, namesP) {
+  // opts.onlyIfChanged：前回と同じ内容なら、入れ替えも描き直しもしない（定期的な取り直し用）
+  function load(backend, state, render, namesP, opts) {
     if (!backend || typeof backend.listMyJobs !== 'function') return Promise.resolve({ status: 'ERROR', errorCode: 'NO_BACKEND' });
     return Promise.all([backend.listMyJobs(), Promise.resolve(namesP).then(function (x) { return x; }, function () { return null; })]).then(function (both) {
       var r = both[0], names = both[1];
@@ -79,6 +80,11 @@ var KKD135Jobs = (function () {
         return backend.getAdditional(j.id).then(function (g) { return (g && g.status === 'OK') ? applyAdditional(j, g.additional) : j; }, function () { return j; });
       })).then(function (list) {
         // GASの案件に置き換える。画面の試験用（モック）の案件（gas でないもの）は、消さずに残す（同じ案件番号は、GASを優先）
+        var sig = JSON.stringify(list);
+        if (opts && opts.onlyIfChanged && state.__gasSig === sig) return { status: 'OK', count: list.length, unchanged: true };
+        state.__gasSig = sig;
+        var prev = {}; state.jobs.forEach(function (j) { if (j && j.gas) prev[j.id] = j; });
+        list.forEach(function (j) { if (prev[j.id] && prev[j.id]._addOpen) j._addOpen = true; }); // 画面だけの状態は引き継ぐ
         var ids = {}; list.forEach(function (j) { ids[j.id] = 1; });
         var keep = state.jobs.filter(function (j) { return j && !j.gas && !ids[j.id]; });
         state.jobs.length = 0;
@@ -107,12 +113,15 @@ var KKD135Jobs = (function () {
       rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: false
     };
   }
-  function loadCustomer(backend, state, render, names) {
+  function loadCustomer(backend, state, render, names, opts) {
     if (!backend || typeof backend.listMyBookings !== 'function') return Promise.resolve({ status: 'ERROR', errorCode: 'NO_BACKEND' });
     return Promise.all([backend.listMyBookings(), Promise.resolve(names).then(function (x) { return x; }, function () { return null; })]).then(function (both) {
       var r = both[0], nm = both[1];
       if (!r || r.status !== 'OK' || !Array.isArray(r.bookings)) return r || { status: 'ERROR', errorCode: 'NETWORK' };
       var list = r.bookings.map(function (b) { return fromBooking(b, nm); }).filter(Boolean);
+      var sig = JSON.stringify(list);
+      if (opts && opts.onlyIfChanged && state.__gasSig === sig) return { status: 'OK', count: list.length, unchanged: true };
+      state.__gasSig = sig;
       var ids = {}; list.forEach(function (j) { ids[j.id] = 1; });
       var keep = state.jobs.filter(function (j) { return j && !j.gas && !ids[j.id]; });
       state.jobs.length = 0;

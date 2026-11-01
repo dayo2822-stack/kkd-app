@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "999a359826", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "7800c2c682", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=999a359826"></script>
-<script src="../assets/photo_report_ui.js?v=999a359826"></script>
-<script src="../assets/gas_backend.js?v=999a359826"></script>
-<script src="../assets/jobs_from_gas.js?v=999a359826"></script>
+<script src="../assets/photo_report_logic.js?v=7800c2c682"></script>
+<script src="../assets/photo_report_ui.js?v=7800c2c682"></script>
+<script src="../assets/gas_backend.js?v=7800c2c682"></script>
+<script src="../assets/jobs_from_gas.js?v=7800c2c682"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -2429,7 +2429,16 @@ function kkd135UploadPhoto(id, key, f) {
     return be.uploadBookingPhoto(id, key, b64, rid);
   }).then(function (r) {
     done();
-    if (r && r.status === "OK") { sendPhotoLocal(id, key); return; }
+    if (r && r.status === "OK") {
+      sendPhotoLocal(id, key);
+      // サーバーに本当に保存されたかを、取り直して確かめる（されていなければ、印を戻して知らせる）
+      if (typeof be.listMyBookings === "function") be.listMyBookings().then(function (v) {
+        if (!v || v.status !== "OK" || !Array.isArray(v.bookings)) return;
+        var bk = v.bookings.filter(function (x) { return x.caseId === id; })[0];
+        if (bk && bk.photos && bk.photos[key] === false) { j.photos[key] = false; openCustomerCases(state.customerTab || "before", false); alert("写真の送信は完了しましたが、サーバーでの保存を確認できませんでした。もう一度お試しください。"); }
+      }, function () {});
+      return;
+    }
     alert((r && KKD135_PHOTO_ERRORS[r.errorCode]) || "写真を送れませんでした。通信を確かめて、もう一度お試しください。");
   }, function () { done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
 }
@@ -3047,6 +3056,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=999a359826"></script>
+<script src="../assets/app_boot.js?v=7800c2c682"></script>
 </body>
 </html>

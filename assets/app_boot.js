@@ -77,6 +77,26 @@
       loading(true, '予約を読み込み中…');
       KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
+    // 画面を開いている間も、最新の状態に取り直す（相手側の操作・写真の受領などが、開き直さずに反映される）。入力中・読み込み中は、取り直さない
+    var refreshing = false, lastRefresh = Date.now();
+    function typing() {
+      var a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+      var els = document.querySelectorAll('input[id^="cust-"],textarea[id^="cust-"]');
+      for (var i = 0; i < els.length; i++) if (els[i].value) return true;
+      return false;
+    }
+    function refresh(force) {
+      if (refreshing || document.hidden || (!force && Date.now() - lastRefresh < 20000) || typing() || document.getElementById('kkd135LoadingMedia')) return;
+      if (typeof KKD135Jobs === 'undefined' || typeof state === 'undefined') return;
+      refreshing = true; lastRefresh = Date.now();
+      var done = function () { refreshing = false; };
+      if (env.role === 'vendor') KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP, { onlyIfChanged: true }).then(done, done);
+      else if (env.role === 'customer') KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before', false); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP, { onlyIfChanged: true }).then(done, done);
+      else done();
+    }
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(false); });
+    window.addEventListener('focus', function () { refresh(false); });
+    setInterval(function () { refresh(false); }, 30000);
     return pricingDone;
   }).catch(function () { /* LIFFが使えない場合は、単体のモックのまま */ });
 })();
