@@ -7,7 +7,9 @@
   var env = window.KKD135_ENV || {};
 
   if (env.build) { // 版の表示（どの版の画面が開いているかを、確かめられるように）
-    var ver = document.createElement('div'); ver.textContent = '版 ' + env.build; ver.style.cssText = 'position:fixed;left:6px;bottom:2px;z-index:99998;font-size:9px;color:#94a3b8;pointer-events:none;'; document.body.appendChild(ver);
+    var ver = document.createElement('div'); ver.textContent = '版 ' + env.build; ver.style.cssText = 'position:fixed;left:0;bottom:0;z-index:99998;font-size:9px;color:#94a3b8;padding:4px 10px 3px 6px;'; document.body.appendChild(ver);
+    var taps = []; ver.addEventListener('click', function () { var n = Date.now(); taps.push(n); taps = taps.filter(function (x) { return n - x < 3000; }); if (taps.length >= 5) { taps = []; if (typeof kkd135ToggleDebug === 'function') kkd135ToggleDebug(); } });
+    if (typeof kkd135DrawLog === 'function') kkd135DrawLog();
   }
   if (env.role && typeof switchRole === 'function') {
     var bar = document.getElementById('mobileRoleBar');

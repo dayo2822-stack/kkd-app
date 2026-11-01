@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "7800c2c682", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "a53b4859c0", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=7800c2c682"></script>
-<script src="../assets/photo_report_ui.js?v=7800c2c682"></script>
-<script src="../assets/gas_backend.js?v=7800c2c682"></script>
-<script src="../assets/jobs_from_gas.js?v=7800c2c682"></script>
+<script src="../assets/photo_report_logic.js?v=a53b4859c0"></script>
+<script src="../assets/photo_report_ui.js?v=a53b4859c0"></script>
+<script src="../assets/gas_backend.js?v=a53b4859c0"></script>
+<script src="../assets/jobs_from_gas.js?v=a53b4859c0"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -2381,6 +2381,29 @@ function setAdditionalQty(id, code, qty){
   afterAdditionalChange(id, "ADDITIONAL_QTY " + id + " " + code + " " + n);
 }
 
+// ---- 診断ログ：版の表示を、3秒以内に5回タップすると、画面に診断ログを出す／消す。写真の選択〜送信で、どこまで進んだかを見るため ----
+var __kkd135Lines = [];
+function kkd135Log(msg) {
+  try {
+    var t = new Date(); var hh = ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2) + ":" + ("0" + t.getSeconds()).slice(-2);
+    __kkd135Lines.push(hh + " " + msg); if (__kkd135Lines.length > 14) __kkd135Lines.shift();
+    kkd135DrawLog();
+  } catch (e) {}
+}
+function kkd135DebugOn() { try { return localStorage.getItem("kkd135_debug") === "1"; } catch (e) { return false; } }
+function kkd135DrawLog() {
+  var el = document.getElementById("kkd135LogPanel");
+  if (!kkd135DebugOn()) { if (el && el.parentNode) el.parentNode.removeChild(el); return; }
+  if (!el) { el = document.createElement("div"); el.id = "kkd135LogPanel"; el.style.cssText = "position:fixed;left:0;right:0;bottom:22px;z-index:99997;max-height:34vh;overflow:auto;background:rgba(0,0,0,.78);color:#9ef;font:10px/1.35 monospace;padding:4px 6px;white-space:pre-wrap;word-break:break-all;pointer-events:none;"; document.body.appendChild(el); }
+  el.textContent = __kkd135Lines.join("\n");
+}
+function kkd135ToggleDebug() { try { localStorage.setItem("kkd135_debug", kkd135DebugOn() ? "0" : "1"); } catch (e) {} kkd135Log("診断ログ：" + (kkd135DebugOn() ? "オン" : "オフ")); kkd135DrawLog(); }
+window.addEventListener("error", function (e) { kkd135Log("エラー：" + (e && e.message)); });
+window.addEventListener("unhandledrejection", function (e) { kkd135Log("未処理：" + (e && e.reason && (e.reason.message || e.reason))); });
+document.addEventListener("visibilitychange", function () { kkd135Log("表示：" + (document.hidden ? "隠れた" : "戻った")); });
+window.addEventListener("blur", function () { kkd135Log("画面：フォーカスを失った"); });
+window.addEventListener("focus", function () { kkd135Log("画面：フォーカスが戻った"); });
+
 // ---- v13.5 追加：顧客の事前の現場写真（GAS連携）。make_index_v13_5.py が、index_v13_5.html に差し込む ----
 // 顧客：サービス・案件に合わせて、写真を選び、縮小して、GASへ送る。業者：顧客の写真を、種類ごとに見る。
 var KKD135_PHOTO_KINDS = [["install", "設置状況"], ["model", "型番"], ["outdoor", "室外機"], ["other", "その他"]];
@@ -2392,8 +2415,11 @@ function kkd135EnsurePhotoInput() {
   if (inp || !document.body) return inp;
   inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = "kkd135PhotoInput";
   inp.style.cssText = "position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;";
+  inp.addEventListener("click", function () { kkd135Log("写真選択：開く要求"); });
+  inp.addEventListener("cancel", function () { kkd135Log("写真選択：キャンセル（選ばれずに閉じた）"); });
   inp.addEventListener("change", function () {
     var f = inp.files && inp.files[0], t = window.__kkd135PhotoTarget; inp.value = "";
+    kkd135Log("写真選択：change " + (f ? (f.type + " " + Math.round(f.size / 1024) + "KB") : "ファイルなし") + (t ? " → " + t.key : " 送り先なし"));
     if (!f || !t) return;
     kkd135UploadPhoto(t.id, t.key, f);
   });
@@ -2407,6 +2433,7 @@ function kkd135GasPhotoReady(j) {
 // ラベル（写真を追加）のタップ：GAS接続の案件は、送り先を覚えて、そのまま写真選択を開く。それ以外（試験用）は、その場の印だけ
 function kkd135PickPhoto(id, key) {
   var j = getJob(id);
+  kkd135Log("ラベルをタップ：" + key + (kkd135GasPhotoReady(j) ? "（GAS接続）" : "（試験用・接続なし：" + (j ? (j.gas ? "gas" : "mock") : "案件なし") + "）"));
   if (!kkd135GasPhotoReady(j)) { try { event.preventDefault(); } catch (e) {} sendPhotoLocal(id, key); return; }
   window.__kkd135PhotoTarget = { id: id, key: key };
   kkd135EnsurePhotoInput();
@@ -2424,10 +2451,13 @@ function kkd135UploadPhoto(id, key, f) {
   notice.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:99999;padding:8px 12px;background:#0d6b57;color:#fff;font-size:12px;text-align:center;";
   notice.textContent = "写真を送信中…"; document.body.appendChild(notice);
   function done() { if (notice.parentNode) notice.parentNode.removeChild(notice); }
+  kkd135Log("縮小を開始");
   KKD135PhotoUI.makeWebB64(f).then(function (b64) {
+    kkd135Log("縮小完了：" + Math.round(b64.length / 1024) + "K文字 先頭=" + b64.slice(0, 4));
     var rid = "P" + Date.now() + Math.floor(Math.random() * 1000000);
     return be.uploadBookingPhoto(id, key, b64, rid);
   }).then(function (r) {
+    kkd135Log("GAS応答：" + (r ? (r.status + " " + (r.errorCode || "")) : "なし"));
     done();
     if (r && r.status === "OK") {
       sendPhotoLocal(id, key);
@@ -2440,7 +2470,7 @@ function kkd135UploadPhoto(id, key, f) {
       return;
     }
     alert((r && KKD135_PHOTO_ERRORS[r.errorCode]) || "写真を送れませんでした。通信を確かめて、もう一度お試しください。");
-  }, function () { done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
+  }, function (e) { kkd135Log("失敗：" + (e && (e.message || e))); done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
 }
 if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", kkd135EnsurePhotoInput); } else { kkd135EnsurePhotoInput(); }
 
@@ -3056,6 +3086,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=7800c2c682"></script>
+<script src="../assets/app_boot.js?v=a53b4859c0"></script>
 </body>
 </html>
