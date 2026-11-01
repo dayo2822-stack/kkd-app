@@ -78,6 +78,8 @@ var KKD135Gas = (function () {
       getBookingPhotoFile: function (caseId, kind) { return vendor({ action: 'getBookingPhotoFile', caseId: caseId, kind: kind }); },
       // --- 担当案件（業者） ---
       listMyJobs: function () { return vendor({ action: 'listMyJobs' }); },
+      startWork: function (caseId) { return vendor({ action: 'startWork', caseId: caseId }); },
+      completeWork: function (caseId) { return vendor({ action: 'completeWork', caseId: caseId }); },
       confirmVisit: function (caseId, choice) { return vendor({ action: 'confirmVisit', caseId: caseId, choice: choice }); },
       // 試験・診断用
       _hasSession: function () { return !!session && Date.now() < expiresAt; }

@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "719fea07bd", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "29a4040165", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=719fea07bd"></script>
-<script src="../assets/photo_report_ui.js?v=719fea07bd"></script>
-<script src="../assets/gas_backend.js?v=719fea07bd"></script>
-<script src="../assets/jobs_from_gas.js?v=719fea07bd"></script>
+<script src="../assets/photo_report_logic.js?v=29a4040165"></script>
+<script src="../assets/photo_report_ui.js?v=29a4040165"></script>
+<script src="../assets/gas_backend.js?v=29a4040165"></script>
+<script src="../assets/jobs_from_gas.js?v=29a4040165"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -2208,12 +2208,12 @@ function openVendorCases(tab="before", resetAccordion=false){
     window.scrollTo(0, 0);
   }
 }
-function startJob(id){
+function startJobLocal(id){
   const j=getJob(id);if(!j)return;
   if(!j.additionalFlag){alert("現場確認：追加項目を選択してください（なければ「追加項目なし」）");return}
   j.isStarted=true;
   const now=new Date();
-  j.startedAt=now.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+  j.startedAt=j.__startedAtServer||now.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
   log(`JOB_START ${id} startedAt=${j.startedAt} additional=${additionalSummary(j)}`);
   openVendorCases('progress', false);
   const body = document.getElementById("vjob-body-" + id);
@@ -2569,6 +2569,24 @@ function kkd135KeepInputsAndRender(id) {
   var body = document.getElementById("cjob-body-" + id); if (body) body.style.display = "block";
 }
 
+// ---- 作業開始・作業完了（業者）：GAS案件は、先にGASへ保存し、成功したら画面を進める（取り直しで戻らないように） ----
+var KKD135_WORK_ERRORS = { ADDITIONAL_UNCONFIRMED: "追加項目を確認してください（なければ「相違なし」）。", DETAIL_MISSING: "顧客の詳細住所の入力の後に、開始できます。", NOT_CONFIRMED: "訪問日時の確定の後に、開始できます。", NOT_STARTED: "先に、作業を開始してください。", CASE_COMPLETED: "この案件は、すでに完了しています。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+function kkd135WorkCall(id, kind, local) {
+  var j = getJob(id), be = window.KKD135_BACKEND;
+  var fn = kind === "start" ? "startWork" : "completeWork";
+  if (!j || !j.gas || !be || typeof be[fn] !== "function") return local(id);
+  if (kind === "start" && !j.additionalFlag) return local(id); // 画面の既存の案内（追加項目の選択）を出す
+  if (window.__kkd135Work) return;
+  window.__kkd135Work = true;
+  be[fn](id).then(function (r) {
+    window.__kkd135Work = false;
+    if (r && r.status === "OK") { if (kind === "start" && r.startedAt) j.__startedAtServer = r.startedAt; local(id); return; }
+    alert((r && KKD135_WORK_ERRORS[r.errorCode]) || "保存できませんでした。通信を確かめて、もう一度お試しください。");
+  }, function () { window.__kkd135Work = false; alert("保存できませんでした。通信を確かめて、もう一度お試しください。"); });
+}
+function startJob(id) { kkd135WorkCall(id, "start", startJobLocal); }
+function completeJob(id) { kkd135WorkCall(id, "complete", completeJobLocal); }
+
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
 function openPhotoReport(id){
   const j = getJob(id); if(!j) return;
@@ -2692,7 +2710,7 @@ function simulateToday(){
   if(!j.todayTime)j.todayTime=TIMES[2];
   openVendorCases("progress");addChat("vChat",`【当日シナリオ】訪問前の時間選択を確認できます。`);log("SIMULATE_TODAY "+j.id);
 }
-function completeJob(id){
+function completeJobLocal(id){
   const j=getJob(id);j.completed=true;
   const now=new Date();
   const dStr=`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}`;
@@ -3113,6 +3131,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=719fea07bd"></script>
+<script src="../assets/app_boot.js?v=29a4040165"></script>
 </body>
 </html>
