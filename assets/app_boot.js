@@ -70,6 +70,10 @@
       loading(true, '案件を読み込み中…');
       KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
+    if (env.role === 'customer' && typeof state !== 'undefined') { state.gasSupply = {}; state.vendorAvailable = {}; } // 空き枠は、住所が決まってから、GASから取る（試験用のデータは使わない）
+    if (env.role === 'vendor' && typeof state !== 'undefined' && typeof backend.getMyAvailability === 'function') {
+      backend.getMyAvailability().then(function (r) { if (r && r.status === 'OK') { state.vendorAvailable = r.dates || {}; try { if (typeof renderVendorHome === 'function' && document.getElementById('vView') && document.getElementById('vView').textContent === '予定表示') renderVendorHome(); } catch (e) {} } });
+    }
     if (env.role === 'customer' && typeof kkd135RefreshBusy === 'function') kkd135RefreshBusy();
     if (env.role === 'customer' && typeof KKD135Jobs !== 'undefined' && typeof state !== 'undefined') {
       // 顧客：予約はGASが持つ。保存（localStorage）は、試験用（モック）の案件だけ

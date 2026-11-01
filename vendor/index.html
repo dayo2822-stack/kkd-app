@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "83f07dada5", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "fe603a3e76", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=83f07dada5"></script>
-<script src="../assets/photo_report_ui.js?v=83f07dada5"></script>
-<script src="../assets/gas_backend.js?v=83f07dada5"></script>
-<script src="../assets/jobs_from_gas.js?v=83f07dada5"></script>
+<script src="../assets/photo_report_logic.js?v=fe603a3e76"></script>
+<script src="../assets/photo_report_ui.js?v=fe603a3e76"></script>
+<script src="../assets/gas_backend.js?v=fe603a3e76"></script>
+<script src="../assets/jobs_from_gas.js?v=fe603a3e76"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1336,9 +1336,9 @@ function durationHoursForBooking(){
 }
 function durationHoursForJob(j){return Math.max(1,Math.ceil(calcMinutes(j)/60));}
 function timeIndex(t){var i=TIMES.indexOf(t); if(i>=0||!t) return i; var m=String(t).match(/^(\d{1,2}):(\d{2})/); if(!m) return -1; var key=("0"+m[1]).slice(-2)+":"+m[2]; return TIMES.findIndex(function(x){return x.indexOf(key)===0;});}
-function reservedStartsAndBlocks(ds){
+function reservedStartsAndBlocks(ds,vendorId){
   const blocked=new Set();
-  state.jobs.concat(state.busyJobs||[]).filter(j=>!j.completed).forEach(j=>{
+  (state.gasSupply?(state.busyJobs||[]).filter(j=>j.vendorId===vendorId):state.jobs.concat(state.busyJobs||[])).filter(j=>!j.completed).forEach(j=>{
     // 業者が訪問日時を確定するまでは第1・第2希望を仮押さえ。
     // 確定後は選択された側だけを予約枠として残し、選ばれなかった希望枠を再び予約可能に戻す。
     const pairs=j.vendorChoice
@@ -1353,6 +1353,19 @@ function reservedStartsAndBlocks(ds){
   return blocked;
 }
 function availableTimesForDuration(ds,hours){
+  if(state.gasSupply){
+    const res=new Set();
+    Object.keys(state.gasSupply).forEach(v=>{
+      const supply=new Set((state.gasSupply[v]||{})[ds]||[]), blocked=reservedStartsAndBlocks(ds,v);
+      TIMES.forEach((t,i)=>{
+        if(!supply.has(t)||blocked.has(t))return;
+        let ok=true;
+        for(let k=0;k<hours;k++){const slot=TIMES[i+k];if(!slot||!supply.has(slot)||blocked.has(slot)){ok=false;break;}}
+        if(ok)res.add(t);
+      });
+    });
+    return TIMES.filter(t=>res.has(t));
+  }
   const supply=new Set(state.vendorAvailable[ds]||[]), blocked=reservedStartsAndBlocks(ds), result=[];
   TIMES.forEach((t,i)=>{
     if(!supply.has(t)||blocked.has(t))return;
@@ -1923,7 +1936,7 @@ function showVendorActionNotice(message){
   el.innerHTML=message;
   el.style.display="block";
 }
-function registerVendorAvailability(continueMode=false){
+function registerVendorAvailabilityLocal(continueMode=false){
   if(!state.vendorSelectedDate){alert("可能日を選択してください");return}
   if(!state.vendorTempTimes.length){alert("時間枠を1つ以上選択してください");return}
   const registeredDate=state.vendorSelectedDate;
@@ -2544,7 +2557,7 @@ function kkd135RefreshBusy(done) {
     if (r && r.status === "OK" && Array.isArray(r.slots)) {
       state.busyJobs = r.slots.map(function (s) {
         var names = []; for (var i = 0; i < (Number(s.options) || 0); i++) names.push("x");
-        return { id: "BUSY", service: "エアコン脱着分解クリーニング", units: s.units, unitOptions: names.length ? { 1: names } : {}, options: [], date1: s.date, time1: s.time, date2: "", time2: "", vendorChoice: "", completed: false };
+        return { id: "BUSY", service: "エアコン脱着分解クリーニング", units: s.units, unitOptions: names.length ? { 1: names } : {}, options: [], date1: s.date, time1: s.time, date2: "", time2: "", vendorChoice: "", completed: false, vendorId: s.vendorId || "" };
       });
     }
     if (done) done();
@@ -2617,6 +2630,19 @@ function kkd135CheckArea(address) {
   be.checkArea(address).then(function (r) {
     if (seq !== __kkd135AreaSeq) return;
     if (r && r.status === "OK") { state.booking.areaOk = r.available === true; kkd135ShowAreaMsg(); }
+  }, function () {});
+  kkd135LoadSupply(address, seq);
+}
+// 住所に合う業者の空き枠（業者ごと）を取得し、予約画面の日時の候補の元にする。受付できない地域・空き枠の報告が無い間は、候補なし
+function kkd135LoadSupply(address, seq) {
+  var be = window.KKD135_BACKEND; if (!be || typeof be.getAvailableSupply !== "function") return;
+  be.getAvailableSupply(address).then(function (r) {
+    if (seq !== __kkd135AreaSeq) return;
+    if (!r || r.status !== "OK") return;
+    state.gasSupply = r.supply || {};
+    var union = {}; Object.keys(state.gasSupply).forEach(function (v) { var d = state.gasSupply[v]; Object.keys(d).forEach(function (ds) { union[ds] = Array.from(new Set((union[ds] || []).concat(d[ds]))); }); });
+    state.vendorAvailable = union;
+    try { if (typeof cStep === "function" && (cStep() === 3 || cStep() === 4) && document.getElementById("cBody")) renderCBody(); } catch (e) {}
   }, function () {});
 }
 
@@ -2792,6 +2818,21 @@ function kkd135CompSave(id) {
     if (r && r.status === "OK") { j.compInstallers = r.completion.installers.slice(); kkd135CompNames(id); if (msg) { msg.style.color = "#0d6b57"; msg.textContent = "保存しました。お客様の画面・領収書に反映されます。"; } return; }
     if (msg) { msg.style.color = "#b45309"; msg.textContent = KKD135_COMP_ERRORS[r && r.errorCode] || "保存できませんでした。通信を確かめて、もう一度お試しください。"; }
   }, function () { if (msg) { msg.style.color = "#b45309"; msg.textContent = "保存できませんでした。通信を確かめて、もう一度お試しください。"; } });
+}
+
+// ---- 業者の空き枠報告：GAS案件の業者は、先にGASへ保存し、成功したら画面を進める ----
+var KKD135_AVAIL_ERRORS = { INVALID_INPUT: "この日付・時間枠は、登録できません（今日から、180日先までです）。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+function registerVendorAvailability(continueMode) {
+  var be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
+  if (env.role !== "vendor" || !be || typeof be.saveMyAvailability !== "function") return registerVendorAvailabilityLocal(continueMode);
+  if (!state.vendorSelectedDate) { alert("可能日を選択してください"); return; }
+  if (!state.vendorTempTimes.length) { alert("時間枠を1つ以上選択してください"); return; }
+  if (window.__kkd135Avail) return; window.__kkd135Avail = true;
+  be.saveMyAvailability(state.vendorSelectedDate, state.vendorTempTimes.slice()).then(function (r) {
+    window.__kkd135Avail = false;
+    if (r && r.status === "OK") { registerVendorAvailabilityLocal(continueMode); return; }
+    alert((r && KKD135_AVAIL_ERRORS[r.errorCode]) || "保存できませんでした。通信を確かめて、もう一度お試しください。（選んだ内容は、残っています）");
+  }, function () { window.__kkd135Avail = false; alert("保存できませんでした。通信を確かめて、もう一度お試しください。"); });
 }
 
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
@@ -3338,6 +3379,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=83f07dada5"></script>
+<script src="../assets/app_boot.js?v=fe603a3e76"></script>
 </body>
 </html>
