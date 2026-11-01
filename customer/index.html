@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "a53b4859c0", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "0a7f44a819", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=a53b4859c0"></script>
-<script src="../assets/photo_report_ui.js?v=a53b4859c0"></script>
-<script src="../assets/gas_backend.js?v=a53b4859c0"></script>
-<script src="../assets/jobs_from_gas.js?v=a53b4859c0"></script>
+<script src="../assets/photo_report_logic.js?v=0a7f44a819"></script>
+<script src="../assets/photo_report_ui.js?v=0a7f44a819"></script>
+<script src="../assets/gas_backend.js?v=0a7f44a819"></script>
+<script src="../assets/jobs_from_gas.js?v=0a7f44a819"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -718,7 +718,7 @@ function toggleVisitPhoto(id, key){
   saveAndSync();
 }
 
-function submitCustomerAddressDetail(id){
+function submitCustomerAddressDetailLocal(id){
   const j = getJob(id);
   if (!j) return;
   const blockEl = document.getElementById("cust-block-" + id);
@@ -1617,12 +1617,12 @@ function openCustomerCases(tab="before", resetAccordion=false){
               <div style="font-size:10px;font-weight:bold;color:var(--ink);margin-bottom:3px;">📍 訪問先特有の情報（推奨・写真共有）</div>
               <div class="mini" style="margin-bottom:6px;color:var(--muted);">※駐車場位置や特有の進入経路など、業者が迷わず到着できるよう事前に写真をご提供いただけます。</div>
               <div style="display:flex;gap:6px;margin-bottom:6px;">
-                <button type="button" class="btn ${j.visitPhotos?.parking ? 'secondary' : 'primary'}" style="flex:1;font-size:9px;padding:6px 4px;" onclick="toggleVisitPhoto('${j.id}','parking')">
+                <label for="kkd135PhotoInput" class="btn ${j.visitPhotos?.parking ? 'secondary' : 'primary'}" style="flex:1;font-size:9px;padding:6px 4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','parking')">
                   ${j.visitPhotos?.parking ? '✓ 🅿️ 駐車位置写真 登録済' : '＋ 🅿️ 駐車位置写真を追加'}
-                </button>
-                <button type="button" class="btn ${j.visitPhotos?.entrance ? 'secondary' : 'primary'}" style="flex:1;font-size:9px;padding:6px 4px;" onclick="toggleVisitPhoto('${j.id}','entrance')">
+                </label>
+                <label for="kkd135PhotoInput" class="btn ${j.visitPhotos?.entrance ? 'secondary' : 'primary'}" style="flex:1;font-size:9px;padding:6px 4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','entrance')">
                   ${j.visitPhotos?.entrance ? '✓ 🚪 進入経路写真 登録済' : '＋ 🚪 進入経路写真を追加'}
-                </button>
+                </label>
               </div>
               <div class="field" style="margin:4px 0;">
                 <label style="font-size:9.5px;">訪問経路・駐車場の特記事項メモ</label>
@@ -2406,7 +2406,7 @@ window.addEventListener("focus", function () { kkd135Log("画面：フォーカ�
 
 // ---- v13.5 追加：顧客の事前の現場写真（GAS連携）。make_index_v13_5.py が、index_v13_5.html に差し込む ----
 // 顧客：サービス・案件に合わせて、写真を選び、縮小して、GASへ送る。業者：顧客の写真を、種類ごとに見る。
-var KKD135_PHOTO_KINDS = [["install", "設置状況"], ["model", "型番"], ["outdoor", "室外機"], ["other", "その他"]];
+var KKD135_PHOTO_KINDS = [["install", "設置状況"], ["model", "型番"], ["outdoor", "室外機"], ["other", "その他"], ["parking", "駐車位置"], ["entrance", "進入経路"]];
 var KKD135_PHOTO_ERRORS = { INVALID_INPUT: "写真を送れませんでした（形式か大きさが合いません）。別の写真でお試しください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", NOT_FOUND: "案件が見つかりません。画面を開き直してください。", CASE_COMPLETED: "この案件は完了しているため、写真を送れません。" };
 
 // 写真を選ぶ入力欄：最初から1つだけ画面に置く（隠さずに、見えない大きさ・位置で）。ラベル（写真を追加）のタップが、直接、写真選択を開く。
@@ -2434,7 +2434,7 @@ function kkd135GasPhotoReady(j) {
 function kkd135PickPhoto(id, key) {
   var j = getJob(id);
   kkd135Log("ラベルをタップ：" + key + (kkd135GasPhotoReady(j) ? "（GAS接続）" : "（試験用・接続なし：" + (j ? (j.gas ? "gas" : "mock") : "案件なし") + "）"));
-  if (!kkd135GasPhotoReady(j)) { try { event.preventDefault(); } catch (e) {} sendPhotoLocal(id, key); return; }
+  if (!kkd135GasPhotoReady(j)) { try { event.preventDefault(); } catch (e) {} if (key === "parking" || key === "entrance") toggleVisitPhoto(id, key); else sendPhotoLocal(id, key); return; }
   window.__kkd135PhotoTarget = { id: id, key: key };
   kkd135EnsurePhotoInput();
 }
@@ -2460,7 +2460,7 @@ function kkd135UploadPhoto(id, key, f) {
     kkd135Log("GAS応答：" + (r ? (r.status + " " + (r.errorCode || "")) : "なし"));
     done();
     if (r && r.status === "OK") {
-      sendPhotoLocal(id, key);
+      if (key === "parking" || key === "entrance") { j.visitPhotos = j.visitPhotos || {}; j.visitPhotos[key] = true; kkd135KeepInputsAndRender(id); } else sendPhotoLocal(id, key);
       // サーバーに本当に保存されたかを、取り直して確かめる（されていなければ、印を戻して知らせる）
       if (typeof be.listMyBookings === "function") be.listMyBookings().then(function (v) {
         if (!v || v.status !== "OK" || !Array.isArray(v.bookings)) return;
@@ -2540,6 +2540,32 @@ function kkd135RefreshBusy(done) {
     }
     if (done) done();
   }, function () { if (done) done(); });
+}
+
+// ---- 詳細住所・訪問先メモの保存（GAS）：顧客が［確定］を押したら、先にGASへ保存し、成功したら画面を進める ----
+var KKD135_DETAIL_ERRORS = { NOT_CONFIRMED: "業者の訪問日時の確定の後に、入力してください。", INVALID_INPUT: "入力内容を確かめてください（番地は必須です）。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", CASE_COMPLETED: "この案件は完了しているため、変更できません。" };
+function submitCustomerAddressDetail(id) {
+  var j = getJob(id), be = window.KKD135_BACKEND, env = window.KKD135_ENV || {};
+  if (!j || !j.gas || !be || typeof be.submitAddressDetail !== "function" || env.role !== "customer") return submitCustomerAddressDetailLocal(id);
+  var blockEl = document.getElementById("cust-block-" + id), buildingEl = document.getElementById("cust-building-" + id), roomEl = document.getElementById("cust-room-" + id), routeEl = document.getElementById("cust-route-" + id);
+  var block = normalizeHalfWidthAddressValue((blockEl && blockEl.value) || "").trim();
+  if (!block) { alert("番地を入力してください（例：1-2-3）"); if (blockEl) blockEl.focus(); return; }
+  if (window.__kkd135Detail) return;
+  window.__kkd135Detail = true;
+  be.submitAddressDetail({ caseId: id, block: block, building: ((buildingEl && buildingEl.value) || "").trim(), room: normalizeHalfWidthAddressValue((roomEl && roomEl.value) || "").trim(), routeMemo: ((routeEl && routeEl.value) || "").trim() }).then(function (r) {
+    window.__kkd135Detail = false;
+    if (r && r.status === "OK") { submitCustomerAddressDetailLocal(id); return; }
+    alert((r && KKD135_DETAIL_ERRORS[r.errorCode]) || "保存できませんでした。通信を確かめて、もう一度お試しください。（入力内容は、残っています）");
+  }, function () { window.__kkd135Detail = false; alert("保存できませんでした。通信を確かめて、もう一度お試しください。"); });
+}
+
+// 訪問先の写真を送った後の描き直し：入力中の詳細住所・メモを保存してから、描き直す（消えないように）
+function kkd135KeepInputsAndRender(id) {
+  var j = getJob(id); if (!j) return;
+  [["cust-block-", "addressBlock"], ["cust-building-", "buildingName"], ["cust-room-", "roomNumber"]].forEach(function (p) { var el = document.getElementById(p[0] + id); if (el) j[p[1]] = el.value; });
+  var routeEl = document.getElementById("cust-route-" + id); if (routeEl) { j.visitInfo = j.visitInfo || {}; j.visitInfo.routeMemo = routeEl.value; }
+  openCustomerCases(state.customerTab || "before", false);
+  var body = document.getElementById("cjob-body-" + id); if (body) body.style.display = "block";
 }
 
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
@@ -3086,6 +3112,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=a53b4859c0"></script>
+<script src="../assets/app_boot.js?v=0a7f44a819"></script>
 </body>
 </html>

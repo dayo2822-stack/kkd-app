@@ -21,6 +21,17 @@ var KKD135Jobs = (function () {
     return uo;
   }
 
+  // 訪問先の写真（駐車位置・進入経路）の有無
+  function visitPhotosOf(p) { return { parking: !!(p && p.parking === true), entrance: !!(p && p.entrance === true) }; }
+  // 詳細住所（顧客の入力）を、画面の案件に入れる。d：{block, building, room, memo}
+  function applyDetail(job, d) {
+    if (!d || typeof d !== 'object') return job;
+    job.addressBlock = String(d.block || ''); job.buildingName = String(d.building || ''); job.roomNumber = String(d.room || '');
+    job.detailAddress = [job.addressBlock, job.buildingName, job.roomNumber].filter(Boolean).join(' ');
+    job.visitInfo = { routeMemo: String(d.memo || '') };
+    return job;
+  }
+
   // 写真の状況（GASの {install, model, outdoor, other}）。GASが返さない（予約の無い旧の案件）なら、既定値
   function photosOf(p, dflt) {
     if (!p || typeof p !== 'object') return dflt;
@@ -36,12 +47,16 @@ var KKD135Jobs = (function () {
 
   // GASの1件 → 画面の案件
   function fromGas(r, names) {
+    var j = fromGasBase(r, names);
+    return (j && r && r.visitInfo) ? applyVisitInfo(j, r.visitInfo) : j;
+  }
+  function fromGasBase(r, names) {
     if (!r || typeof r !== 'object' || !r.caseId) return null;
     var done = isDone(r.status), units = Math.max(1, Number(r.units) || 1), reported = r.photoReported === true;
     return {
       id: String(r.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: unitOptionsFrom(r.selections, units, names),
       date1: String(r.date1 || r.date || ''), time1: String(r.time1 || r.startTime || ''), date2: String(r.date2 || ''), time2: String(r.time2 || ''), name: 'お客様', zip: '', address: String(r.areaName || ''), note: '',
-      photos: photosOf(r.photos, { install: true, model: true, outdoor: true, other: false }),
+      photos: photosOf(r.photos, { install: true, model: true, outdoor: true, other: false }), visitPhotos: visitPhotosOf(r.photos),
       vendorChoice: choiceOf(r), vendorId: 'V-001', adminNote: '', vendorMemo: '',
       additionalFlag: '', additionalItems: [], customerDetailed: r.detailed !== false,
       todayTime: '', scheduledDate: String(r.date || ''), scheduledTime: String(r.startTime || ''),
@@ -49,6 +64,12 @@ var KKD135Jobs = (function () {
       completionPhotos: { before: reported, after: reported }, photoReported: reported,
       rating: 0, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: false
     };
+  }
+
+  function applyVisitInfo(job, v) {
+    if (!v || typeof v !== 'object') return job;
+    job.name = String(v.name || 'お客様'); job.zip = String(v.zip || ''); job.address = String(v.address || job.address);
+    return applyDetail(job, { block: v.block, building: v.building, room: v.room, memo: v.memo });
   }
 
   // 追加項目（GASの保存形）→ 画面の形。現場確認（onsite）があればそれを、無ければ写真確認後（review）を使う
@@ -98,6 +119,11 @@ var KKD135Jobs = (function () {
   // ---- 顧客：自分の予約（GASの listMyBookings）→ 画面の案件 ----
   // names：{OPT_コード: 項目名}（料金マスタから）。選んだオプションは、台数の若い順に付ける（台ごとの選択は、予約画面の形に合わせる）
   function fromBooking(b, names) {
+    var j = fromBookingBase(b, names);
+    if (j && b && b.detail) { applyDetail(j, b.detail); j.customerDetailed = true; }
+    return j;
+  }
+  function fromBookingBase(b, names) {
     if (!b || typeof b !== 'object' || !b.caseId) return null;
     var done = isDone(b.status), units = Math.max(1, Number(b.units) || 1), uo = unitOptionsFrom(b.selections, units, names);
     var visitDate = String(b.date || ''), chosen = '';
@@ -106,7 +132,7 @@ var KKD135Jobs = (function () {
       id: String(b.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: uo, options: [],
       date1: String(b.date1 || ''), time1: String(b.time1 || ''), date2: String(b.date2 || ''), time2: String(b.time2 || ''),
       name: String(b.name || ''), zip: String(b.zip || ''), address: String(b.address || ''), note: String(b.note || ''),
-      photos: photosOf(b.photos, { install: false, model: false, outdoor: false, other: false }),
+      photos: photosOf(b.photos, { install: false, model: false, outdoor: false, other: false }), visitPhotos: visitPhotosOf(b.photos),
       vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
       todayTime: '', scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
       completed: done, completedDate: done ? visitDate : '', completedAt: '', completionPhotos: { before: false, after: false },
@@ -131,5 +157,5 @@ var KKD135Jobs = (function () {
     });
   }
 
-  return { fromGas: fromGas, applyAdditional: applyAdditional, load: load, fromBooking: fromBooking, loadCustomer: loadCustomer };
+  return { visitPhotosOf: visitPhotosOf, fromGas: fromGas, applyAdditional: applyAdditional, load: load, fromBooking: fromBooking, loadCustomer: loadCustomer };
 })();
