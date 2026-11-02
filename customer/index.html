@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ddf4cbd24b", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "3c2674bc69", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=ddf4cbd24b"></script>
-<script src="../assets/photo_report_ui.js?v=ddf4cbd24b"></script>
-<script src="../assets/gas_backend.js?v=ddf4cbd24b"></script>
-<script src="../assets/jobs_from_gas.js?v=ddf4cbd24b"></script>
+<script src="../assets/photo_report_logic.js?v=3c2674bc69"></script>
+<script src="../assets/photo_report_ui.js?v=3c2674bc69"></script>
+<script src="../assets/gas_backend.js?v=3c2674bc69"></script>
+<script src="../assets/jobs_from_gas.js?v=3c2674bc69"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -2233,7 +2233,7 @@ function openVendorCases(tab="before", resetAccordion=false){
 }
 function startJobLocal(id){
   const j=getJob(id);if(!j)return;
-  if(!j.additionalFlag){alert("現場確認：追加項目を選択してください（なければ「追加項目なし」）");return}
+  if(!j.additionalFlag){alert("現場確認：追加項目の「相違なし」か「相違あり」を押してください");return}
   j.isStarted=true;
   const now=new Date();
   j.startedAt=j.__startedAtServer||now.toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
@@ -2355,7 +2355,7 @@ function renderAdditionalFull(j, locked){
       '<span style="flex:1;font-size:11px;">' + esc(o.name) + '</span><span class="mini" style="white-space:nowrap;">+¥' + o.price.toLocaleString() + '／' + esc(o.unit) + '</span>' + qtySel + '</label>';
   }).join("");
   return '<div class="additional-checklist" style="margin:4px 0;">' +
-    '<label style="display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef2f7;font-weight:bold;"><input type="checkbox" style="width:18px;height:18px;flex:none;margin:0;" ' + dis + ' ' + (none ? "checked" : "") + ' onchange="setAdditionalNone(\'' + j.id + '\',this.checked)"><span style="flex:1;font-size:11px;">追加項目なし</span></label>' + rows +
+    '' + rows +
     '<div class="mini">金額は料金マスタに連動します。チェックした項目は、お見積りに加わります。</div></div>';
 }
 // 追加項目の変更を、GASへ保存する（GAS接続時のみ。場面：訪問前＝review／対応中＝onsite）。「未確認」（なし・項目なし）は、保存しない
@@ -2535,12 +2535,13 @@ function renderAdditionalChecklist(j, locked) {
   var btn = 'style="font-size:10px;padding:5px 9px;margin-left:4px;"';
   var actions = "";
   if (!locked) {
-    if (open) actions = '<button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">閉じる</button>';
-    else if (!confirmed) actions = '<button type="button" class="btn primary" ' + btn + ' onclick="setAdditionalNone(\'' + j.id + '\',true)">相違なし</button><button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">相違あり</button>';
+    if (open) actions = '<button type="button" class="btn secondary" ' + btn + ' onclick="setAdditionalNone(\'' + j.id + '\',true)">相違なし</button><button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">閉じる</button>';
+    else if (!confirmed) actions = '<button type="button" class="btn secondary" ' + btn + ' onclick="setAdditionalNone(\'' + j.id + '\',true)">相違なし</button><button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">相違あり</button>';
     else actions = '<button type="button" class="btn secondary" ' + btn + ' onclick="toggleAddOpen(\'' + j.id + '\')">変更</button>';
   }
   return '<div class="additional-line" style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin:4px 0;padding:6px 2px;border-bottom:1px solid #eef2f7;">' +
     '<span style="flex:1;min-width:0;font-size:11px;">追加項目：<b>' + additionalLineText(j) + '</b></span><span style="flex:none;white-space:nowrap;">' + actions + '</span></div>' +
+    ((!locked && !confirmed && !open) ? '<div class="mini" style="color:#b45309;margin:0 2px 4px;">「相違なし」か「相違あり」を押してください（押すまで、作業を開始できません）</div>' : "") +
     (open ? renderAdditionalFull(j, false) : "");
 }
 function toggleAddOpen(id) {
@@ -2593,7 +2594,7 @@ function kkd135KeepInputsAndRender(id) {
 }
 
 // ---- 作業開始・作業完了（業者）：GAS案件は、先にGASへ保存し、成功したら画面を進める（取り直しで戻らないように） ----
-var KKD135_WORK_ERRORS = { ADDITIONAL_UNCONFIRMED: "追加項目を確認してください（なければ「相違なし」）。", DETAIL_MISSING: "顧客の詳細住所の入力の後に、開始できます。", NOT_CONFIRMED: "訪問日時の確定の後に、開始できます。", NOT_STARTED: "先に、作業を開始してください。", CASE_COMPLETED: "この案件は、すでに完了しています。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
+var KKD135_WORK_ERRORS = { ADDITIONAL_UNCONFIRMED: "追加項目の「相違なし」か「相違あり」を押してください。", DETAIL_MISSING: "顧客の詳細住所の入力の後に、開始できます。", NOT_CONFIRMED: "訪問日時の確定の後に、開始できます。", NOT_STARTED: "先に、作業を開始してください。", CASE_COMPLETED: "この案件は、すでに完了しています。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。" };
 function kkd135WorkCall(id, kind, local) {
   var j = getJob(id), be = window.KKD135_BACKEND;
   var fn = kind === "start" ? "startWork" : "completeWork";
@@ -3423,6 +3424,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=ddf4cbd24b"></script>
+<script src="../assets/app_boot.js?v=3c2674bc69"></script>
 </body>
 </html>
