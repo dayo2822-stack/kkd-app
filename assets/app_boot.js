@@ -33,6 +33,14 @@
     // 価格の取込み（料金マスタ）。オプション名（コード→名前）は、案件の取得と並行して取り、案件の変換に使う
     var pricingDone = backend.getPricing().then(function (r) { if (r && r.status === 'OK' && typeof applyPricing === 'function') applyPricing(r.pricing); });
     var namesP = pricingDone.then(function () { var names = {}; ((window.KKD135_PRICING && KKD135_PRICING.options) || []).forEach(function (o) { names[o.code] = o.name; }); return names; });
+    // 開いたときのタブ：前回のタブに案件が1件も無いと、案件が消えたように見える（実際は別のタブにある）ため、案件のあるタブへ寄せる。最初の読み込みだけ
+    function autoTab(cur) {
+      var has = {};
+      (state.jobs || []).forEach(function (j) { has[j.completed ? 'done' : (j.vendorChoice && j.customerDetailed) ? 'progress' : 'before'] = true; });
+      cur = cur || 'before';
+      if (has[cur]) return cur;
+      return has.before ? 'before' : has.progress ? 'progress' : has.done ? 'done' : cur;
+    }
     // 案件を読み込んでいる間の表示（数秒かかる。何も出ないと、案件が無いように見えるため）
     function loadingOverlay(on) {
       var ov = document.getElementById('kkd135LoadingMedia');
@@ -68,7 +76,7 @@
         } catch (e) {}
       };
       loading(true, '案件を読み込み中…');
-      KKD135Jobs.load(backend, state, function () { try { switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
+      KKD135Jobs.load(backend, state, function () { try { state.vendorTab = autoTab(state.vendorTab); switchRole('vendor'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
     if (env.role === 'customer' && typeof state !== 'undefined') { state.gasSupply = {}; state.vendorAvailable = {}; } // 空き枠は、住所が決まってから、GASから取る（試験用のデータは使わない）
     if (env.role === 'vendor' && typeof state !== 'undefined' && typeof backend.getMyAvailability === 'function') {
@@ -81,7 +89,7 @@
         try { localStorage.setItem('kkd_state_jobs', JSON.stringify(state.jobs.filter(function (j) { return !j.gas; }))); localStorage.setItem('kkd_state_vendor_avail', JSON.stringify(state.vendorAvailable)); if (state.customerTab) localStorage.setItem('kkd_customer_tab', state.customerTab); } catch (e) {}
       };
       loading(true, '予約を読み込み中…');
-      KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
+      KKD135Jobs.loadCustomer(backend, state, function () { try { state.customerTab = autoTab(state.customerTab); if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before'); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP).then(finished, function () { finished(null); });
     }
     // 画面を開いている間も、最新の状態に取り直す（相手側の操作・写真の受領などが、開き直さずに反映される）。入力中・読み込み中は、取り直さない
     var refreshing = false, lastRefresh = Date.now();

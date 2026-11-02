@@ -43,9 +43,12 @@ var KKD135PhotoUI = (function () {
       var tiles = slots.map(function (s) {
         var x = picked[s.key], st = x ? x.status : '';
         var badge = !x ? '未選択' : st === 'uploaded' ? '✓ 送信済' : st === 'uploading' ? '送信中…' : st === 'failed' ? '⚠ 送れませんでした' : '選択済';
-        var thumb = x && x.url ? '<img alt="" src="' + esc(x.url) + '" style="width:100%;height:70px;object-fit:cover;border-radius:4px;">' : '<div style="height:70px;display:flex;align-items:center;justify-content:center;font-size:20px;">📷</div>';
-        return '<button type="button" class="photo-slot' + (x ? ' has-photo' : '') + '" data-slot="' + esc(s.key) + '" ' + (reported ? 'disabled' : '') + ' style="text-align:left;padding:4px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">' +
-          thumb + '<div style="font-size:9.5px;font-weight:bold;">' + (ctx.units > 1 ? '台' + s.unitNo + ' ' : '') + esc(labelOf(ctx, s.stepNo)) + '</div><div class="slot-badge" style="font-size:8.5px;color:var(--muted);">' + badge + '</div></button>';
+        var has = !!(x && x.url);
+        var thumb = has ? '<img alt="" src="' + esc(x.url) + '" style="display:block;width:100%;height:90px;object-fit:cover;">' : '<div style="height:90px;display:flex;align-items:center;justify-content:center;font-size:20px;">📷</div>';
+        // 写真が入ったら、見本画像をボタン全面に出し、名前と状態を、その上に重ねる
+        var cap = has ? 'position:absolute;left:0;right:0;bottom:0;padding:14px 5px 3px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.7));color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8);' : 'padding:0 4px 3px;';
+        return '<button type="button" class="photo-slot' + (x ? ' has-photo' : '') + '" data-slot="' + esc(s.key) + '" ' + (reported ? 'disabled' : '') + ' style="position:relative;overflow:hidden;text-align:left;padding:0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">' +
+          thumb + '<div style="' + cap + '"><div style="font-size:9.5px;font-weight:bold;">' + (ctx.units > 1 ? '台' + s.unitNo + ' ' : '') + esc(labelOf(ctx, s.stepNo)) + '</div><div class="slot-badge" style="font-size:8.5px;' + (has ? '' : 'color:var(--muted);') + '">' + badge + '</div></div></button>';
       }).join('');
       root.innerHTML = '<div class="photo-report">' +
         '<div class="guide" style="font-size:10px;margin-bottom:6px;">' + esc(reported ? '報告済みです。' : U.guideText(pr)) + '</div>' +

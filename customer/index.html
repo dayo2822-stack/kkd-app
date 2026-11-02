@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "3c2674bc69", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ce24090f88", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=3c2674bc69"></script>
-<script src="../assets/photo_report_ui.js?v=3c2674bc69"></script>
-<script src="../assets/gas_backend.js?v=3c2674bc69"></script>
-<script src="../assets/jobs_from_gas.js?v=3c2674bc69"></script>
+<script src="../assets/photo_report_logic.js?v=ce24090f88"></script>
+<script src="../assets/photo_report_ui.js?v=ce24090f88"></script>
+<script src="../assets/gas_backend.js?v=ce24090f88"></script>
+<script src="../assets/jobs_from_gas.js?v=ce24090f88"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1601,7 +1601,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
         const scheduledTm = j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
         tabDetailHtml = `
           <div class="notice ok" style="margin:4px 0 6px;line-height:1.6;border:2px solid #0d6b57;background:#f0faf5;">
-            <div style="font-weight:bold;color:#0d6b57;font-size:11px;">🎉 【訪問日時が確定しました】</div>
+            <div style="font-weight:bold;color:#0d6b57;font-size:11px;">🎉 【② 訪問日時が確定しました】</div>
             <div>担当業者が <b>${esc(j.vendorChoice)}（${fmtDateShort(scheduledDt)} ${fmtSlotStart(scheduledTm)}）</b> にて訪問決定いたしました！</div>
             <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #a7f3d0;font-size:9.5px;color:var(--ink);">
               現場訪問に向け、残りの番地・建物名・部屋番号等の詳細住所と訪問先情報をご入力ください。入力完了後に案件が「対応中」へ移動します。
@@ -1609,7 +1609,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
           </div>
           ${renderPriceBreakdown(j)}
           <div style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:8px;margin:6px 0;">
-            <div style="font-size:10.5px;font-weight:bold;color:var(--ink);margin-bottom:6px;">📍 詳細住所・訪問先情報の入力</div>
+            <div style="font-size:10.5px;font-weight:bold;color:var(--ink);margin-bottom:6px;">📍 ③ 詳細住所・訪問先情報の入力</div>
             <div class="field" style="margin:4px 0;">
               <label>郵便番号</label>
               <input value="${esc(formatZip(j.zip))}" readonly style="background:#f1f5f9;color:var(--muted);">
@@ -1664,7 +1664,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
             ${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}
           </div>
           ${renderPriceBreakdown(j)}
-          <div class="notice" style="margin:4px 0 6px;">📷 <b>現場写真提出</b><br>作業を円滑に進めるため、現場写真を送信してください。必須写真が揃うと業者側の訪問日時確定へ進みます。</div>
+          <div class="notice" style="margin:4px 0 6px;">📷 <b>① 現場写真の提出</b><br>作業を円滑に進めるため、現場写真を送信してください。必須写真が揃うと業者側の訪問日時確定へ進みます。</div>
           <div class="case-photo-grid">
             <div class="photo ${j.photos.install?'sent':''}">📷 必須：設置状況の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','install')">${j.photos.install?'✓ 送信済み':'写真を追加'}</label></div>
             <div class="photo ${j.photos.model?'sent':''}">📷 必須：機種型番の写真<br><label for="kkd135PhotoInput" class="btn secondary" style="font-size:9px;padding:5px 8px;margin-top:4px;display:inline-block;text-align:center;cursor:pointer;" onclick="kkd135PickPhoto('${j.id}','model')">${j.photos.model?'✓ 送信済み':'写真を追加'}</label></div>
@@ -1803,6 +1803,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
         </div>
       </div>
       <div class="customer-job-body" id="cjob-body-${j.id}" style="display:${bodyDisplay};">
+        ${kkd135CustomerBar(j,tab,isPhotosDone)}
         ${tabDetailHtml}
         ${renderDirectChatBox(j, 'customer')}
       </div>
@@ -2070,7 +2071,7 @@ function openVendorCases(tab="before", resetAccordion=false){
             【訪問日時確定済】確定枠：<b>${esc(j.vendorChoice)}（${fmtDateShort(scheduledDt)} ${fmtSlotStart(scheduledTm)}）</b>
           </div>
           <div class="notice warn" style="margin:4px 0 6px;line-height:1.5;">
-            ⏳ <b>顧客の詳細住所・訪問先情報入力待ち</b><br>
+            ⏳ <b>③ 顧客の詳細住所・訪問先情報入力待ち</b><br>
             顧客が残りの番地・建物名・部屋番号等を入力完了すると、本案件は自動的に「対応中」へ移動し、完全住所でのマップ連携・現場直行が可能になります。
           </div>
           ${renderPriceBreakdown(j)}
@@ -2079,7 +2080,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         // 通常の訪問前：現場写真確認＆追加作業プルダウン
         const photoReview = isPhotosDone ? `
           <div class="field" style="margin:6px 0;">
-            <label>現場写真確認後　＜追加項目＞</label>
+            <label>① 現場写真確認後　＜追加項目＞</label>
             ${renderBookingPhotoButtons(j)}
             ${renderAdditionalChecklist(j, false)}
           </div>
@@ -2091,7 +2092,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         } else if (!isReviewDone) {
           actionHtml = `<div class="notice warn" style="margin-top:6px;">⚠️ 現場写真確認後、上記で＜追加項目＞を選択してください（なければ「追加項目なし」）。</div>`;
         } else if (!j.vendorChoice) {
-          actionHtml = `<div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="chooseVendorDate('${j.id}')">訪問日時を選択</button></div>`;
+          actionHtml = `<div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="chooseVendorDate('${j.id}')">② 訪問日時を選択</button></div>`;
         } else {
           actionHtml = `<div class="notice ok" style="margin-top:6px;">訪問日時確定済：${esc(j.vendorChoice)}</div>`;
         }
@@ -2124,7 +2125,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         `: ""}
         ${renderPriceBreakdown(j)}
         <div class="field" style="margin:6px 0;">
-          <label>当日連絡（到着の目安）</label>
+          <label>④ 当日連絡（到着の目安）</label>
           <select id="today-${j.id}" ${j.noticeAt?"disabled":""}>
             ${KKD135_ETA.map(t=>`<option value="${esc(t)}" ${(j.noticeEta||KKD135_ETA[0])===t?"selected":""}>${t}</option>`).join("")}
           </select>
@@ -2135,7 +2136,7 @@ function openVendorCases(tab="before", resetAccordion=false){
             : `<button class="btn primary" onclick="sendTodayNotice('${j.id}')">当日連絡</button>`}
         </div>
         <div class="field" style="margin:6px 0;">
-          <label>現場確認　＜追加項目＞（作業開始の前に確認）</label>
+          <label>⑤ 現場確認　＜追加項目＞（作業開始の前に確認）</label>
           ${renderAdditionalChecklist(j, !!j.isStarted)}
         </div>
         ${j.isStarted ? renderFreeExplain(j) : ""}
@@ -2162,7 +2163,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         ` : ""}
         ${renderCompletionSettings(j)}
         <div class="actions" style="margin-top:6px;">
-          <button class="btn ${j.photoReported ? 'secondary' : 'primary'}" onclick="openPhotoReport('${j.id}')">現場写真${j.photoReported ? '（報告済み）' : ''}</button>
+          <button class="btn ${j.photoReported ? 'secondary' : 'primary'}" onclick="openPhotoReport('${j.id}')">⑥ 現場写真${j.photoReported ? '（報告済み）' : ''}</button>
           <button class="btn primary" onclick="openSquareMock('${j.id}')">Square決済へ</button>
         </div>
       `;
@@ -2216,6 +2217,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         </div>
       </div>
       <div class="vendor-job-body" id="vjob-body-${j.id}" style="display:${bodyDisplay};">
+        ${kkd135VendorBar(j,tab,isPhotosDone,isReviewDone)}
         ${detailHtml}
         ${renderDirectChatBox(j, 'vendor')}
         <div class="field" style="margin-top:8px;border-top:1px dashed #cbd5e1;padding-top:6px;">
@@ -2484,7 +2486,9 @@ function kkd135UploadPhoto(id, key, f) {
     kkd135Log("GAS応答：" + (r ? (r.status + " " + (r.errorCode || "")) : "なし"));
     done();
     if (r && r.status === "OK") {
-      if (key === "parking" || key === "entrance") { j.visitPhotos = j.visitPhotos || {}; j.visitPhotos[key] = true; kkd135KeepInputsAndRender(id); } else sendPhotoLocal(id, key);
+      kkd135SaveThumb(id, key, f).then(function () { // 小さな見本画像を、この端末に残してから描く（ボタンの上に重ねて見せる）
+        if (key === "parking" || key === "entrance") { j.visitPhotos = j.visitPhotos || {}; j.visitPhotos[key] = true; kkd135KeepInputsAndRender(id); } else sendPhotoLocal(id, key);
+      });
       // サーバーに本当に保存されたかを、取り直して確かめる（されていなければ、印を戻して知らせる）
       if (typeof be.listMyBookings === "function") be.listMyBookings().then(function (v) {
         if (!v || v.status !== "OK" || !Array.isArray(v.bookings)) return;
@@ -2497,6 +2501,61 @@ function kkd135UploadPhoto(id, key, f) {
   }, function (e) { kkd135Log("失敗：" + (e && (e.message || e))); done(); alert("写真を送れませんでした。別の写真でお試しください。"); });
 }
 if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", kkd135EnsurePhotoInput); } else { kkd135EnsurePhotoInput(); }
+
+// ---- 写真の見本画像（サムネイル）：送れた写真の小さな画像を、この端末に残し、「写真を追加」ボタンの上に重ねて見せる ----
+// 別の端末・保存の消去後は、見本が無く、従来の「✓ 送信済み」の表示のまま（機能には影響しない）
+function kkd135ThumbKey(id, key) { return "kkd135_thumb_" + id + "_" + key; }
+function kkd135GetThumb(id, key) { try { return localStorage.getItem(kkd135ThumbKey(id, key)) || ""; } catch (e) { return ""; } }
+function kkd135SaveThumb(id, key, file) {
+  return createImageBitmap(file).then(function (bmp) {
+    var r = Math.min(1, 200 / Math.max(bmp.width, bmp.height)), c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(bmp.width * r)); c.height = Math.max(1, Math.round(bmp.height * r));
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    var url = c.toDataURL("image/jpeg", 0.6);
+    try { localStorage.setItem(kkd135ThumbKey(id, key), url); } catch (e) {}
+    return url;
+  }).then(null, function () { return ""; });
+}
+function kkd135DecorateThumbs() {
+  var els = document.querySelectorAll('label[onclick^="kkd135PickPhoto("]');
+  Array.prototype.forEach.call(els, function (el) {
+    var m = /kkd135PickPhoto\('([^']*)','(\w+)'\)/.exec(el.getAttribute("onclick") || "");
+    if (!m || (el.textContent || "").indexOf("✓") < 0) return; // 送れた写真だけ
+    var u = kkd135GetThumb(m[1], m[2]); if (!u) return;
+    el.style.cssText += ";display:flex;align-items:flex-end;justify-content:center;min-height:64px;box-sizing:border-box;color:#fff;font-weight:bold;text-shadow:0 1px 3px rgba(0,0,0,.9);background-image:linear-gradient(rgba(0,0,0,0) 45%,rgba(0,0,0,.6)),url(" + u + ");background-size:cover;background-position:center;";
+  });
+}
+var __kkd135OpenCustomerCases = openCustomerCases;
+openCustomerCases = function () { var r = __kkd135OpenCustomerCases.apply(this, arguments); try { kkd135DecorateThumbs(); } catch (e) {} return r; };
+
+// ---- 工程の番号：案件カードの上に、工程の帯（今どこか）を出す ----
+var KKD135_NUMS = ["①", "②", "③", "④", "⑤", "⑥", "⑦"];
+function kkd135StepBar(labels, cur) {
+  return '<div class="kkd-steps" style="display:flex;gap:2px;margin:2px 0 6px;">' + labels.map(function (t, i) {
+    var n = i + 1, st = n < cur ? "background:#d1fae5;color:#065f46;" : n === cur ? "background:#0d6b57;color:#fff;font-weight:bold;" : "background:#f1f5f9;color:#64748b;";
+    return '<div style="flex:1;min-width:0;text-align:center;padding:3px 1px;border-radius:4px;font-size:8.5px;line-height:1.25;' + st + '"><div style="font-size:10px;">' + (n < cur ? "✓" : KKD135_NUMS[i]) + '</div>' + t + '</div>';
+  }).join("") + '</div>';
+}
+var KKD135_CUSTOMER_STEPS = ["写真送付", "日時確定", "住所入力", "当日・作業", "完了"];
+function kkd135CustomerBar(j, tab, photosDone) {
+  var cur = tab === "done" ? 5 : tab === "progress" ? 4 : (j.vendorChoice ? 3 : (photosDone ? 2 : 1));
+  return kkd135StepBar(KKD135_CUSTOMER_STEPS, cur);
+}
+var KKD135_VENDOR_STEPS = ["写真・追加確認", "日時選択", "住所待ち", "当日連絡", "作業", "写真報告"];
+function kkd135VendorBar(j, tab, photosDone, reviewDone) {
+  var cur = tab === "done" ? (j.photoReported ? 7 : 6) : tab === "progress" ? ((j.noticeAt || j.isStarted) ? 5 : 4) : (j.vendorChoice ? 3 : ((photosDone && reviewDone) ? 2 : 1));
+  return kkd135StepBar(KKD135_VENDOR_STEPS, cur);
+}
+
+// ---- リッチメニュー：画面を開いたときは、閉じておく（下の帯をタップで開く） ----
+(function () {
+  ["c", "v"].forEach(function (side) {
+    var rich = document.getElementById(side + "Rich"), text = document.getElementById(side + "RichToggleText");
+    if (!rich) return;
+    rich.classList.add("collapsed");
+    if (text) text.textContent = "▲ リッチメニューを開く";
+  });
+})();
 
 function renderBookingPhotoButtons(j) {
   if (!j || !j.gas || !j.photos) return "";
@@ -3424,6 +3483,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=3c2674bc69"></script>
+<script src="../assets/app_boot.js?v=ce24090f88"></script>
 </body>
 </html>
