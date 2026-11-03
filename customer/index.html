@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "1862d033b7", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "74a0dcd240", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=1862d033b7"></script>
-<script src="../assets/photo_report_ui.js?v=1862d033b7"></script>
-<script src="../assets/gas_backend.js?v=1862d033b7"></script>
-<script src="../assets/jobs_from_gas.js?v=1862d033b7"></script>
+<script src="../assets/photo_report_logic.js?v=74a0dcd240"></script>
+<script src="../assets/photo_report_ui.js?v=74a0dcd240"></script>
+<script src="../assets/gas_backend.js?v=74a0dcd240"></script>
+<script src="../assets/jobs_from_gas.js?v=74a0dcd240"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1529,21 +1529,21 @@ function getCurrentlyClosedCardIds(prefix){
   return closedIds;
 }
 
-function openCustomerCases(tabArg="1", resetAccordion=false){
+function openCustomerCases(tabArg="before", resetAccordion=false){
   const tabNo = kkd135TabNo(tabArg), tab = kkd135TabKind(tabNo);
-  state.customerTab = tabNo;
-  try { localStorage.setItem("kkd_customer_tab", String(tabNo)); } catch(e){}
-  document.getElementById("cView").textContent = ["① 写真送付","② 受付","③ 住所入力","④ 当日・作業","⑤ 完了"][tabNo-1];
+  state.customerTab = tab;
+  try { localStorage.setItem("kkd_customer_tab", tab); } catch(e){}
+  const labels = {before:"訪問前（写真・住所）", progress:"対応中（予約確定）", done:"完了後（施工完了）"};
+  document.getElementById("cView").textContent = labels[tab] || labels.before;
   clearChat("cChat");
-  addChat("cChat", kkd135TabsHtml(["① 写真","② 受付","③ 住所","④ 当日・作業","⑤ 完了"], tabNo, "openCustomerCases"));
-
+  addChat("cChat", `<div class="tabs"><button class="${tab==='before'?'active':''}" onclick="openCustomerCases('before', true)">訪問前（写真・住所）</button><button class="${tab==='progress'?'active':''}" onclick="openCustomerCases('progress', true)">対応中（予約確定）</button><button class="${tab==='done'?'active':''}" onclick="openCustomerCases('done', true)">完了後（履歴）</button></div>`);
 
   const previouslyClosedIds = resetAccordion ? new Set() : getCurrentlyClosedCardIds("c");
 
   // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
   let jobs = [];
   if(tab === "before"){
-    jobs = state.jobs.filter(j => kkd135Stage(j) === tabNo);
+    jobs = state.jobs.filter(j => kkd135Stage(j) <= 3);
   } else if(tab === "progress"){
     jobs = state.jobs.filter(j => kkd135Stage(j) === 4);
     // 作業予定日毎（昇順：直近の予定順）
@@ -1565,7 +1565,9 @@ function openCustomerCases(tabArg="1", resetAccordion=false){
   }
 
   if(!jobs.length){
-    const emptyMsg = "この工程の案件は、ありません。" + (tabNo === 1 ? "<br>「予約窓口」から新規予約を行ってください。" : "");
+    const emptyMsg = tab === "before"
+      ? "訪問前（写真・詳細住所入力）の案件はありません。<br>「予約窓口」から新規予約を行ってください。"
+      : (tab === "progress" ? "対応中（予約確定）の案件はありません。" : "完了後の案件はありません。");
     addChat("cChat", `<div class="job" style="color:var(--muted);text-align:center;padding:14px 10px;">${emptyMsg}</div>`);
     log("CUSTOMER_CASES_OPEN " + tab + " (0件)");
     return;
@@ -2003,21 +2005,21 @@ function isPhotoReviewCompleted(j){
   if (j.additionalFlag === "あり" && (!j.additionalItems || !j.additionalItems.length)) return false;
   return true;
 }
-function openVendorCases(tabArg="2", resetAccordion=false){
+function openVendorCases(tabArg="before", resetAccordion=false){
   const tabNo = kkd135TabNo(tabArg), tab = kkd135TabKind(tabNo);
-  state.vendorTab=tabNo;
-  try { localStorage.setItem("kkd_vendor_tab", String(tabNo)); } catch(e){}
-  document.getElementById("vView").textContent=["① 写真待ち","② 対応依頼","③ 住所待ち","④ 当日・作業","⑤ 完了"][tabNo-1];
+  state.vendorTab=tab;
+  try { localStorage.setItem("kkd_vendor_tab", tab); } catch(e){}
+  const labels={before:"訪問前（依頼受付）",progress:"対応中（予約確定）",done:"完了後（応対履歴）"};
+  document.getElementById("vView").textContent=labels[tab]||labels.before;
   clearChat("vChat");
-  addChat("vChat", kkd135TabsHtml(["① 写真待ち","② 対応依頼","③ 住所待ち","④ 当日・作業","⑤ 完了"], tabNo, "openVendorCases"));
-
+  addChat("vChat",`<div class="tabs"><button class="${tab==="before"?"active":""}" onclick="openVendorCases('before', true)">訪問前（依頼受付）</button><button class="${tab==="progress"?"active":""}" onclick="openVendorCases('progress', true)">対応中（予約確定）</button><button class="${tab==="done"?"active":""}" onclick="openVendorCases('done', true)">完了後（応対履歴）</button></div>`);
 
   const previouslyOpenIds = resetAccordion ? new Set() : getCurrentlyOpenCardIds("v");
 
   // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
   let jobs = [];
   if(tab === "before"){
-    jobs = state.jobs.filter(j => kkd135Stage(j) === tabNo && !j.declined);
+    jobs = state.jobs.filter(j => kkd135Stage(j) <= 3 && !j.declined);
   } else if(tab === "progress"){
     jobs = state.jobs.filter(j => kkd135Stage(j) === 4);
     // 作業予定日毎（昇順：直近の予定順）
@@ -2039,7 +2041,9 @@ function openVendorCases(tabArg="2", resetAccordion=false){
   }
 
   if(!jobs.length){
-    const emptyMsg = "この工程の案件は、ありません。";
+    const emptyMsg = tab==="before"
+      ? "訪問前（依頼受付）の案件はありません（顧客の予約受付・住所入力待ち）。"
+      : (tab==="progress" ? "対応中（予約確定）の案件はありません。" : "完了後の案件はありません。");
     addChat("vChat", emptyMsg);
     return;
   }
@@ -2526,8 +2530,8 @@ function kkd135Stage(j) {
   if (!j.vendorChoice) return countRequiredPhotos(j) >= requiredPhotoCount(j) ? 2 : 1;
   return j.customerDetailed ? 4 : 3;
 }
-// タブの値：1〜5。古い呼び方（before／progress／done）は、対応する番号へ
-function kkd135TabNo(t) { var m = { before: 1, progress: 4, done: 5 }; var n = m[t] || Number(t); return (n >= 1 && n <= 5) ? n : 1; }
+// タブ（上の［訪問前］［対応中］［完了後］は、元のまま）：工程①②③＝訪問前、④＝対応中、⑤＝完了後。古い呼び方（before／progress／done）も受ける
+function kkd135TabNo(t) { var m = { before: 1, progress: 4, done: 5 }; if (m[t]) return m[t]; var n = Number(t); return n >= 5 ? 5 : (n === 4 ? 4 : 1); }
 function kkd135TabKind(n) { return n === 4 ? "progress" : (n === 5 ? "done" : "before"); }
 function kkd135TabsHtml(labels, cur, fn) {
   return '<div class="tabs kkd-tabs5">' + labels.map(function (t, i) { return '<button class="' + (cur === i + 1 ? "active" : "") + '" onclick="' + fn + '(' + (i + 1) + ', true)">' + t + '</button>'; }).join("") + '</div>';
@@ -3538,6 +3542,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=1862d033b7"></script>
+<script src="../assets/app_boot.js?v=74a0dcd240"></script>
 </body>
 </html>

@@ -36,10 +36,10 @@
     // 開いたときのタブ：前回のタブに案件が1件も無いと、案件が消えたように見える（実際は別のタブにある）ため、案件のあるタブへ寄せる。最初の読み込みだけ。工程（①〜⑤）は、kkd135Stage
     function autoTab(cur, vendor) {
       var has = {};
-      (state.jobs || []).forEach(function (j) { has[kkd135Stage(j)] = true; });
+      (state.jobs || []).forEach(function (j) { var st = kkd135Stage(j); has[st <= 3 ? 1 : st] = true; });
       cur = kkd135TabNo(cur);
       if (has[cur]) return cur;
-      var order = vendor ? [2, 3, 4, 1, 5] : [1, 2, 3, 4, 5];
+      var order = [1, 4, 5];
       for (var i = 0; i < order.length; i++) if (has[order[i]]) return order[i];
       return cur;
     }
