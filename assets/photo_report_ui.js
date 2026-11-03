@@ -10,7 +10,7 @@ var KKD135PhotoUI = (function () {
   var WEB_EDGE = 1600, WEB_QUALITY = 0.82;
 
   function esc(s) { return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function labelOf(ctx, step) { return (ctx.labels && ctx.labels[step]) || step; }
+  function labelOf(ctx, step) { var m = /^extra(\d+)$/.exec(String(step)); if (m) return '追加写真' + m[1]; return (ctx.labels && ctx.labels[step]) || step; }
   function readB64(file) {
     return new Promise(function (resolve, reject) {
       var fr = new FileReader();
@@ -34,13 +34,16 @@ var KKD135PhotoUI = (function () {
   // ---- 業者：写真報告 ----
   function renderVendor(root, ctx) {
     var slots = U.buildSlots(ctx.units, ctx.steps), picked = {}, reported = !!ctx.alreadyReported, busy = Promise.resolve();
+    // 追加写真（[＋]で足す。必須の枠ではない。1台目の枠として、extra1〜extra6で保存）
+    var extras = [], MAX_EXTRA = 6;
+    function allSlots() { return slots.concat(extras); }
     var input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.style.display = 'none';
     var current = null;
     input.addEventListener('change', function () { var f = input.files && input.files[0]; if (f && current) ctrl.pick(current, f); input.value = ''; });
 
     function draw() {
       var pr = U.progress(slots, picked);
-      var tiles = slots.map(function (s) {
+      var tiles = allSlots().map(function (s) {
         var x = picked[s.key], st = x ? x.status : '';
         var badge = !x ? '未選択' : st === 'uploaded' ? '✓ 送信済' : st === 'uploading' ? '送信中…' : st === 'failed' ? '⚠ 送れませんでした' : '選択済';
         var has = !!(x && x.url);
@@ -53,15 +56,18 @@ var KKD135PhotoUI = (function () {
       root.innerHTML = '<div class="photo-report">' +
         '<div class="guide" style="font-size:10px;margin-bottom:6px;">' + esc(reported ? '報告済みです。' : U.guideText(pr)) + '</div>' +
         '<div class="photo-slots" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">' + tiles + '</div>' +
+        '<div style="margin-top:6px;"><button type="button" class="btn secondary add-extra" style="width:100%;font-size:14px;" ' + ((reported || extras.length >= MAX_EXTRA) ? 'disabled' : '') + '>＋ 写真を追加</button></div>' +
         '<div style="margin-top:8px;"><button type="button" class="btn primary report-btn" style="width:100%;" ' + ((pr.canReport && !reported) ? '' : 'disabled') + '>' + (reported ? '報告済み' : '報告') + '</button></div>' +
         '<div class="report-msg mini" style="margin-top:4px;color:var(--muted);"></div></div>';
       root.appendChild(input);
       Array.prototype.forEach.call(root.querySelectorAll('.photo-slot'), function (b) { b.addEventListener('click', function () { current = b.getAttribute('data-slot'); input.click(); }); });
+      var ab = root.querySelector('.add-extra');
+      if (ab) ab.addEventListener('click', function () { var k = ctrl.addExtra(); if (k) { current = k; input.click(); } });
       var rb = root.querySelector('.report-btn');
       if (rb) rb.addEventListener('click', function () { ctrl.report(); });
     }
     function upload(key) {
-      var x = picked[key], s = slots.filter(function (q) { return q.key === key; })[0];
+      var x = picked[key], s = allSlots().filter(function (q) { return q.key === key; })[0];
       x.status = 'uploading'; draw();
       var rid = U.requestIdFor(s, x);
       return Promise.all([readB64(x.file), makeWebB64(x.file)]).then(function (b) {
@@ -69,10 +75,10 @@ var KKD135PhotoUI = (function () {
       }).then(function (r) { x.status = (r && r.status === 'OK') ? 'uploaded' : 'failed'; x.errorCode = r && r.errorCode; }, function () { x.status = 'failed'; }).then(draw);
     }
     var ctrl = {
-      slots: slots, picked: picked,
+      slots: slots, extras: extras, picked: picked,
       // 枠に写真を入れる。すぐ送る（順番に1枚ずつ）
       pick: function (key, file) {
-        if (reported || !slots.some(function (s) { return s.key === key; })) return Promise.resolve();
+        if (reported || !allSlots().some(function (s) { return s.key === key; })) return Promise.resolve();
         if (picked[key] && picked[key].url) { try { URL.revokeObjectURL(picked[key].url); } catch (e) {} }
         picked[key] = { name: file.name, size: file.size, lastModified: file.lastModified, status: 'selected', file: file, url: URL.createObjectURL(file) };
         draw();
@@ -88,6 +94,8 @@ var KKD135PhotoUI = (function () {
           return r;
         });
       },
+      // 追加写真の枠を1つ足す（上限まで）。足した枠の鍵を返す。足せなければ空
+      addExtra: function () { if (reported || extras.length >= MAX_EXTRA) return ''; var n = extras.length + 1; extras.push({ key: '1:extra' + n, unitNo: 1, stepNo: 'extra' + n }); draw(); return '1:extra' + n; },
       isReported: function () { return reported; }
     };
     draw();

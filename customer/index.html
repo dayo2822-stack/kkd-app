@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "74a0dcd240", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "55a1b56a34", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=74a0dcd240"></script>
-<script src="../assets/photo_report_ui.js?v=74a0dcd240"></script>
-<script src="../assets/gas_backend.js?v=74a0dcd240"></script>
-<script src="../assets/jobs_from_gas.js?v=74a0dcd240"></script>
+<script src="../assets/photo_report_logic.js?v=55a1b56a34"></script>
+<script src="../assets/photo_report_ui.js?v=55a1b56a34"></script>
+<script src="../assets/gas_backend.js?v=55a1b56a34"></script>
+<script src="../assets/jobs_from_gas.js?v=55a1b56a34"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1558,9 +1558,7 @@ function openCustomerCases(tabArg="before", resetAccordion=false){
     jobs = state.jobs.filter(j => kkd135Stage(j) === 5);
     // 対応完了日毎（降順：直近の完了順）
     jobs.sort((a, b) => {
-      const dateA = a.completedAt || a.completedDate || "";
-      const dateB = b.completedAt || b.completedDate || "";
-      return dateB.localeCompare(dateA);
+      return kkd135DoneKey(b).localeCompare(kkd135DoneKey(a));
     });
   }
 
@@ -1603,7 +1601,7 @@ function openCustomerCases(tabArg="before", resetAccordion=false){
         tabDetailHtml = `
           <div class="meta" style="margin-bottom:6px;">第1希望：${fmtDate(j.date1)} ${esc(j.time1)}${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}</div>
           ${renderPriceBreakdown(j)}
-          <div class="notice" style="margin:4px 0 6px;line-height:1.6;">⏳ <b>② 業者の対応可否をお待ちください</b><br>写真と、ご依頼内容を、担当業者へお送りしました。受付結果（訪問予定日）は、LINEでお知らせします。</div>
+          <div class="notice" style="margin:4px 0 6px;line-height:1.6;">⏳ <b>② 業者からの訪問予定連絡をお待ちください</b><br>写真と、ご依頼内容を、担当業者へお送りしました。訪問予定日は、LINEでお知らせします。</div>
         `;
       } else if(j.vendorChoice && !j.customerDetailed){
         // ③ 詳細住所：訪問予定日の受付後、残りの番地・建物名・部屋番号等の入力ステップ
@@ -1981,13 +1979,13 @@ function renderVendorHome(){
   clearChat("vChat");document.getElementById("vView").textContent="予定表示";
   const keys=Object.keys(state.vendorAvailable).sort();
   let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button> <button class="btn secondary" onclick="openVendorProfile()">⚙ 登録情報</button></div></div>`;
-  const bookings=state.jobs.filter(j=>kkd135Stage(j)===2&&!j.declined);
-  if(bookings.length) html+=`<div class="notice warn" style="margin:6px 0;"><b>対応依頼 ${bookings.length}件</b>　◯か✕を押して、お返事ください（返事の後、この表示から消えます）</div>`+bookings.map(j=>`<div class="job">
+  const bookings=state.jobs.filter(j=>kkd135Stage(j)===2&&!j.claimed&&!j.declined);
+  if(bookings.length) html+=`<div class="notice warn" style="margin:6px 0;"><b>対応依頼 ${bookings.length}件</b>　日時と場所を見て、◯か✕を押して、お返事ください（返事の後、この表示から消えます）</div>`+bookings.map(j=>`<div class="job">
       <b>${esc(j.id)}</b> <span class="badge warn">対応依頼</span>
       <div style="font-size:11px;font-weight:900;margin:3px 0 1px;">${esc(j.service)}（${j.units}台）</div>
       <div style="font-size:10px;color:var(--ink);">🗓 第1希望：${fmtDate(j.date1)} ${esc(j.time1)}${j.date2&&j.time2?`<br>🗓 第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}</div>
-      <div style="font-size:9.5px;color:var(--muted);">📍 ${esc(getSimpleAddress(j))} ／ 作業時間：約${calcMinutes(j)}分 ／ 見積 ¥${headerPrice(j).toLocaleString()}</div>
-      ${renderBookingPhotoButtons(j)}
+      <div style="font-size:10px;color:var(--ink);margin:3px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span>📍 ${esc(getSimpleAddress(j))}</span><button type="button" class="map-btn" onclick="openMapApp('${esc(getSimpleAddress(j))}')">🗺️ マップ</button></div>
+      <div style="font-size:9.5px;color:var(--muted);">作業時間：約${calcMinutes(j)}分 ／ 見積 ¥${headerPrice(j).toLocaleString()}</div>
       <div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="kkd135RespondAsk('${j.id}',true)">◯ 対応可能</button><button class="btn secondary" onclick="kkd135RespondAsk('${j.id}',false)">✕ 対応不可</button></div></div>`).join("");
   addChat("vChat",html);document.getElementById("vStatus").textContent=state.jobs.filter(j=>kkd135Stage(j)>=3&&kkd135Stage(j)<=4&&!j.declined).length+"件";
 }
@@ -2019,7 +2017,7 @@ function openVendorCases(tabArg="before", resetAccordion=false){
   // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
   let jobs = [];
   if(tab === "before"){
-    jobs = state.jobs.filter(j => kkd135Stage(j) <= 3 && !j.declined);
+    jobs = state.jobs.filter(j => !j.declined && ((kkd135Stage(j) === 2 && !!j.claimed) || kkd135Stage(j) === 3));
   } else if(tab === "progress"){
     jobs = state.jobs.filter(j => kkd135Stage(j) === 4);
     // 作業予定日毎（昇順：直近の予定順）
@@ -2034,9 +2032,7 @@ function openVendorCases(tabArg="before", resetAccordion=false){
     jobs = state.jobs.filter(j => kkd135Stage(j) === 5 && !j.declined);
     // 対応完了日毎（降順：直近の完了順）
     jobs.sort((a, b) => {
-      const dateA = a.completedAt || a.completedDate || "";
-      const dateB = b.completedAt || b.completedDate || "";
-      return dateB.localeCompare(dateA);
+      return kkd135DoneKey(b).localeCompare(kkd135DoneKey(a));
     });
   }
 
@@ -2062,7 +2058,7 @@ function openVendorCases(tabArg="before", resetAccordion=false){
       if(j.vendorChoice && !j.customerDetailed){
         statusBadge = '<span class="badge ok">住所待ち</span>';
       } else if(isPhotosDone){
-        statusBadge = '<span class="badge warn">対応依頼</span>';
+        statusBadge = '<span class="badge warn">訪問予定を連絡</span>';
       } else {
         statusBadge = isPhotosDone ? '<span class="badge ok">写真受領済</span>' : '<span class="badge warn">写真待ち</span>';
       }
@@ -2089,15 +2085,19 @@ function openVendorCases(tabArg="before", resetAccordion=false){
           ${renderPriceBreakdown(j)}
         `;
       } else {
-        // ① 顧客の写真待ち／② 対応依頼（写真が揃った案件）：顧客の写真を見て、◯か✕を返事する
+        // ② ◯（対応可能）で受けた依頼：第1／第2希望日のどちらで訪問するかを選び、お客様へ訪問予定日を連絡する。顧客の写真は、その下（参考）
         detailHtml = `
           <div class="meta" style="margin-top:4px;">
             第1希望：${fmtDate(j.date1)} ${esc(j.time1)}
             ${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}
           </div>
           ${renderPriceBreakdown(j)}
+          <div class="notice warn" style="margin-top:6px;">② 訪問する日を選んで、お客様へ訪問予定日を連絡してください。</div>
+          <div class="actions" style="margin-top:6px;flex-direction:column;align-items:stretch;gap:6px;">
+            <button class="btn primary" onclick="kkd135ConfirmDateAsk('${j.id}',1)">第1希望で連絡：${fmtDateShort(j.date1)} ${fmtSlotStart(j.time1)}</button>
+            ${j.date2&&j.time2?`<button class="btn primary" onclick="kkd135ConfirmDateAsk('${j.id}',2)">第2希望で連絡：${fmtDateShort(j.date2)} ${fmtSlotStart(j.time2)}</button>`:""}
+          </div>
           ${renderBookingPhotoButtons(j)}
-          ${isPhotosDone ? `<div class="notice warn" style="margin-top:6px;">② 対応の可否を、お返事ください。</div><div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="kkd135RespondAsk('${j.id}',true)">◯ 対応可能</button><button class="btn secondary" onclick="kkd135RespondAsk('${j.id}',false)">✕ 対応不可</button></div>` : `<div class="notice" style="margin-top:6px;">① 📷 顧客の写真の送信を、お待ちください（${rec}/${req}受信済）。写真が揃うと、対応依頼が届きます。</div>`}
         `;
       }
     }else if(tab==="progress"){
@@ -2131,7 +2131,7 @@ function openVendorCases(tabArg="before", resetAccordion=false){
         </div>
         <div class="field" style="margin:6px 0;">
           <label>現場確認　＜追加項目＞（作業開始の前に確認）</label>
-          ${renderAdditionalChecklist(j, !!j.isStarted)}
+          ${renderAdditionalChecklist(j, !!j.isStarted || !j.noticeAt)}${(!j.isStarted && !j.noticeAt) ? '<div class="mini" style="color:#64748b;margin:0 2px 4px;">当日連絡の後に、現場で確認できます。</div>' : ''}
         </div>
         ${j.isStarted ? renderFreeExplain(j) : ""}
         <div class="actions">
@@ -2542,59 +2542,46 @@ function kkd135StepBar(labels, cur) {
     return '<div style="flex:1;min-width:0;text-align:center;padding:3px 1px;border-radius:4px;font-size:8.5px;line-height:1.25;' + st + '"><div style="font-size:10px;">' + (n < cur ? "✓" : KKD135_NUMS[i]) + '</div>' + t + '</div>';
   }).join("") + '</div>';
 }
-var KKD135_CUSTOMER_STEPS = ["写真送付", "受付", "住所入力", "当日・作業", "完了"];
+var KKD135_CUSTOMER_STEPS = ["写真送付", "訪問予定", "住所入力", "当日・作業", "完了"];
 function kkd135CustomerBar(j, tab, photosDone) {
   if (j.declined) return kkd135StepBar(["受付不可"], 1);
   return kkd135StepBar(KKD135_CUSTOMER_STEPS, kkd135Stage(j));
 }
-var KKD135_VENDOR_STEPS = ["写真待ち", "対応依頼", "住所待ち", "当日・作業", "完了"];
+var KKD135_VENDOR_STEPS = ["写真待ち", "訪問予定", "住所待ち", "当日・作業", "完了"];
+// 業者の工程：顧客の写真が揃い、◯（対応可能）を返すまでは、まだ手順が届いていない（0＝どの工程も「今」にしない）
+function kkd135VendorStage(j) { var s = kkd135Stage(j); return (s === 2 && !j.claimed) ? 0 : s; }
 function kkd135VendorBar(j, tab, photosDone, reviewDone) {
-  return kkd135StepBar(KKD135_VENDOR_STEPS, kkd135Stage(j));
+  return kkd135StepBar(KKD135_VENDOR_STEPS, kkd135VendorStage(j));
 }
+// 完了後の並び：対応完了日時の新しい順（同じ時刻は、案件番号の新しい順）
+function kkd135DoneKey(j) { return String(j.completedAt || j.completedDate || j.scheduledDate || "") + " " + String(j.id || ""); }
 
-// ---- 業者：対応依頼への返事（◯＝第1希望の日時で受ける／✕＝受けられない）。押すと確認（はい／いいえ）→ GASへ保存 → 予定表示から消える ----
-var KKD135_RESP_ERRORS = { UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", CASE_COMPLETED: "この案件は、すでに完了しています。", ALREADY_ACCEPTED: "この案件は、すでに、対応可能で返事済みです。", NOT_FOUND: "案件が見つかりません。画面を開き直してください。" };
-function kkd135AskChoice(message, options, onPick) {
-  var old = document.getElementById("kkd135Ask"); if (old) old.remove();
-  var wrap = document.createElement("div"); wrap.id = "kkd135Ask";
-  wrap.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;";
-  var box = document.createElement("div");
-  box.style.cssText = "background:#fff;border-radius:12px;padding:16px;max-width:320px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px;line-height:1.6;";
-  var msg = document.createElement("div"); msg.innerHTML = message; box.appendChild(msg);
-  var col = document.createElement("div"); col.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-top:12px;";
-  options.forEach(function (o) { var b = document.createElement("button"); b.type = "button"; b.className = "btn primary"; b.textContent = o.label; b.onclick = function () { wrap.remove(); onPick(o.value); }; col.appendChild(b); });
-  var c = document.createElement("button"); c.type = "button"; c.className = "btn secondary"; c.textContent = "いいえ（やめる）"; c.onclick = function () { wrap.remove(); }; col.appendChild(c);
-  box.appendChild(col); wrap.appendChild(box); document.body.appendChild(wrap);
-}
-// 問いかけは、日程を決めつけない。第2希望がある案件の◯は、対応できる希望日を選ぶ（第2希望なら対応できる、が、あり得るため）
+// ---- 業者：対応依頼への返事（◯＝対応可能／✕＝対応不可）。第1・第2希望日のいずれかで対応できるかの速報。日時は、まだ確定しない。
+//   押すと確認（はい／いいえ）→ GASへ保存 → 予定表示から消える。◯は「訪問前」に移り、そこで訪問する日を選んで、お客様へ訪問予定日を連絡する ----
+var KKD135_RESP_ERRORS = { UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", CASE_COMPLETED: "この案件は、すでに完了しています。", ALREADY_ACCEPTED: "この案件は、すでに、対応可能でお返事済みです。", PHOTOS_INCOMPLETE: "お客様の写真が揃っていません。", NOT_FOUND: "案件が見つかりません。画面を開き直してください。" };
 function kkd135RespondAsk(id, accept) {
   var j = getJob(id); if (!j) return;
-  var head = "案件 " + esc(id) + "<br>";
-  if (!accept) return kkd135AskYesNo(head + "対応<b>不可</b>で、よろしいですか？", function () { kkd135Respond(id, false, 1); });
-  if (j.date2 && j.time2) return kkd135AskChoice(head + "対応<b>可能</b>な希望日を選んでください。", [
-    { label: "第1希望：" + fmtDateShort(j.date1) + " " + fmtSlotStart(j.time1), value: 1 },
-    { label: "第2希望：" + fmtDateShort(j.date2) + " " + fmtSlotStart(j.time2), value: 2 }], function (c) { kkd135Respond(id, true, c); });
-  kkd135AskYesNo(head + "対応<b>可能</b>で、よろしいですか？", function () { kkd135Respond(id, true, 1); });
+  var head = "案件 " + esc(id) + "<br>", two = !!(j.date2 && j.time2);
+  if (accept) return kkd135AskYesNo(head + (two ? "第1・第2希望日の<b>いずれかで、対応可能</b>で、よろしいですか？" : "<b>対応可能</b>で、よろしいですか？"), function () { kkd135Respond(id, true); });
+  kkd135AskYesNo(head + (two ? "第1・第2希望日の<b>どちらも、対応不可</b>で、よろしいですか？" : "<b>対応不可</b>で、よろしいですか？"), function () { kkd135Respond(id, false); });
 }
-function kkd135Respond(id, accept, choice) {
+function kkd135Respond(id, accept) {
   var j = getJob(id), be = window.KKD135_BACKEND;
   if (!j) return;
-  if (!j.gas || !be || typeof be.respondRequest !== "function") return kkd135RespondLocal(id, accept, choice);
+  if (!j.gas || !be || typeof be.respondRequest !== "function") return kkd135RespondLocal(id, accept);
   if (window.__kkd135Resp) return;
   window.__kkd135Resp = true;
-  be.respondRequest(id, accept, choice).then(function (r) {
+  be.respondRequest(id, accept).then(function (r) {
     window.__kkd135Resp = false;
-    if (r && r.status === "OK") return kkd135RespondLocal(id, accept, choice, r);
+    if (r && r.status === "OK") return kkd135RespondLocal(id, accept, r);
     alert((r && KKD135_RESP_ERRORS[r.errorCode]) || "返事を保存できませんでした。通信を確かめて、もう一度お試しください。");
   }, function () { window.__kkd135Resp = false; alert("返事を保存できませんでした。通信を確かめて、もう一度お試しください。"); });
 }
-function kkd135RespondLocal(id, accept, choice, r) {
+function kkd135RespondLocal(id, accept, r) {
   var j = getJob(id); if (!j) return;
   var passedOn = !!(r && r.passedOn);
   if (accept) {
-    var two = choice === 2 && j.date2 && j.time2;
-    j.vendorChoice = two ? "第2希望" : "第1希望"; j.scheduledDate = two ? j.date2 : j.date1; j.scheduledTime = two ? j.time2 : j.time1;
-    addChat("cChat", "【受付結果】ご依頼を受け付けました。訪問予定日：<b>" + fmtDateShort(j.scheduledDate) + " " + fmtSlotStart(j.scheduledTime) + "</b>（案件 " + j.id + "）。詳細住所のご入力をお願いします。");
+    j.claimed = true;
   } else if (j.gas) { // 次の業者へ回った、または、受付不可（この業者の画面からは、どちらも消える）
     var k = state.jobs.indexOf(j); if (k >= 0) state.jobs.splice(k, 1);
   } else {
@@ -2603,7 +2590,13 @@ function kkd135RespondLocal(id, accept, choice, r) {
   }
   log((accept ? "VENDOR_ACCEPT " : "VENDOR_DECLINE ") + id);
   renderVendorHome(); renderSide(); saveAndSync();
-  showVendorActionNotice(accept ? "<b>対応可能</b>でお返事しました（案件 " + id + "）。「③ 住所待ち」に移りました。" : "<b>対応不可</b>でお返事しました（案件 " + id + "）。" + (passedOn ? "次の業者へ回します。" : ""));
+  showVendorActionNotice(accept ? "<b>対応可能</b>でお返事しました（案件 " + id + "）。「訪問前」で、訪問する日を選んで、お客様へ訪問予定日を連絡してください。" : "<b>対応不可</b>でお返事しました（案件 " + id + "）。" + (passedOn ? "次の業者へ回します。" : ""));
+}
+// ② 訪問予定日の連絡：第1／第2希望日のどちらで訪問するかを選び、確認（はい／いいえ）→ GASへ保存（日時を確定）→ お客様へLINE通知
+function kkd135ConfirmDateAsk(id, which) {
+  var j = getJob(id); if (!j) return;
+  var d = which === 2 ? j.date2 : j.date1, t = which === 2 ? j.time2 : j.time1;
+  kkd135AskYesNo("案件 " + esc(id) + "<br>第" + which + "希望（" + fmtDateShort(d) + " " + fmtSlotStart(t) + "）で、お客様へ訪問予定日を<b>連絡</b>します。よろしいですか？", function () { vendorConfirm(id, which === 2 ? "第2希望" : "第1希望"); });
 }
 
 // ---- リッチメニュー：画面を開いたときは、閉じておく（下の帯をタップで開く） ----
@@ -3542,6 +3535,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=74a0dcd240"></script>
+<script src="../assets/app_boot.js?v=55a1b56a34"></script>
 </body>
 </html>

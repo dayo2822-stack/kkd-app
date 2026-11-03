@@ -46,7 +46,7 @@
     // 業者の画面の描き直し。対応依頼（②）が届いていれば、開いたときは予定表示（◯✕の返事の場所）。取り直しのときは、予定表示を見ていれば、予定表示のまま
     function vendorRender(first) {
       var vv = document.getElementById('vView'), home = !!vv && vv.textContent === '予定表示';
-      var pending = (state.jobs || []).some(function (j) { return j.gas && kkd135Stage(j) === 2 && !j.declined; });
+      var pending = (state.jobs || []).some(function (j) { return j.gas && kkd135Stage(j) === 2 && !j.claimed && !j.declined; });
       if (first) state.vendorTab = autoTab(state.vendorTab, true);
       switchRole('vendor');
       if (((first && pending) || (!first && home)) && typeof renderVendorHome === 'function') renderVendorHome();
