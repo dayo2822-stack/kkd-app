@@ -455,14 +455,14 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "1dbf6dd011", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "f86502ba2e", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/pricing_source.js?v=1dbf6dd011"></script>
-<script src="../assets/photo_report_logic.js?v=1dbf6dd011"></script>
-<script src="../assets/photo_report_ui.js?v=1dbf6dd011"></script>
-<script src="../assets/gas_backend.js?v=1dbf6dd011"></script>
-<script src="../assets/jobs_from_gas.js?v=1dbf6dd011"></script>
+<script src="../assets/pricing_source.js?v=f86502ba2e"></script>
+<script src="../assets/photo_report_logic.js?v=f86502ba2e"></script>
+<script src="../assets/photo_report_ui.js?v=f86502ba2e"></script>
+<script src="../assets/gas_backend.js?v=f86502ba2e"></script>
+<script src="../assets/jobs_from_gas.js?v=f86502ba2e"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1348,7 +1348,7 @@ function reservedStartsAndBlocks(ds,vendorId){
     pairs.forEach(([d,t])=>{
       if(d!==ds||!t)return;
       const start=timeIndex(t); if(start<0)return;
-      for(let k=0;k<durationHoursForJob(j);k++) if(TIMES[start+k]) blocked.add(TIMES[start+k]);
+      for(let k=-1;k<=durationHoursForJob(j);k++) if(start+k>=0 && TIMES[start+k]) blocked.add(TIMES[start+k]); // 前後1時間も空ける
     });
   });
   return blocked;
@@ -3022,41 +3022,60 @@ function kkd135DayItems(ds) {
   var out = [];
   state.jobs.forEach(function (j) {
     if (j.completed || j.declined) return;
+    var mins = Math.ceil(calcMinutes(j) / 60) * 60;
     if (j.vendorChoice) {
-      if (j.scheduledDate === ds) out.push({ id: j.id, units: j.units, start: kkd135StartMin(j.scheduledTime), mins: Math.ceil(calcMinutes(j) / 60) * 60, kind: "fixed" });
+      if (j.scheduledDate === ds) out.push({ j: j, start: kkd135StartMin(j.scheduledTime), mins: mins, kind: "fixed", time: j.scheduledTime, date: ds });
       return;
     }
     if (kkd135Stage(j) < 2) return; // 写真が揃うまでは、依頼は届いていない
-    if (j.date1 === ds) out.push({ id: j.id, units: j.units, start: kkd135StartMin(j.time1), mins: Math.ceil(calcMinutes(j) / 60) * 60, kind: "hope", note: "第1希望" });
-    if (j.date2 === ds) out.push({ id: j.id, units: j.units, start: kkd135StartMin(j.time2), mins: Math.ceil(calcMinutes(j) / 60) * 60, kind: "hope", note: "第2希望" });
+    if (j.date1 === ds) out.push({ j: j, start: kkd135StartMin(j.time1), mins: mins, kind: "hope", note: "第1希望", time: j.time1, date: ds });
+    if (j.date2 === ds) out.push({ j: j, start: kkd135StartMin(j.time2), mins: mins, kind: "hope", note: "第2希望", time: j.time2, date: ds });
   });
   return out.filter(function (x) { return x.start >= 0; });
 }
 function kkd135DayPanel(ds) {
-  var H0 = 8 * 60, H1 = 20 * 60, PX = 34; // 1時間＝34px
+  var H0 = 8 * 60, H1 = 20 * 60, PX = 34, GAP = 60; // 1時間＝34px。予定の前後1時間は、移動・休憩の猶予（空ける）
   var items = kkd135DayItems(ds).sort(function (a, b) { return a.start - b.start; });
   // 重なるブロックは、横に並べる
   var lanes = []; items.forEach(function (it) { var l = 0; while (lanes[l] !== undefined && lanes[l] > it.start) l++; it.lane = l; lanes[l] = Math.min(it.start + it.mins, H1); });
   var nLanes = Math.max(1, lanes.length);
-  // 時間の重複は、認めない：重なる予定があれば、赤く示して知らせる（本来は、予約の段階で、起きない）
-  var overlap = false; items.forEach(function (a, i) { for (var k = 0; k < i; k++) { var b = items[k]; if (a.start < b.start + b.mins && b.start < a.start + a.mins) { a.over = true; b.over = true; overlap = true; } } });
+  // 重複・猶予の不足は、認めない：あれば、赤く示して知らせる（本来は、予約の段階で、起きない）
+  var overlap = false; items.forEach(function (a, i) { for (var k = 0; k < i; k++) { var b = items[k]; if (a.start < b.start + b.mins + GAP && b.start < a.start + a.mins + GAP) { a.over = true; b.over = true; overlap = true; } } });
   var rows = "";
   for (var h = 8; h < 20; h++) rows += '<div style="position:absolute;left:0;right:0;top:' + ((h - 8) * PX) + 'px;height:' + PX + 'px;border-top:1px solid #e2e8f0;"><span style="position:absolute;left:2px;top:1px;font-size:9px;color:#64748b;">' + ("0" + h).slice(-2) + ':00</span></div>';
   var bands = ((state.vendorAvailable || {})[ds] || []).map(function (lb) {
     var s0 = kkd135StartMin(lb); if (s0 < H0) return "";
     return '<div style="position:absolute;left:38px;right:0;top:' + ((s0 - H0) / 60 * PX) + 'px;height:' + PX + 'px;background:#ecfdf5;"></div>';
   }).join("");
+  // 前後の空き（移動・休憩）：予定の前後1時間（営業時間の内側だけ）
+  var gaps = items.map(function (it) {
+    var out = "";
+    [[it.start - GAP, it.start], [it.start + it.mins, it.start + it.mins + GAP]].forEach(function (g) {
+      var g0 = Math.max(g[0], H0), g1 = Math.min(g[1], H1); if (g1 <= g0) return;
+      out += '<div style="position:absolute;left:38px;right:0;top:' + ((g0 - H0) / 60 * PX) + 'px;height:' + ((g1 - g0) / 60 * PX) + 'px;background:repeating-linear-gradient(135deg,#f1f5f9,#f1f5f9 4px,#e2e8f0 4px,#e2e8f0 8px);opacity:.8;"></div>';
+    });
+    return out;
+  }).join("");
   var blocks = items.map(function (it) {
-    var top = (Math.max(it.start, H0) - H0) / 60 * PX, h = Math.max(18, (Math.min(it.start + it.mins, H1) - Math.max(it.start, H0)) / 60 * PX);
+    var j = it.j, top = (Math.max(it.start, H0) - H0) / 60 * PX, h = Math.max(18, (Math.min(it.start + it.mins, H1) - Math.max(it.start, H0)) / 60 * PX);
     var w = (100 / nLanes), left = it.lane * w, fixed = it.kind === "fixed";
     var st = fixed ? "background:#0d6b57;color:#fff;border:1px solid #0d6b57;" : "background:#fff7ed;color:#9a3412;border:1px dashed #ea580c;";
     if (it.over) st += "outline:2px solid #dc2626;";
-    return '<div style="position:absolute;top:' + top + 'px;height:' + h + 'px;left:calc(38px + (100% - 38px) * ' + (left / 100) + ');width:calc((100% - 38px) * ' + (w / 100) + ' - 2px);box-sizing:border-box;border-radius:4px;padding:2px 4px;font-size:9.5px;line-height:1.3;overflow:hidden;' + st + '">' + esc(it.id) + '<br>' + (fixed ? "確定" : esc(it.note) + "・依頼") + '（' + it.units + '台）</div>';
+    // 住所は、案件カードと同じ扱い：④（対応中）だけ詳細、それ以前は、郵便番号による大まかな住所
+    var addr = kkd135Stage(j) === 4 ? getFullAddress(j) : getSimpleAddress(j);
+    var mapBtn = '<button type="button" class="map-btn" style="font-size:9px;padding:1px 6px;margin-left:4px;" onclick="event.stopPropagation();openMapApp(\'' + esc(addr).replace(/'/g, "") + '\')">🗺️ マップ</button>';
+    var info = '<div><b>' + esc(j.id) + '</b> ' + (fixed ? "確定" : esc(it.note) + "・依頼") + '</div>' +
+      '<div>' + esc(j.service) + '（' + j.units + '台）</div>' +
+      '<div>🗓 ' + fmtDateShort(it.date) + ' ' + fmtSlotStart(it.time) + '</div>' +
+      '<div>📍 ' + esc(addr) + mapBtn + '</div>' +
+      '<div>⏱ 作業 約' + calcMinutes(j) + '分 ／ 💰 ¥' + headerPrice(j).toLocaleString() + '</div>';
+    return '<div style="position:absolute;top:' + top + 'px;height:' + h + 'px;left:calc(38px + (100% - 38px) * ' + (left / 100) + ');width:calc((100% - 38px) * ' + (w / 100) + ' - 2px);box-sizing:border-box;border-radius:4px;padding:3px 5px;font-size:9.5px;line-height:1.35;overflow:hidden;' + st + '">' + info + '</div>';
   }).join("");
   var d = new Date(ds + "T00:00:00"), wk = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
   return '<div class="job"><div style="display:flex;align-items:center;justify-content:space-between;gap:6px;"><span><b>' + (d.getMonth() + 1) + '/' + d.getDate() + '(' + wk + ') の予定</b> <span class="mini">営業時間 08:00〜20:00</span></span><button type="button" class="btn secondary" style="padding:3px 10px;font-size:10px;flex:none;" onclick="kkd135CloseDay()">✕ 閉じる</button></div>' +
-    '<div style="position:relative;height:' + (12 * PX) + 'px;margin-top:6px;border-bottom:1px solid #e2e8f0;">' + rows + bands + blocks + '</div>' +
-    (overlap ? '<div class="notice warn" style="margin-top:6px;color:#b91c1c;">⚠ 時間が重なっている予定があります（赤い枠）。重複は認めていないため、管理者へ連絡してください。</div>' : '') + '<div class="mini" style="margin-top:4px;">■ 確定　┅ 依頼（日時は未確定）　▒ 報告済みの空き枠' + (items.length ? '' : '　／　この日の予定は、ありません') + '</div></div>';
+    '<div style="position:relative;height:' + (12 * PX) + 'px;margin-top:6px;border-bottom:1px solid #e2e8f0;">' + rows + bands + gaps + blocks + '</div>' +
+    (overlap ? '<div class="notice warn" style="margin-top:6px;color:#b91c1c;">⚠ 時間が重なっている、または、前後の空き（1時間）が足りない予定があります（赤い枠）。管理者へ連絡してください。</div>' : '') +
+    '<div class="mini" style="margin-top:4px;">■ 確定　┅ 依頼（日時は未確定）　▒ 報告済みの空き枠　斜線 移動・休憩の空き（前後1時間）' + (items.length ? '' : '　／　この日の予定は、ありません') + '</div></div>';
 }
 // 日付を押す：その日の予定を、今の位置のまま開く（画面は動かさない）。同じ日をもう一度押す、または［✕ 閉じる］で閉じる。別の日を押すと、その日に切り替わる
 function kkd135MarkOpenDay(ds) {
@@ -3704,6 +3723,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=1dbf6dd011"></script>
+<script src="../assets/app_boot.js?v=f86502ba2e"></script>
 </body>
 </html>
