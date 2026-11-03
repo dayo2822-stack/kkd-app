@@ -147,7 +147,7 @@ var KKD135Jobs = (function () {
       vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
       todayTime: '', noticeEta: String(b.noticeTime || ''), noticeAt: String(b.noticeAt || ''), scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
       reviewUrl: String(b.reviewUrl || ''), invoiceNo: String(b.invoiceNo || ''), installers: Array.isArray(b.installers) ? b.installers.map(String) : [],
-      completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
+      declined: b.declined === true, completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
       rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: isWorking(b.status) || done, startedAt: String(b.startedAt || '')
     };
   }

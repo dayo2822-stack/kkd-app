@@ -455,13 +455,13 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ce24090f88", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "1862d033b7", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=ce24090f88"></script>
-<script src="../assets/photo_report_ui.js?v=ce24090f88"></script>
-<script src="../assets/gas_backend.js?v=ce24090f88"></script>
-<script src="../assets/jobs_from_gas.js?v=ce24090f88"></script>
+<script src="../assets/photo_report_logic.js?v=1862d033b7"></script>
+<script src="../assets/photo_report_ui.js?v=1862d033b7"></script>
+<script src="../assets/gas_backend.js?v=1862d033b7"></script>
+<script src="../assets/jobs_from_gas.js?v=1862d033b7"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1505,7 +1505,7 @@ function confirmBookingLocal(gasId){
   openCustomerCases("before");
   renderVendorHome();
   renderSide();
-  addChat("cChat",`予約を受け付けました。<b>${id}</b> として案件一覧に追加しました。`,"me");
+  addChat("cChat",`ご依頼を送信しました。<b>${id}</b> として案件一覧に追加しました。まず、現場写真の送信をお願いします（写真が揃うと、業者へ依頼が届きます）。`,"me");
   addChat("vChat",`新規案件 <b>${id}</b> が条件適合業者の案件一覧へ届きました。`);
   log("BOOKING_CONFIRMED "+id);
   saveAndSync();
@@ -1529,22 +1529,23 @@ function getCurrentlyClosedCardIds(prefix){
   return closedIds;
 }
 
-function openCustomerCases(tab="before", resetAccordion=false){
-  state.customerTab = tab;
-  try { localStorage.setItem("kkd_customer_tab", tab); } catch(e){}
-  const labels = {before:"訪問前（写真・住所）", progress:"対応中（予約確定）", done:"完了後（施工完了）"};
-  document.getElementById("cView").textContent = labels[tab] || labels.before;
+function openCustomerCases(tabArg="1", resetAccordion=false){
+  const tabNo = kkd135TabNo(tabArg), tab = kkd135TabKind(tabNo);
+  state.customerTab = tabNo;
+  try { localStorage.setItem("kkd_customer_tab", String(tabNo)); } catch(e){}
+  document.getElementById("cView").textContent = ["① 写真送付","② 受付","③ 住所入力","④ 当日・作業","⑤ 完了"][tabNo-1];
   clearChat("cChat");
-  addChat("cChat", `<div class="tabs"><button class="${tab==='before'?'active':''}" onclick="openCustomerCases('before', true)">訪問前（写真・住所）</button><button class="${tab==='progress'?'active':''}" onclick="openCustomerCases('progress', true)">対応中（予約確定）</button><button class="${tab==='done'?'active':''}" onclick="openCustomerCases('done', true)">完了後（履歴）</button></div>`);
+  addChat("cChat", kkd135TabsHtml(["① 写真","② 受付","③ 住所","④ 当日・作業","⑤ 完了"], tabNo, "openCustomerCases"));
+
 
   const previouslyClosedIds = resetAccordion ? new Set() : getCurrentlyClosedCardIds("c");
 
   // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
   let jobs = [];
   if(tab === "before"){
-    jobs = state.jobs.filter(j => (!j.vendorChoice || !j.customerDetailed) && !j.completed);
+    jobs = state.jobs.filter(j => kkd135Stage(j) === tabNo);
   } else if(tab === "progress"){
-    jobs = state.jobs.filter(j => !!j.vendorChoice && !!j.customerDetailed && !j.completed);
+    jobs = state.jobs.filter(j => kkd135Stage(j) === 4);
     // 作業予定日毎（昇順：直近の予定順）
     jobs.sort((a, b) => {
       const dateA = a.scheduledDate || (a.vendorChoice==="第1希望"?a.date1:a.date2) || "";
@@ -1554,7 +1555,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
       return (dateA + timeA).localeCompare(dateB + timeB);
     });
   } else {
-    jobs = state.jobs.filter(j => !!j.completed);
+    jobs = state.jobs.filter(j => kkd135Stage(j) === 5);
     // 対応完了日毎（降順：直近の完了順）
     jobs.sort((a, b) => {
       const dateA = a.completedAt || a.completedDate || "";
@@ -1564,9 +1565,7 @@ function openCustomerCases(tab="before", resetAccordion=false){
   }
 
   if(!jobs.length){
-    const emptyMsg = tab === "before"
-      ? "訪問前（写真・詳細住所入力）の案件はありません。<br>「予約窓口」から新規予約を行ってください。"
-      : (tab === "progress" ? "対応中（予約確定）の案件はありません。" : "完了後の案件はありません。");
+    const emptyMsg = "この工程の案件は、ありません。" + (tabNo === 1 ? "<br>「予約窓口」から新規予約を行ってください。" : "");
     addChat("cChat", `<div class="job" style="color:var(--muted);text-align:center;padding:14px 10px;">${emptyMsg}</div>`);
     log("CUSTOMER_CASES_OPEN " + tab + " (0件)");
     return;
@@ -1583,7 +1582,9 @@ function openCustomerCases(tab="before", resetAccordion=false){
     let statusBadge = "";
     if(tab === "before"){
       if(j.vendorChoice && !j.customerDetailed){
-        statusBadge = '<span class="badge ok">日時確定・住所入力</span>';
+        statusBadge = '<span class="badge ok">住所入力</span>';
+      } else if(isPhotosDone){
+        statusBadge = '<span class="badge warn">受付待ち</span>';
       } else {
         statusBadge = isPhotosDone ? '<span class="badge ok">写真受領済</span>' : '<span class="badge warn">写真待ち</span>';
       }
@@ -1595,13 +1596,20 @@ function openCustomerCases(tab="before", resetAccordion=false){
 
     let tabDetailHtml = "";
     if(tab === "before"){
-      if(j.vendorChoice && !j.customerDetailed){
-        // 訪問日時確定後：残りの番地・建物名・部屋番号等の入力ステップ
+      if(!j.vendorChoice && isPhotosDone){
+        // ② 受付：写真は、サーバーが保持。業者の対応可否を待つ（結果は、LINEで通知）
+        tabDetailHtml = `
+          <div class="meta" style="margin-bottom:6px;">第1希望：${fmtDate(j.date1)} ${esc(j.time1)}${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}</div>
+          ${renderPriceBreakdown(j)}
+          <div class="notice" style="margin:4px 0 6px;line-height:1.6;">⏳ <b>② 業者の対応可否をお待ちください</b><br>写真と、ご依頼内容を、担当業者へお送りしました。受付結果（訪問予定日）は、LINEでお知らせします。</div>
+        `;
+      } else if(j.vendorChoice && !j.customerDetailed){
+        // ③ 詳細住所：訪問予定日の受付後、残りの番地・建物名・部屋番号等の入力ステップ
         const scheduledDt = j.scheduledDate || (j.vendorChoice==="第1希望"?j.date1:j.date2);
         const scheduledTm = j.scheduledTime || (j.vendorChoice==="第1希望"?j.time1:j.time2);
         tabDetailHtml = `
           <div class="notice ok" style="margin:4px 0 6px;line-height:1.6;border:2px solid #0d6b57;background:#f0faf5;">
-            <div style="font-weight:bold;color:#0d6b57;font-size:11px;">🎉 【② 訪問日時が確定しました】</div>
+            <div style="font-weight:bold;color:#0d6b57;font-size:11px;">🎉 【訪問日時が確定しました】</div>
             <div>担当業者が <b>${esc(j.vendorChoice)}（${fmtDateShort(scheduledDt)} ${fmtSlotStart(scheduledTm)}）</b> にて訪問決定いたしました！</div>
             <div style="margin-top:4px;padding-top:4px;border-top:1px dashed #a7f3d0;font-size:9.5px;color:var(--ink);">
               現場訪問に向け、残りの番地・建物名・部屋番号等の詳細住所と訪問先情報をご入力ください。入力完了後に案件が「対応中」へ移動します。
@@ -1774,6 +1782,10 @@ function openCustomerCases(tab="before", resetAccordion=false){
       rightItemHtml = `📷 報告写真:${cRec}/2点 ${isCompDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
       line4Html = `✓ 対応完了日:<b>${fmtDateShort(compDateStr)}</b>`;
     }
+    if(j.declined){
+      statusBadge = '<span class="badge warn">受付不可</span>'; rightItemHtml = ''; line4Html = '✕ ご希望の日時では、お受けできませんでした';
+      tabDetailHtml = `<div class="notice warn" style="margin:4px 0 6px;line-height:1.6;">【受付不可】申し訳ございません。ご希望の日時では、ご依頼をお受けできませんでした。<br>恐れ入りますが、別の日時で、あらためてご予約ください。</div>`;
+    }
     const line3Address = (tab === "done" || (tab === "before" && !j.customerDetailed)) ? getSimpleAddress(j) : getFullAddress(j);
 
     // 顧客画面はデフォルト展開（ユーザーが明示的に閉じていなければ展開）
@@ -1787,8 +1799,8 @@ function openCustomerCases(tab="before", resetAccordion=false){
             <span style="font-size:11.5px;font-weight:900;color:var(--customer);">🛠 ${esc(j.service)}（${j.units}${PRICE[j.service]?.unit||"台"}）</span>
             ${statusBadge}
           </div>
-          <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:6px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            <span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;">👤 <b style="font-size:11px;">${esc(lastName)}</b></span><span style="flex:none;white-space:nowrap;">💰 ${headerPriceLabel(j)} <b style="font-size:11.5px;color:var(--customer);">¥${headerPrice(j).toLocaleString()}</b></span></span>
+          <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:2px 6px;line-height:1.3;flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:2px 6px;flex:1;min-width:0;flex-wrap:wrap;"><span style="flex:0 0 auto;white-space:nowrap;">👤 <b style="font-size:11px;">${esc(lastName)}</b></span><span style="flex:none;white-space:nowrap;">💰 ${headerPriceLabel(j)} <b style="font-size:11.5px;color:var(--customer);">¥${headerPrice(j).toLocaleString()}</b></span></span>
             <span style="flex-shrink:0;font-size:9px;color:var(--muted);">${rightItemHtml}</span>
           </div>
           <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
@@ -1967,20 +1979,15 @@ function renderVendorHome(){
   clearChat("vChat");document.getElementById("vView").textContent="予定表示";
   const keys=Object.keys(state.vendorAvailable).sort();
   let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button> <button class="btn secondary" onclick="openVendorProfile()">⚙ 登録情報</button></div></div>`;
-  const bookings=state.jobs.filter(j=>!j.completed);
-  if(bookings.length) html+=bookings.map(j=>{
-    const lastName = getCustomerLastNameWithHonorific(j.name);
-    const zipCode = formatZip(j.zip);
-    const addr = j.address ? esc(j.address) : "住所確認中";
-    return `<div class="job">
-      <b>${j.id}</b> <span class="badge ${j.vendorChoice?"ok":"warn"}">${j.vendorChoice?"予約確定":"新規"}</span>
-      <div style="font-size:11px;font-weight:900;color:var(--ink);margin:3px 0 1px;">👤 ${esc(lastName)}</div>
-      <div style="font-size:9.5px;color:var(--muted);margin-bottom:4px;">📍 〒${esc(zipCode)} ${addr}</div>
-      ${esc(j.service)} ／ ${fmtDate(j.date1)} ${esc(j.time1)}
-      <div class="meta">第2希望 ${fmtDate(j.date2)} ${esc(j.time2)}<br>作業時間：約${calcMinutes(j)}分</div>
-    </div>`;
-  }).join("");
-  addChat("vChat",html);document.getElementById("vStatus").textContent=bookings.length+"件";
+  const bookings=state.jobs.filter(j=>kkd135Stage(j)===2&&!j.declined);
+  if(bookings.length) html+=`<div class="notice warn" style="margin:6px 0;"><b>対応依頼 ${bookings.length}件</b>　◯か✕を押して、お返事ください（返事の後、この表示から消えます）</div>`+bookings.map(j=>`<div class="job">
+      <b>${esc(j.id)}</b> <span class="badge warn">対応依頼</span>
+      <div style="font-size:11px;font-weight:900;margin:3px 0 1px;">${esc(j.service)}（${j.units}台）</div>
+      <div style="font-size:10px;color:var(--ink);">🗓 第1希望：${fmtDate(j.date1)} ${esc(j.time1)}${j.date2&&j.time2?`<br>🗓 第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}</div>
+      <div style="font-size:9.5px;color:var(--muted);">📍 ${esc(getSimpleAddress(j))} ／ 作業時間：約${calcMinutes(j)}分 ／ 見積 ¥${headerPrice(j).toLocaleString()}</div>
+      ${renderBookingPhotoButtons(j)}
+      <div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="kkd135RespondAsk('${j.id}',true)">◯ 対応可能</button><button class="btn secondary" onclick="kkd135RespondAsk('${j.id}',false)">✕ 対応不可</button></div></div>`).join("");
+  addChat("vChat",html);document.getElementById("vStatus").textContent=state.jobs.filter(j=>kkd135Stage(j)>=3&&kkd135Stage(j)<=4&&!j.declined).length+"件";
 }
 function renderCustomerAvailabilityNote(){if(state.jobs.length)addChat("cChat","業者の空き枠が更新されました。予約窓口で最新の候補日を確認できます。");}
 
@@ -1996,22 +2003,23 @@ function isPhotoReviewCompleted(j){
   if (j.additionalFlag === "あり" && (!j.additionalItems || !j.additionalItems.length)) return false;
   return true;
 }
-function openVendorCases(tab="before", resetAccordion=false){
-  state.vendorTab=tab;
-  try { localStorage.setItem("kkd_vendor_tab", tab); } catch(e){}
-  const labels={before:"訪問前（依頼受付）",progress:"対応中（予約確定）",done:"完了後（応対履歴）"};
-  document.getElementById("vView").textContent=labels[tab]||labels.before;
+function openVendorCases(tabArg="2", resetAccordion=false){
+  const tabNo = kkd135TabNo(tabArg), tab = kkd135TabKind(tabNo);
+  state.vendorTab=tabNo;
+  try { localStorage.setItem("kkd_vendor_tab", String(tabNo)); } catch(e){}
+  document.getElementById("vView").textContent=["① 写真待ち","② 対応依頼","③ 住所待ち","④ 当日・作業","⑤ 完了"][tabNo-1];
   clearChat("vChat");
-  addChat("vChat",`<div class="tabs"><button class="${tab==="before"?"active":""}" onclick="openVendorCases('before', true)">訪問前（依頼受付）</button><button class="${tab==="progress"?"active":""}" onclick="openVendorCases('progress', true)">対応中（予約確定）</button><button class="${tab==="done"?"active":""}" onclick="openVendorCases('done', true)">完了後（応対履歴）</button></div>`);
+  addChat("vChat", kkd135TabsHtml(["① 写真待ち","② 対応依頼","③ 住所待ち","④ 当日・作業","⑤ 完了"], tabNo, "openVendorCases"));
+
 
   const previouslyOpenIds = resetAccordion ? new Set() : getCurrentlyOpenCardIds("v");
 
   // 【訪問前】→【対応中】遷移条件：業者の日時選択かつ顧客の詳細住所入力（customerDetailed）完了で対応中へ移動
   let jobs = [];
   if(tab === "before"){
-    jobs = state.jobs.filter(j => (!j.vendorChoice || !j.customerDetailed) && !j.completed);
+    jobs = state.jobs.filter(j => kkd135Stage(j) === tabNo && !j.declined);
   } else if(tab === "progress"){
-    jobs = state.jobs.filter(j => !!j.vendorChoice && !!j.customerDetailed && !j.completed);
+    jobs = state.jobs.filter(j => kkd135Stage(j) === 4);
     // 作業予定日毎（昇順：直近の予定順）
     jobs.sort((a, b) => {
       const dateA = a.scheduledDate || (a.vendorChoice==="第1希望"?a.date1:a.date2) || "";
@@ -2021,7 +2029,7 @@ function openVendorCases(tab="before", resetAccordion=false){
       return (dateA + timeA).localeCompare(dateB + timeB);
     });
   } else {
-    jobs = state.jobs.filter(j => !!j.completed);
+    jobs = state.jobs.filter(j => kkd135Stage(j) === 5 && !j.declined);
     // 対応完了日毎（降順：直近の完了順）
     jobs.sort((a, b) => {
       const dateA = a.completedAt || a.completedDate || "";
@@ -2031,15 +2039,13 @@ function openVendorCases(tab="before", resetAccordion=false){
   }
 
   if(!jobs.length){
-    const emptyMsg = tab==="before"
-      ? "訪問前（依頼受付）の案件はありません（顧客の予約受付・住所入力待ち）。"
-      : (tab==="progress" ? "対応中（予約確定）の案件はありません。" : "完了後の案件はありません。");
+    const emptyMsg = "この工程の案件は、ありません。";
     addChat("vChat", emptyMsg);
     return;
   }
 
   jobs.forEach(j=>{
-    const lastName = getCustomerLastNameWithHonorific(j.name);
+    const lastName = tab === "progress" ? getCustomerLastNameWithHonorific(j.name) : "お客様";
     const zipCode = formatZip(j.zip);
     const req = requiredPhotoCount(j), rec = countRequiredPhotos(j);
     const isPhotosDone = rec >= req;
@@ -2050,7 +2056,9 @@ function openVendorCases(tab="before", resetAccordion=false){
     let statusBadge = "";
     if(tab === "before"){
       if(j.vendorChoice && !j.customerDetailed){
-        statusBadge = '<span class="badge ok">日時確定・住所待ち</span>';
+        statusBadge = '<span class="badge ok">住所待ち</span>';
+      } else if(isPhotosDone){
+        statusBadge = '<span class="badge warn">対応依頼</span>';
       } else {
         statusBadge = isPhotosDone ? '<span class="badge ok">写真受領済</span>' : '<span class="badge warn">写真待ち</span>';
       }
@@ -2077,34 +2085,15 @@ function openVendorCases(tab="before", resetAccordion=false){
           ${renderPriceBreakdown(j)}
         `;
       } else {
-        // 通常の訪問前：現場写真確認＆追加作業プルダウン
-        const photoReview = isPhotosDone ? `
-          <div class="field" style="margin:6px 0;">
-            <label>① 現場写真確認後　＜追加項目＞</label>
-            ${renderBookingPhotoButtons(j)}
-            ${renderAdditionalChecklist(j, false)}
-          </div>
-        ` : "";
-
-        let actionHtml = "";
-        if (!isPhotosDone) {
-          actionHtml = `<div class="notice" style="margin-top:6px;">📷 必須写真待ち: 顧客からの写真送信をお待ちください（${rec}/${req}受信済）。</div>`;
-        } else if (!isReviewDone) {
-          actionHtml = `<div class="notice warn" style="margin-top:6px;">⚠️ 現場写真確認後、上記で＜追加項目＞を選択してください（なければ「追加項目なし」）。</div>`;
-        } else if (!j.vendorChoice) {
-          actionHtml = `<div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="chooseVendorDate('${j.id}')">② 訪問日時を選択</button></div>`;
-        } else {
-          actionHtml = `<div class="notice ok" style="margin-top:6px;">訪問日時確定済：${esc(j.vendorChoice)}</div>`;
-        }
-
+        // ① 顧客の写真待ち／② 対応依頼（写真が揃った案件）：顧客の写真を見て、◯か✕を返事する
         detailHtml = `
           <div class="meta" style="margin-top:4px;">
             第1希望：${fmtDate(j.date1)} ${esc(j.time1)}
             ${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}
           </div>
           ${renderPriceBreakdown(j)}
-          ${photoReview}
-          ${actionHtml}
+          ${renderBookingPhotoButtons(j)}
+          ${isPhotosDone ? `<div class="notice warn" style="margin-top:6px;">② 対応の可否を、お返事ください。</div><div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="kkd135RespondAsk('${j.id}',true)">◯ 対応可能</button><button class="btn secondary" onclick="kkd135RespondAsk('${j.id}',false)">✕ 対応不可</button></div>` : `<div class="notice" style="margin-top:6px;">① 📷 顧客の写真の送信を、お待ちください（${rec}/${req}受信済）。写真が揃うと、対応依頼が届きます。</div>`}
         `;
       }
     }else if(tab==="progress"){
@@ -2124,8 +2113,9 @@ function openVendorCases(tab="before", resetAccordion=false){
           </div>
         `: ""}
         ${renderPriceBreakdown(j)}
+        <div style="font-size:11px;font-weight:bold;color:#0d6b57;margin:10px 0 2px;border-top:1px dashed #cbd5e1;padding-top:6px;">④ 当日の対応（当日連絡 → 現場確認 → 作業開始 → 作業完了）</div>
         <div class="field" style="margin:6px 0;">
-          <label>④ 当日連絡（到着の目安）</label>
+          <label>当日連絡（到着の目安）</label>
           <select id="today-${j.id}" ${j.noticeAt?"disabled":""}>
             ${KKD135_ETA.map(t=>`<option value="${esc(t)}" ${(j.noticeEta||KKD135_ETA[0])===t?"selected":""}>${t}</option>`).join("")}
           </select>
@@ -2136,7 +2126,7 @@ function openVendorCases(tab="before", resetAccordion=false){
             : `<button class="btn primary" onclick="sendTodayNotice('${j.id}')">当日連絡</button>`}
         </div>
         <div class="field" style="margin:6px 0;">
-          <label>⑤ 現場確認　＜追加項目＞（作業開始の前に確認）</label>
+          <label>現場確認　＜追加項目＞（作業開始の前に確認）</label>
           ${renderAdditionalChecklist(j, !!j.isStarted)}
         </div>
         ${j.isStarted ? renderFreeExplain(j) : ""}
@@ -2148,7 +2138,7 @@ function openVendorCases(tab="before", resetAccordion=false){
           `:`
             <button class="btn secondary" onclick="startJob('${j.id}')">作業開始</button>
           `}
-          <button class="btn primary" onclick="completeJob('${j.id}')">作業完了・会計へ</button>
+          <button class="btn ${j.isStarted?'primary':'secondary'}" ${j.isStarted?'':'disabled style="opacity:.45;cursor:not-allowed;"'} onclick="completeJob('${j.id}')">作業完了・会計へ</button>
         </div>
       `;
     }else{
@@ -2163,7 +2153,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         ` : ""}
         ${renderCompletionSettings(j)}
         <div class="actions" style="margin-top:6px;">
-          <button class="btn ${j.photoReported ? 'secondary' : 'primary'}" onclick="openPhotoReport('${j.id}')">⑥ 現場写真${j.photoReported ? '（報告済み）' : ''}</button>
+          <button class="btn ${j.photoReported ? 'secondary' : 'primary'}" onclick="openPhotoReport('${j.id}')">⑤ 現場写真${j.photoReported ? '（報告済み）' : ''}</button>
           <button class="btn primary" onclick="openSquareMock('${j.id}')">Square決済へ</button>
         </div>
       `;
@@ -2188,7 +2178,7 @@ function openVendorCases(tab="before", resetAccordion=false){
       rightItemHtml = `📷 報告写真:${cRec}/2点 ${isCompDone?'<span class="badge ok" style="font-size:7.5px;padding:1px 4px;">受領完了</span>':'<span class="badge warn" style="font-size:7.5px;padding:1px 4px;">未達</span>'}`;
       line4Html = `✓ 対応完了日:<b>${fmtDateShort(compDateStr)}</b>`;
     }
-    const line3Address = (tab === "done" || (tab === "before" && !j.customerDetailed)) ? getSimpleAddress(j) : getFullAddress(j);
+    const line3Address = tab === "progress" ? getFullAddress(j) : getSimpleAddress(j);
 
     // 業者画面はデフォルト折り畳み（開いていたIDを維持）
     const bodyDisplay = previouslyOpenIds.has(j.id) ? "block" : "none";
@@ -2200,8 +2190,8 @@ function openVendorCases(tab="before", resetAccordion=false){
             <span style="font-size:11.5px;font-weight:900;color:var(--customer);">🛠 ${esc(j.service)}（${j.units}${PRICE[j.service]?.unit||"台"}）</span>
             ${statusBadge}
           </div>
-          <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:6px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            <span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;"><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;">👤 <b style="font-size:11px;">${esc(lastName)}</b></span><span style="flex:none;white-space:nowrap;">💰 ${headerPriceLabel(j)} <b style="font-size:11.5px;color:var(--customer);">¥${headerPrice(j).toLocaleString()}</b></span></span>
+          <div style="font-size:10px;color:var(--ink);margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:2px 6px;line-height:1.3;flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:2px 6px;flex:1;min-width:0;flex-wrap:wrap;"><span style="flex:0 0 auto;white-space:nowrap;">👤 <b style="font-size:11px;">${esc(lastName)}</b></span><span style="flex:none;white-space:nowrap;">💰 ${headerPriceLabel(j)} <b style="font-size:11.5px;color:var(--customer);">¥${headerPrice(j).toLocaleString()}</b></span></span>
             <span style="flex-shrink:0;font-size:9px;color:var(--muted);">${rightItemHtml}</span>
           </div>
           <div style="font-size:9.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3;">
@@ -2213,7 +2203,7 @@ function openVendorCases(tab="before", resetAccordion=false){
         </div>
         <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;width:56px;flex-shrink:0;">
           <button type="button" class="job-toggle-btn" style="width:100%;text-align:center;box-sizing:border-box;" onclick="toggleVendorJob('${j.id}')">⇕ 開閉</button>
-          ${tab !== "done" ? `<button type="button" class="map-btn" style="width:100%;text-align:center;box-sizing:border-box;" onclick="event.stopPropagation();openMapApp('${esc(getFullAddress(j))}')">🗺️ マップ</button>` : ""}
+          ${tab === "progress" ? `<button type="button" class="map-btn" style="width:100%;text-align:center;box-sizing:border-box;" onclick="event.stopPropagation();openMapApp('${esc(getFullAddress(j))}')">🗺️ マップ</button>` : ""}
         </div>
       </div>
       <div class="vendor-job-body" id="vjob-body-${j.id}" style="display:${bodyDisplay};">
@@ -2364,7 +2354,7 @@ function renderAdditionalFull(j, locked){
 function persistAdditional(id){
   var j = getJob(id), be = window.KKD135_BACKEND;
   if(!j || !j.gas || !be || typeof be.setAdditional !== "function") return;
-  var phase = state.vendorTab === "progress" ? "onsite" : "review", payload = null;
+  var phase = kkd135TabNo(state.vendorTab) === 4 ? "onsite" : "review", payload = null;
   if(j.additionalFlag === "なし") payload = { none: true };
   else if(Array.isArray(j.additionalItems) && j.additionalItems.length) payload = { items: j.additionalItems.map(function(x){ return { code: x.id, qty: Number(x.qty) || 1 }; }) };
   if(!payload) return;
@@ -2528,23 +2518,88 @@ function kkd135DecorateThumbs() {
 var __kkd135OpenCustomerCases = openCustomerCases;
 openCustomerCases = function () { var r = __kkd135OpenCustomerCases.apply(this, arguments); try { kkd135DecorateThumbs(); } catch (e) {} return r; };
 
-// ---- 工程の番号：案件カードの上に、工程の帯（今どこか）を出す ----
-var KKD135_NUMS = ["①", "②", "③", "④", "⑤", "⑥", "⑦"];
+// ---- 工程の番号（顧客・業者で共通）：① 写真送付 → ② 受付（業者の対応可否）→ ③ 詳細住所 → ④ 当日・作業 → ⑤ 完了 ----
+// 案件は、今の工程の1つのタブにだけ出る。タブも、案件カードの帯も、同じ番号。先の工程の中身は、見せない（誤操作を防ぐ）。
+var KKD135_NUMS = ["①", "②", "③", "④", "⑤"];
+function kkd135Stage(j) {
+  if (j.declined || j.completed) return 5;
+  if (!j.vendorChoice) return countRequiredPhotos(j) >= requiredPhotoCount(j) ? 2 : 1;
+  return j.customerDetailed ? 4 : 3;
+}
+// タブの値：1〜5。古い呼び方（before／progress／done）は、対応する番号へ
+function kkd135TabNo(t) { var m = { before: 1, progress: 4, done: 5 }; var n = m[t] || Number(t); return (n >= 1 && n <= 5) ? n : 1; }
+function kkd135TabKind(n) { return n === 4 ? "progress" : (n === 5 ? "done" : "before"); }
+function kkd135TabsHtml(labels, cur, fn) {
+  return '<div class="tabs kkd-tabs5">' + labels.map(function (t, i) { return '<button class="' + (cur === i + 1 ? "active" : "") + '" onclick="' + fn + '(' + (i + 1) + ', true)">' + t + '</button>'; }).join("") + '</div>';
+}
 function kkd135StepBar(labels, cur) {
   return '<div class="kkd-steps" style="display:flex;gap:2px;margin:2px 0 6px;">' + labels.map(function (t, i) {
-    var n = i + 1, st = n < cur ? "background:#d1fae5;color:#065f46;" : n === cur ? "background:#0d6b57;color:#fff;font-weight:bold;" : "background:#f1f5f9;color:#64748b;";
+    var n = i + 1, st = n < cur ? "background:#d1fae5;color:#065f46;" : n === cur ? "background:#0d6b57;color:#fff;font-weight:bold;" : "background:#f1f5f9;color:#94a3b8;";
     return '<div style="flex:1;min-width:0;text-align:center;padding:3px 1px;border-radius:4px;font-size:8.5px;line-height:1.25;' + st + '"><div style="font-size:10px;">' + (n < cur ? "✓" : KKD135_NUMS[i]) + '</div>' + t + '</div>';
   }).join("") + '</div>';
 }
-var KKD135_CUSTOMER_STEPS = ["写真送付", "日時確定", "住所入力", "当日・作業", "完了"];
+var KKD135_CUSTOMER_STEPS = ["写真送付", "受付", "住所入力", "当日・作業", "完了"];
 function kkd135CustomerBar(j, tab, photosDone) {
-  var cur = tab === "done" ? 5 : tab === "progress" ? 4 : (j.vendorChoice ? 3 : (photosDone ? 2 : 1));
-  return kkd135StepBar(KKD135_CUSTOMER_STEPS, cur);
+  if (j.declined) return kkd135StepBar(["受付不可"], 1);
+  return kkd135StepBar(KKD135_CUSTOMER_STEPS, kkd135Stage(j));
 }
-var KKD135_VENDOR_STEPS = ["写真・追加確認", "日時選択", "住所待ち", "当日連絡", "作業", "写真報告"];
+var KKD135_VENDOR_STEPS = ["写真待ち", "対応依頼", "住所待ち", "当日・作業", "完了"];
 function kkd135VendorBar(j, tab, photosDone, reviewDone) {
-  var cur = tab === "done" ? (j.photoReported ? 7 : 6) : tab === "progress" ? ((j.noticeAt || j.isStarted) ? 5 : 4) : (j.vendorChoice ? 3 : ((photosDone && reviewDone) ? 2 : 1));
-  return kkd135StepBar(KKD135_VENDOR_STEPS, cur);
+  return kkd135StepBar(KKD135_VENDOR_STEPS, kkd135Stage(j));
+}
+
+// ---- 業者：対応依頼への返事（◯＝第1希望の日時で受ける／✕＝受けられない）。押すと確認（はい／いいえ）→ GASへ保存 → 予定表示から消える ----
+var KKD135_RESP_ERRORS = { UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。", BUSY: "混み合っています。少し待って、もう一度お試しください。", CASE_COMPLETED: "この案件は、すでに完了しています。", ALREADY_ACCEPTED: "この案件は、すでに、対応可能で返事済みです。", NOT_FOUND: "案件が見つかりません。画面を開き直してください。" };
+function kkd135AskChoice(message, options, onPick) {
+  var old = document.getElementById("kkd135Ask"); if (old) old.remove();
+  var wrap = document.createElement("div"); wrap.id = "kkd135Ask";
+  wrap.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;";
+  var box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:12px;padding:16px;max-width:320px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px;line-height:1.6;";
+  var msg = document.createElement("div"); msg.innerHTML = message; box.appendChild(msg);
+  var col = document.createElement("div"); col.style.cssText = "display:flex;flex-direction:column;gap:8px;margin-top:12px;";
+  options.forEach(function (o) { var b = document.createElement("button"); b.type = "button"; b.className = "btn primary"; b.textContent = o.label; b.onclick = function () { wrap.remove(); onPick(o.value); }; col.appendChild(b); });
+  var c = document.createElement("button"); c.type = "button"; c.className = "btn secondary"; c.textContent = "いいえ（やめる）"; c.onclick = function () { wrap.remove(); }; col.appendChild(c);
+  box.appendChild(col); wrap.appendChild(box); document.body.appendChild(wrap);
+}
+// 問いかけは、日程を決めつけない。第2希望がある案件の◯は、対応できる希望日を選ぶ（第2希望なら対応できる、が、あり得るため）
+function kkd135RespondAsk(id, accept) {
+  var j = getJob(id); if (!j) return;
+  var head = "案件 " + esc(id) + "<br>";
+  if (!accept) return kkd135AskYesNo(head + "対応<b>不可</b>で、よろしいですか？", function () { kkd135Respond(id, false, 1); });
+  if (j.date2 && j.time2) return kkd135AskChoice(head + "対応<b>可能</b>な希望日を選んでください。", [
+    { label: "第1希望：" + fmtDateShort(j.date1) + " " + fmtSlotStart(j.time1), value: 1 },
+    { label: "第2希望：" + fmtDateShort(j.date2) + " " + fmtSlotStart(j.time2), value: 2 }], function (c) { kkd135Respond(id, true, c); });
+  kkd135AskYesNo(head + "対応<b>可能</b>で、よろしいですか？", function () { kkd135Respond(id, true, 1); });
+}
+function kkd135Respond(id, accept, choice) {
+  var j = getJob(id), be = window.KKD135_BACKEND;
+  if (!j) return;
+  if (!j.gas || !be || typeof be.respondRequest !== "function") return kkd135RespondLocal(id, accept, choice);
+  if (window.__kkd135Resp) return;
+  window.__kkd135Resp = true;
+  be.respondRequest(id, accept, choice).then(function (r) {
+    window.__kkd135Resp = false;
+    if (r && r.status === "OK") return kkd135RespondLocal(id, accept, choice, r);
+    alert((r && KKD135_RESP_ERRORS[r.errorCode]) || "返事を保存できませんでした。通信を確かめて、もう一度お試しください。");
+  }, function () { window.__kkd135Resp = false; alert("返事を保存できませんでした。通信を確かめて、もう一度お試しください。"); });
+}
+function kkd135RespondLocal(id, accept, choice, r) {
+  var j = getJob(id); if (!j) return;
+  var passedOn = !!(r && r.passedOn);
+  if (accept) {
+    var two = choice === 2 && j.date2 && j.time2;
+    j.vendorChoice = two ? "第2希望" : "第1希望"; j.scheduledDate = two ? j.date2 : j.date1; j.scheduledTime = two ? j.time2 : j.time1;
+    addChat("cChat", "【受付結果】ご依頼を受け付けました。訪問予定日：<b>" + fmtDateShort(j.scheduledDate) + " " + fmtSlotStart(j.scheduledTime) + "</b>（案件 " + j.id + "）。詳細住所のご入力をお願いします。");
+  } else if (j.gas) { // 次の業者へ回った、または、受付不可（この業者の画面からは、どちらも消える）
+    var k = state.jobs.indexOf(j); if (k >= 0) state.jobs.splice(k, 1);
+  } else {
+    j.declined = true;
+    addChat("cChat", "【受付不可】申し訳ございません。ご希望の日時では、ご依頼をお受けできませんでした（案件 " + j.id + "）。別の日時で、あらためてご予約ください。");
+  }
+  log((accept ? "VENDOR_ACCEPT " : "VENDOR_DECLINE ") + id);
+  renderVendorHome(); renderSide(); saveAndSync();
+  showVendorActionNotice(accept ? "<b>対応可能</b>でお返事しました（案件 " + id + "）。「③ 住所待ち」に移りました。" : "<b>対応不可</b>でお返事しました（案件 " + id + "）。" + (passedOn ? "次の業者へ回します。" : ""));
 }
 
 // ---- リッチメニュー：画面を開いたときは、閉じておく（下の帯をタップで開く） ----
@@ -3268,7 +3323,7 @@ function renderSide(){
   const cStatus=document.getElementById("cStatus");
   if(cStatus)cStatus.textContent=active?managementStatus(active):"未予約";
   const vStatus=document.getElementById("vStatus");
-  if(vStatus)vStatus.textContent=s.filter(j=>!j.completed).length+"件";
+  if(vStatus)vStatus.textContent=s.filter(j=>!j.completed&&!j.declined&&!!j.vendorChoice).length+"件";
   renderManagement();
 }
 function resetMock(){
@@ -3317,7 +3372,7 @@ function switchRole(role) {
     document.getElementById('btnRoleCustomer')?.classList.add('active');
     if (label) label.textContent = '📱 [顧客] 画面:';
     document.title = "綺麗快適デザイン（KKD）- ご予約・ご依頼";
-    if (state.customerTab && state.customerTab !== 'before') {
+    if (state.customerTab && kkd135TabNo(state.customerTab) !== 1) {
       openCustomerCases(state.customerTab);
     } else {
       renderCustomerServiceCatalog();
@@ -3483,6 +3538,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=ce24090f88"></script>
+<script src="../assets/app_boot.js?v=1862d033b7"></script>
 </body>
 </html>
