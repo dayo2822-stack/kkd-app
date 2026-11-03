@@ -455,14 +455,14 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "f86502ba2e", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "9139ff0e5a", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/pricing_source.js?v=f86502ba2e"></script>
-<script src="../assets/photo_report_logic.js?v=f86502ba2e"></script>
-<script src="../assets/photo_report_ui.js?v=f86502ba2e"></script>
-<script src="../assets/gas_backend.js?v=f86502ba2e"></script>
-<script src="../assets/jobs_from_gas.js?v=f86502ba2e"></script>
+<script src="../assets/pricing_source.js?v=9139ff0e5a"></script>
+<script src="../assets/photo_report_logic.js?v=9139ff0e5a"></script>
+<script src="../assets/photo_report_ui.js?v=9139ff0e5a"></script>
+<script src="../assets/gas_backend.js?v=9139ff0e5a"></script>
+<script src="../assets/jobs_from_gas.js?v=9139ff0e5a"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -3186,6 +3186,40 @@ function kkd135ScrollChats() { Array.prototype.forEach.call(document.querySelect
   toggleVendorJob = function (id) { tv.apply(this, arguments); try { if (window.KKD135_ENV && KKD135_ENV.role === "vendor") after("vendor"); } catch (e) {} };
 })();
 
+// ---- 一覧の上部タブ（訪問前／対応中／完了後）：下へスクロールして見えなくなっても、少し上へ戻すと、すぐに、上からスライドして出る（顧客・業者共通） ----
+(function () {
+  var bar = null, last = new WeakMap(), upAcc = 0;
+  function ensure() {
+    if (bar) return bar;
+    var st = document.createElement("style");
+    st.textContent = "#kkdFloatTabs{position:fixed;z-index:9000;box-sizing:border-box;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.2);padding:6px 8px;border-radius:0 0 12px 12px;transform:translateY(-115%);transition:transform .2s ease;pointer-events:none;}#kkdFloatTabs.on{transform:none;pointer-events:auto;}";
+    document.head.appendChild(st);
+    bar = document.createElement("div"); bar.id = "kkdFloatTabs";
+    bar.addEventListener("click", function () { bar.classList.remove("on"); }); // タブを押したら、閉じる（一覧が描き直される）
+    document.body.appendChild(bar);
+    return bar;
+  }
+  function chatEl() { var b = document.body.classList; return document.getElementById(b.contains("role-vendor") ? "vChat" : (b.contains("role-customer") ? "cChat" : "")); }
+  function hide() { if (bar) bar.classList.remove("on"); }
+  function onScroll(e) {
+    try {
+      var c = chatEl(); if (!c) return hide();
+      var t = c.querySelector(".tabs"); if (!t) return hide();
+      var tgt = e.target === document || e.target === document.documentElement ? window : e.target;
+      var y = tgt === window ? window.scrollY : tgt.scrollTop, prev = last.has(tgt) ? last.get(tgt) : y, dy = y - prev;
+      last.set(tgt, y);
+      var cr = c.getBoundingClientRect(), ref = Math.max(0, cr.top), r = t.getBoundingClientRect();
+      if (r.bottom >= ref) { upAcc = 0; return hide(); } // 元のタブが見えている間は、出さない
+      if (dy < 0) { upAcc += -dy; if (upAcc >= 6) { // 少し（6px）上へ戻しただけで、出す
+        var b = ensure(); b.innerHTML = ""; b.appendChild(t.cloneNode(true));
+        b.style.top = ref + "px"; b.style.left = Math.max(0, cr.left) + "px"; b.style.width = Math.min(cr.width, window.innerWidth) + "px";
+        b.classList.add("on");
+      } } else if (dy > 0) { upAcc = 0; hide(); } // 下へ進むときは、しまう
+    } catch (x) {}
+  }
+  window.addEventListener("scroll", onScroll, true);
+})();
+
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
 function openPhotoReport(id){
   const j = getJob(id); if(!j) return;
@@ -3723,6 +3757,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=f86502ba2e"></script>
+<script src="../assets/app_boot.js?v=9139ff0e5a"></script>
 </body>
 </html>
