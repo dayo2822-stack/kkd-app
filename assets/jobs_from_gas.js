@@ -45,6 +45,13 @@ var KKD135Jobs = (function () {
     return '第1希望';
   }
 
+  // GASのメッセージ（{id, from, text, at}）→ 画面の形。時刻は「月/日 時:分」
+  function messagesOf(list) {
+    return (Array.isArray(list) ? list : []).map(function (m) {
+      var at = String(m.at || ''), mm = /^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})/.exec(at);
+      return { id: String(m.id || ''), sender: m.from === 'vendor' ? 'vendor' : 'customer', name: m.from === 'vendor' ? '担当業者' : 'お客様', text: String(m.text || ''), time: mm ? (Number(mm[1]) + '/' + Number(mm[2]) + ' ' + mm[3]) : at };
+    });
+  }
   function isWorking(status) { return String(status || '').toLowerCase() === 'working'; }
 
   // GASの1件 → 画面の案件
@@ -70,7 +77,7 @@ var KKD135Jobs = (function () {
       todayTime: '', noticeEta: String(r.noticeTime || ''), noticeAt: String(r.noticeAt || ''), scheduledDate: String(r.date || ''), scheduledTime: String(r.startTime || ''),
       completed: done, completedDate: done ? String(r.date || '') : '', completedAt: done ? String(r.completedAt || '') : '', isStarted: isWorking(r.status) || done, startedAt: String(r.startedAt || ''),
       completionPhotos: { before: reported, after: reported }, photoReported: reported,
-      rating: 0, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: []
+      rating: 0, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: messagesOf(r.messages), unread: Number(r.unread) || 0
     };
   }
 
@@ -148,7 +155,7 @@ var KKD135Jobs = (function () {
       todayTime: '', noticeEta: String(b.noticeTime || ''), noticeAt: String(b.noticeAt || ''), scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
       reviewUrl: String(b.reviewUrl || ''), invoiceNo: String(b.invoiceNo || ''), installers: Array.isArray(b.installers) ? b.installers.map(String) : [],
       declined: b.declined === true, completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
-      rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: [], isStarted: isWorking(b.status) || done, startedAt: String(b.startedAt || '')
+      rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: messagesOf(b.messages), unread: Number(b.unread) || 0, isStarted: isWorking(b.status) || done, startedAt: String(b.startedAt || '')
     };
   }
   function loadCustomer(backend, state, render, names, opts) {

@@ -91,6 +91,11 @@ var KKD135Gas = (function () {
       sendTodayNotice: function (caseId, time) { return vendor({ action: 'sendTodayNotice', caseId: caseId, time: time }); },
       completeWork: function (caseId) { return vendor({ action: 'completeWork', caseId: caseId }); },
       confirmVisit: function (caseId, choice) { return vendor({ action: 'confirmVisit', caseId: caseId, choice: choice }); },
+      // --- メッセージ（顧客と担当業者。再連絡用） ---
+      vendorSendMessage: function (caseId, text, requestId) { return vendor({ action: 'vendorSendMessage', caseId: caseId, text: text, requestId: requestId }); },
+      customerSendMessage: function (caseId, text, requestId) { return vendor({ action: 'customerSendMessage', caseId: caseId, text: text, requestId: requestId }); },
+      vendorMarkRead: function (caseId) { return vendor({ action: 'vendorMarkRead', caseId: caseId }); },
+      customerMarkRead: function (caseId) { return vendor({ action: 'customerMarkRead', caseId: caseId }); },
       checkPhotos: function (caseId) { return vendor({ action: 'checkPhotos', caseId: caseId }); },
       respondRequest: function (caseId, accept, choice) { return vendor({ action: 'respondRequest', caseId: caseId, accept: accept === true, choice: choice === 2 ? 2 : 1 }); },
       // 試験・診断用
