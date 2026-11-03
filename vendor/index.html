@@ -455,14 +455,14 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ff33c1aae5", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ebaf77100f", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/pricing_source.js?v=ff33c1aae5"></script>
-<script src="../assets/photo_report_logic.js?v=ff33c1aae5"></script>
-<script src="../assets/photo_report_ui.js?v=ff33c1aae5"></script>
-<script src="../assets/gas_backend.js?v=ff33c1aae5"></script>
-<script src="../assets/jobs_from_gas.js?v=ff33c1aae5"></script>
+<script src="../assets/pricing_source.js?v=ebaf77100f"></script>
+<script src="../assets/photo_report_logic.js?v=ebaf77100f"></script>
+<script src="../assets/photo_report_ui.js?v=ebaf77100f"></script>
+<script src="../assets/gas_backend.js?v=ebaf77100f"></script>
+<script src="../assets/jobs_from_gas.js?v=ebaf77100f"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -3010,7 +3010,7 @@ function kkd135WorkMinsFor(units, unitOptions, options) {
   var extra = 0;
   Object.keys(unitOptions || {}).forEach(function (k) { extra += kkd135OptMins(unitOptions[k]); });
   extra += kkd135OptMins(options);
-  return KKD135PRICE.workMinutes(Number(units) || 1, extra);
+  return KKD135PRICE.workMinutes(Number(units) || 1, extra, window.KKD135_PRICING && KKD135_PRICING.workSteps);
 }
 
 // ---- 予定表示：カレンダーの日付を押すと、その日の営業時間内（08:00〜20:00）の予定を、時間のブロックで見せる（対応可否の判断用） ----
@@ -3600,6 +3600,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=ff33c1aae5"></script>
+<script src="../assets/app_boot.js?v=ebaf77100f"></script>
 </body>
 </html>

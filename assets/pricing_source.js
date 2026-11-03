@@ -17,13 +17,48 @@ var KKD135PRICE = (function () {
     return NaN;
   }
 
+  // 作業時間の工程の行 → 工程の一覧。行が無ければ steps＝null（内蔵の値を使う）。壊れていれば steps＝null と errors（内蔵の値に戻す。価格には影響しない）
+  //   mins＝1台あたりの分（単位「台」）／固定の分（単位「回」）、off＝2台以上の割引（「1/3」など。空欄＝割引なし。単位「回」の行には、書けない）
+  function parseWork(rows) {
+    var errors = [], steps = [], seen = {};
+    if (!rows.length) return { steps: null, errors: [] };
+    rows.forEach(function (r) {
+      var code = String(r.code).trim();
+      if (!/^WORK_[A-Z0-9_]{1,40}$/.test(code)) { errors.push({ code: code, reason: 'CODE_INVALID' }); return; }
+      if (seen[code]) { errors.push({ code: code, reason: 'DUPLICATE' }); return; }
+      seen[code] = true;
+      var raw = (typeof r.mins === 'string') ? r.mins.replace(/[,\s]/g, '') : r.mins;
+      var mins = (raw === '' || raw === undefined || raw === null) ? NaN : Number(raw);
+      if (!(isFinite(mins) && mins >= 0 && Math.floor(mins) === mins)) { errors.push({ code: code, reason: 'MINS_INVALID' }); return; }
+      var unit = (typeof r.unit === 'string') ? r.unit.trim() : '';
+      var offRaw = (r.off === undefined || r.off === null) ? '' : String(r.off).replace(/[\s　]/g, '');
+      var name = (typeof r.name === 'string' && r.name.trim()) ? r.name.trim() : code;
+      if (unit === '回') {
+        if (offRaw !== '') { errors.push({ code: code, reason: 'OFF_NOT_ALLOWED' }); return; }
+        steps.push({ name: name, fixed: mins });
+      } else if (unit === '台') {
+        var off = null;
+        if (offRaw !== '') {
+          var m = /^(\d{1,2})\/(\d{1,2})$/.exec(offRaw);
+          var dm = /^\d{4}-(\d{2})-(\d{2})/.exec(offRaw); // シートが「1/3」を日付（1月3日）に変えた場合：月＝分子、日＝分母として読む
+          if (!m && dm) m = [offRaw, String(Number(dm[1])), String(Number(dm[2]))];
+          if (!m || !(Number(m[1]) > 0 && Number(m[1]) < Number(m[2]))) { errors.push({ code: code, reason: 'OFF_INVALID' }); return; }
+          off = [Number(m[1]), Number(m[2])];
+        }
+        steps.push({ name: name, perUnit: mins, off: off });
+      } else { errors.push({ code: code, reason: 'UNIT_INVALID' }); }
+    });
+    return errors.length ? { steps: null, errors: errors } : { steps: steps, errors: [] };
+  }
+
   // rows：[{code, amount, name?, unit?}]（code＝項目コード、amount＝金額または台数、unit＝「台」か「件」。省略は「台」）。同じ項目コードが2行あれば、あいまいなのでエラー
   function fromRows(rows) {
-    var errors = [], seen = {}, got = {}, ignored = [], options = [], freeOptions = [], unitMins = 0;
+    var errors = [], seen = {}, got = {}, ignored = [], options = [], freeOptions = [], unitMins = 0, workRows = [];
     if (!Array.isArray(rows)) return { ok: false, errors: [{ code: '', reason: 'ROWS_INVALID' }] };
     rows.forEach(function (r) {
       var code = r && typeof r.code === 'string' ? r.code.trim() : '';
       if (!code) return;
+      if (code.indexOf('WORK_') === 0) { workRows.push(r); return; } // 作業時間の工程の行：価格の検証とは別に処理する（壊れても、価格は止めない）
       var isOpt = code.indexOf('OPT_') === 0, isFree = code.indexOf('FREE_') === 0;
       var known = code === 'UNIT_PRICE' || code === 'MIN_UNITS' || code === 'MAX_UNITS' || FEE_CODES[code] || isOpt || isFree;
       if (!known) { ignored.push(code); return; } // 旧のサンプル行など。価格には使わない
@@ -53,7 +88,8 @@ var KKD135PRICE = (function () {
     if (errors.length) return { ok: false, errors: errors };
     var extraFees = { travelFee: 0, parkingFee: 0 };
     Object.keys(FEE_CODES).forEach(function (c) { if (got[c] !== undefined) extraFees[FEE_CODES[c]] = got[c]; });
-    return { ok: true, master: { unitPrice: got.UNIT_PRICE, unitMins: unitMins, minUnits: got.MIN_UNITS, maxUnits: got.MAX_UNITS, options: options, freeOptions: freeOptions, extraFees: extraFees }, ignored: ignored };
+    var work = parseWork(workRows);
+    return { ok: true, master: { unitPrice: got.UNIT_PRICE, unitMins: unitMins, minUnits: got.MIN_UNITS, maxUnits: got.MAX_UNITS, options: options, freeOptions: freeOptions, extraFees: extraFees, workSteps: work.steps, workErrors: work.errors }, ignored: ignored };
   }
 
   // 金額の計算（税込の価格を足すだけ）。input：{units, selections:{OPT_コード: 数}}。
@@ -105,20 +141,20 @@ var KKD135PRICE = (function () {
     { name: '取付', perUnit: 60, off: [1, 3] }
   ];
   // units：台数（1以上の整数。そうでなければ0）。extraMins：オプションの所要時間の合計（料金マスタの所要時間(分)。未設定は0）
-  function workMinutes(units, extraMins) {
+  function workMinutes(units, extraMins, steps) {
     var n = units;
     if (typeof n !== 'number' || !isFinite(n) || n < 1 || Math.floor(n) !== n) return 0;
     var total = 0;
-    WORK_STEPS.forEach(function (st) {
-      if (st.fixed) { total += st.fixed; return; }
+    (Array.isArray(steps) && steps.length ? steps : WORK_STEPS).forEach(function (st) {
+      if (st.fixed !== undefined) { total += st.fixed; return; }
       var base = st.perUnit * n;
-      total += (n >= 2) ? base - base * st.off[0] / st.off[1] : base;
+      total += (n >= 2 && st.off) ? base - base * st.off[0] / st.off[1] : base;
     });
     var ex = (typeof extraMins === 'number' && isFinite(extraMins) && extraMins > 0) ? extraMins : 0;
     return Math.round(total + ex);
   }
   // 予約枠として押さえる時間（分）：1時間単位に切り上げる（予約の枠が、1時間単位のため）
-  function blockMinutes(units, extraMins) { var m = workMinutes(units, extraMins); return Math.ceil(m / 60) * 60; }
+  function blockMinutes(units, extraMins, steps) { var m = workMinutes(units, extraMins, steps); return Math.ceil(m / 60) * 60; }
 
   return { fromRows: fromRows, calc: calc, diff: diff, REQUIRED: REQUIRED, workMinutes: workMinutes, blockMinutes: blockMinutes, WORK_STEPS: WORK_STEPS };
 })();
