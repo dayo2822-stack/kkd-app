@@ -455,13 +455,14 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "55a1b56a34", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "vendor", "liffId": "2012309379-WwouO2IK", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "ff33c1aae5", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/photo_report_logic.js?v=55a1b56a34"></script>
-<script src="../assets/photo_report_ui.js?v=55a1b56a34"></script>
-<script src="../assets/gas_backend.js?v=55a1b56a34"></script>
-<script src="../assets/jobs_from_gas.js?v=55a1b56a34"></script>
+<script src="../assets/pricing_source.js?v=ff33c1aae5"></script>
+<script src="../assets/photo_report_logic.js?v=ff33c1aae5"></script>
+<script src="../assets/photo_report_ui.js?v=ff33c1aae5"></script>
+<script src="../assets/gas_backend.js?v=ff33c1aae5"></script>
+<script src="../assets/jobs_from_gas.js?v=ff33c1aae5"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1318,21 +1319,21 @@ function priceSummary(){
   const p=PRICE[state.booking.service]||{base:0,mins:60,unit:"式"};
   let optionCount=0;
   Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
-  const mins=p.mins*state.booking.units + optionCount*20;
+  const mins=kkd135WorkMinsFor(state.booking.units, state.booking.unitOptions);
   let optTotal=0; Object.values(state.booking.unitOptions).forEach(a=>a.forEach(n=>{ optTotal+=optPriceByName(n); }));
   const price=p.base*state.booking.units + optTotal;
   return `<div class="summary"><b>自動見積・工数（モック）</b><br>作業時間目安：約${mins}分<br>見積金額目安：${price.toLocaleString()}円〜<br><span class="mini">実装時はサービス／条件／オプション別マスタ単価を参照して算出。</span></div>`;
 }
 function priceSummaryMinutes(){
   const p=PRICE[state.booking.service]||{mins:60};let optionCount=0;Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
-  return p.mins*state.booking.units+optionCount*20;
+  return kkd135WorkMinsFor(state.booking.units, state.booking.unitOptions);
 }
 function setUnits(n){state.booking.units=Math.max(kkd135MinUnits(), Math.min(kkd135MaxUnits(), Number(n)||kkd135MinUnits()));for(const k of Object.keys(state.booking.unitOptions)){if(Number(k)>state.booking.units)delete state.booking.unitOptions[k]}renderCBody();}
 function toggleUnitOption(i,o,on){state.booking.unitOptions[i]=state.booking.unitOptions[i]||[];state.booking.unitOptions[i]=on?[...new Set([...state.booking.unitOptions[i],o])]:state.booking.unitOptions[i].filter(x=>x!==o);renderCBody();}
 function durationHoursForBooking(){
   const p=PRICE[state.booking.service]||{mins:60};
   let optionCount=0;Object.values(state.booking.unitOptions).forEach(a=>optionCount+=a.length);
-  return Math.max(1,Math.ceil((p.mins*state.booking.units+optionCount*20)/60));
+  return Math.max(1,Math.ceil(kkd135WorkMinsFor(state.booking.units, state.booking.unitOptions)/60));
 }
 function durationHoursForJob(j){return Math.max(1,Math.ceil(calcMinutes(j)/60));}
 function timeIndex(t){var i=TIMES.indexOf(t); if(i>=0||!t) return i; var m=String(t).match(/^(\d{1,2}):(\d{2})/); if(!m) return -1; var key=("0"+m[1]).slice(-2)+":"+m[2]; return TIMES.findIndex(function(x){return x.indexOf(key)===0;});}
@@ -1978,7 +1979,7 @@ function vendorHomeDate(ds){
 function renderVendorHome(){
   clearChat("vChat");document.getElementById("vView").textContent="予定表示";
   const keys=Object.keys(state.vendorAvailable).sort();
-  let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button> <button class="btn secondary" onclick="openVendorProfile()">⚙ 登録情報</button></div></div>`;
+  let html=`<div class="job"><b>業者カレンダー</b><div class="meta">空き枠と予約案件を同一カレンダーで視認。予約済みの作業時間分は顧客側の候補から自動的に除外。</div>${calendarHTML("vendorHome")}<div style="margin-top:10px"><button class="btn primary" onclick="openAvailability()">🗓 空き枠報告</button> <button class="btn secondary" onclick="openVendorProfile()">⚙ 登録情報</button></div><div id="vDayPanel" style="margin-top:8px;"></div></div>`;
   const bookings=state.jobs.filter(j=>kkd135Stage(j)===2&&!j.claimed&&!j.declined);
   if(bookings.length) html+=`<div class="notice warn" style="margin:6px 0;"><b>対応依頼 ${bookings.length}件</b>　日時と場所を見て、◯か✕を押して、お返事ください（返事の後、この表示から消えます）</div>`+bookings.map(j=>`<div class="job">
       <b>${esc(j.id)}</b> <span class="badge warn">対応依頼</span>
@@ -2058,7 +2059,7 @@ function openVendorCases(tabArg="before", resetAccordion=false){
       if(j.vendorChoice && !j.customerDetailed){
         statusBadge = '<span class="badge ok">住所待ち</span>';
       } else if(isPhotosDone){
-        statusBadge = '<span class="badge warn">訪問予定を連絡</span>';
+        statusBadge = '<span class="badge warn">' + (j.photosChecked ? '日時を連絡' : '写真確認') + '</span>';
       } else {
         statusBadge = isPhotosDone ? '<span class="badge ok">写真受領済</span>' : '<span class="badge warn">写真待ち</span>';
       }
@@ -2085,19 +2086,14 @@ function openVendorCases(tabArg="before", resetAccordion=false){
           ${renderPriceBreakdown(j)}
         `;
       } else {
-        // ② ◯（対応可能）で受けた依頼：第1／第2希望日のどちらで訪問するかを選び、お客様へ訪問予定日を連絡する。顧客の写真は、その下（参考）
+        // ◯（対応可能）で受けた依頼。① 写真確認 → ② 日時を選んで、お客様へ訪問予定日を連絡（1つずつ）
         detailHtml = `
           <div class="meta" style="margin-top:4px;">
             第1希望：${fmtDate(j.date1)} ${esc(j.time1)}
             ${j.date2&&j.time2?`<br>第2希望：${fmtDate(j.date2)} ${esc(j.time2)}`:""}
           </div>
           ${renderPriceBreakdown(j)}
-          <div class="notice warn" style="margin-top:6px;">② 訪問する日を選んで、お客様へ訪問予定日を連絡してください。</div>
-          <div class="actions" style="margin-top:6px;flex-direction:column;align-items:stretch;gap:6px;">
-            <button class="btn primary" onclick="kkd135ConfirmDateAsk('${j.id}',1)">第1希望で連絡：${fmtDateShort(j.date1)} ${fmtSlotStart(j.time1)}</button>
-            ${j.date2&&j.time2?`<button class="btn primary" onclick="kkd135ConfirmDateAsk('${j.id}',2)">第2希望で連絡：${fmtDateShort(j.date2)} ${fmtSlotStart(j.time2)}</button>`:""}
-          </div>
-          ${renderBookingPhotoButtons(j)}
+          ${!j.photosChecked ? `<div class="notice warn" style="margin-top:6px;">① お客様の写真を開いて、確認してください。</div>${renderBookingPhotoButtons(j)}<div class="actions" style="margin-top:6px;"><button class="btn primary" onclick="kkd135CheckPhotos('${j.id}')">写真確認！</button></div>` : `<div class="notice warn" style="margin-top:6px;">② 訪問する日を選んで、お客様へ訪問予定日を連絡してください。</div><div class="actions" style="margin-top:6px;flex-direction:column;align-items:stretch;gap:6px;"><button class="btn primary" onclick="kkd135ConfirmDateAsk('${j.id}',1)">第1希望で連絡：${fmtDateShort(j.date1)} ${fmtSlotStart(j.time1)}</button>${j.date2&&j.time2?`<button class="btn primary" onclick="kkd135ConfirmDateAsk('${j.id}',2)">第2希望で連絡：${fmtDateShort(j.date2)} ${fmtSlotStart(j.time2)}</button>`:""}</div>`}
         `;
       }
     }else if(tab==="progress"){
@@ -2547,9 +2543,9 @@ function kkd135CustomerBar(j, tab, photosDone) {
   if (j.declined) return kkd135StepBar(["受付不可"], 1);
   return kkd135StepBar(KKD135_CUSTOMER_STEPS, kkd135Stage(j));
 }
-var KKD135_VENDOR_STEPS = ["写真待ち", "訪問予定", "住所待ち", "当日・作業", "完了"];
-// 業者の工程：顧客の写真が揃い、◯（対応可能）を返すまでは、まだ手順が届いていない（0＝どの工程も「今」にしない）
-function kkd135VendorStage(j) { var s = kkd135Stage(j); return (s === 2 && !j.claimed) ? 0 : s; }
+var KKD135_VENDOR_STEPS = ["写真確認", "日時連絡", "住所待ち", "当日・作業", "完了"];
+// 業者の工程：予定表示で◯（対応可能）を返すまでは、まだ手順が届いていない（0＝どの工程も「今」にしない）。◯の後：① 写真確認 → ② 日時を選んで、顧客へ連絡
+function kkd135VendorStage(j) { var s = kkd135Stage(j); return s === 2 ? (!j.claimed ? 0 : (j.photosChecked ? 2 : 1)) : s; }
 function kkd135VendorBar(j, tab, photosDone, reviewDone) {
   return kkd135StepBar(KKD135_VENDOR_STEPS, kkd135VendorStage(j));
 }
@@ -2591,6 +2587,19 @@ function kkd135RespondLocal(id, accept, r) {
   log((accept ? "VENDOR_ACCEPT " : "VENDOR_DECLINE ") + id);
   renderVendorHome(); renderSide(); saveAndSync();
   showVendorActionNotice(accept ? "<b>対応可能</b>でお返事しました（案件 " + id + "）。「訪問前」で、訪問する日を選んで、お客様へ訪問予定日を連絡してください。" : "<b>対応不可</b>でお返事しました（案件 " + id + "）。" + (passedOn ? "次の業者へ回します。" : ""));
+}
+// ① 写真確認：顧客の写真を開いて確認し、［写真確認！］を押す（GASに保存）。この後に、② 日時の連絡ができる
+function kkd135CheckPhotos(id) {
+  var j = getJob(id), be = window.KKD135_BACKEND; if (!j) return;
+  function done() { j.photosChecked = true; saveAndSync(); openVendorCases("before", false); var b = document.getElementById("vjob-body-" + id); if (b) b.style.display = "block"; }
+  if (!j.gas || !be || typeof be.checkPhotos !== "function") return done();
+  if (window.__kkd135Chk) return;
+  window.__kkd135Chk = true;
+  be.checkPhotos(id).then(function (r) {
+    window.__kkd135Chk = false;
+    if (r && r.status === "OK") return done();
+    alert((r && KKD135_RESP_ERRORS[r.errorCode]) || "写真確認を保存できませんでした。通信を確かめて、もう一度お試しください。");
+  }, function () { window.__kkd135Chk = false; alert("写真確認を保存できませんでした。通信を確かめて、もう一度お試しください。"); });
 }
 // ② 訪問予定日の連絡：第1／第2希望日のどちらで訪問するかを選び、確認（はい／いいえ）→ GASへ保存（日時を確定）→ お客様へLINE通知
 function kkd135ConfirmDateAsk(id, which) {
@@ -2671,7 +2680,7 @@ function kkd135RefreshBusy(done) {
     if (r && r.status === "OK" && Array.isArray(r.slots)) {
       state.busyJobs = r.slots.map(function (s) {
         var names = []; for (var i = 0; i < (Number(s.options) || 0); i++) names.push("x");
-        return { id: "BUSY", service: "エアコン脱着分解クリーニング", units: s.units, unitOptions: names.length ? { 1: names } : {}, options: [], date1: s.date, time1: s.time, date2: "", time2: "", vendorChoice: "", completed: false, vendorId: s.vendorId || "" };
+        return { id: "BUSY", service: "エアコン脱着分解クリーニング", units: s.units, unitOptions: names.length ? { 1: names } : {}, options: [], date1: s.date, time1: s.time, date2: "", time2: "", vendorChoice: "", completed: false, vendorId: s.vendorId || "", workMins: Number(s.mins) || 0 };
       });
     }
     if (done) done();
@@ -2991,6 +3000,69 @@ function registerVendorAvailability(continueMode) {
   }, function () { window.__kkd135Avail = false; alert("保存できませんでした。通信を確かめて、もう一度お試しください。"); });
 }
 
+// ---- 作業時間（分）：計算式は pricing_source.js の KKD135PRICE.workMinutes（PM 2026-11-03）。オプションの所要時間は、料金マスタの値（未設定は0） ----
+function kkd135OptMins(names) {
+  var o = (window.KKD135_PRICING && KKD135_PRICING.options) || [], m = 0;
+  (Array.isArray(names) ? names : []).forEach(function (n) { var x = o.filter(function (q) { return q.name === n; })[0]; if (x) m += Number(x.mins) || 0; });
+  return m;
+}
+function kkd135WorkMinsFor(units, unitOptions, options) {
+  var extra = 0;
+  Object.keys(unitOptions || {}).forEach(function (k) { extra += kkd135OptMins(unitOptions[k]); });
+  extra += kkd135OptMins(options);
+  return KKD135PRICE.workMinutes(Number(units) || 1, extra);
+}
+
+// ---- 予定表示：カレンダーの日付を押すと、その日の営業時間内（08:00〜20:00）の予定を、時間のブロックで見せる（対応可否の判断用） ----
+//   濃いブロック＝確定した案件／点線のブロック＝依頼（日時は、まだ確定していない。第1・第2希望）／薄い緑の帯＝報告済みの空き枠
+function kkd135StartMin(t) { var m = /^(\d{1,2}):(\d{2})/.exec(String(t || "")); return m ? Number(m[1]) * 60 + Number(m[2]) : -1; }
+function kkd135DayItems(ds) {
+  var out = [];
+  state.jobs.forEach(function (j) {
+    if (j.completed || j.declined) return;
+    if (j.vendorChoice) {
+      if (j.scheduledDate === ds) out.push({ id: j.id, units: j.units, start: kkd135StartMin(j.scheduledTime), mins: Math.ceil(calcMinutes(j) / 60) * 60, kind: "fixed" });
+      return;
+    }
+    if (kkd135Stage(j) < 2) return; // 写真が揃うまでは、依頼は届いていない
+    if (j.date1 === ds) out.push({ id: j.id, units: j.units, start: kkd135StartMin(j.time1), mins: Math.ceil(calcMinutes(j) / 60) * 60, kind: "hope", note: "第1希望" });
+    if (j.date2 === ds) out.push({ id: j.id, units: j.units, start: kkd135StartMin(j.time2), mins: Math.ceil(calcMinutes(j) / 60) * 60, kind: "hope", note: "第2希望" });
+  });
+  return out.filter(function (x) { return x.start >= 0; });
+}
+function kkd135DayPanel(ds) {
+  var H0 = 8 * 60, H1 = 20 * 60, PX = 34; // 1時間＝34px
+  var items = kkd135DayItems(ds).sort(function (a, b) { return a.start - b.start; });
+  // 重なるブロックは、横に並べる
+  var lanes = []; items.forEach(function (it) { var l = 0; while (lanes[l] !== undefined && lanes[l] > it.start) l++; it.lane = l; lanes[l] = Math.min(it.start + it.mins, H1); });
+  var nLanes = Math.max(1, lanes.length);
+  // 時間の重複は、認めない：重なる予定があれば、赤く示して知らせる（本来は、予約の段階で、起きない）
+  var overlap = false; items.forEach(function (a, i) { for (var k = 0; k < i; k++) { var b = items[k]; if (a.start < b.start + b.mins && b.start < a.start + a.mins) { a.over = true; b.over = true; overlap = true; } } });
+  var rows = "";
+  for (var h = 8; h < 20; h++) rows += '<div style="position:absolute;left:0;right:0;top:' + ((h - 8) * PX) + 'px;height:' + PX + 'px;border-top:1px solid #e2e8f0;"><span style="position:absolute;left:2px;top:1px;font-size:9px;color:#64748b;">' + ("0" + h).slice(-2) + ':00</span></div>';
+  var bands = ((state.vendorAvailable || {})[ds] || []).map(function (lb) {
+    var s0 = kkd135StartMin(lb); if (s0 < H0) return "";
+    return '<div style="position:absolute;left:38px;right:0;top:' + ((s0 - H0) / 60 * PX) + 'px;height:' + PX + 'px;background:#ecfdf5;"></div>';
+  }).join("");
+  var blocks = items.map(function (it) {
+    var top = (Math.max(it.start, H0) - H0) / 60 * PX, h = Math.max(18, (Math.min(it.start + it.mins, H1) - Math.max(it.start, H0)) / 60 * PX);
+    var w = (100 / nLanes), left = it.lane * w, fixed = it.kind === "fixed";
+    var st = fixed ? "background:#0d6b57;color:#fff;border:1px solid #0d6b57;" : "background:#fff7ed;color:#9a3412;border:1px dashed #ea580c;";
+    if (it.over) st += "outline:2px solid #dc2626;";
+    return '<div style="position:absolute;top:' + top + 'px;height:' + h + 'px;left:calc(38px + (100% - 38px) * ' + (left / 100) + ');width:calc((100% - 38px) * ' + (w / 100) + ' - 2px);box-sizing:border-box;border-radius:4px;padding:2px 4px;font-size:9.5px;line-height:1.3;overflow:hidden;' + st + '">' + esc(it.id) + '<br>' + (fixed ? "確定" : esc(it.note) + "・依頼") + '（' + it.units + '台）</div>';
+  }).join("");
+  var d = new Date(ds + "T00:00:00"), wk = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
+  return '<div class="job"><b>' + (d.getMonth() + 1) + '/' + d.getDate() + '(' + wk + ') の予定</b> <span class="mini">営業時間 08:00〜20:00</span>' +
+    '<div style="position:relative;height:' + (12 * PX) + 'px;margin-top:6px;border-bottom:1px solid #e2e8f0;">' + rows + bands + blocks + '</div>' +
+    (overlap ? '<div class="notice warn" style="margin-top:6px;color:#b91c1c;">⚠ 時間が重なっている予定があります（赤い枠）。重複は認めていないため、管理者へ連絡してください。</div>' : '') + '<div class="mini" style="margin-top:4px;">■ 確定　┅ 依頼（日時は未確定）　▒ 報告済みの空き枠' + (items.length ? '' : '　／　この日の予定は、ありません') + '</div></div>';
+}
+function vendorHomeDate(ds) {
+  var el = document.getElementById("vDayPanel");
+  if (!el) return;
+  el.innerHTML = kkd135DayPanel(ds);
+  try { el.scrollIntoView({ block: "nearest" }); } catch (e) {}
+}
+
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
 function openPhotoReport(id){
   const j = getJob(id); if(!j) return;
@@ -3144,19 +3216,12 @@ function vendorFacility(){clearChat("vChat");addChat("vChat","【第4フェー�
 function vendorOther(){clearChat("vChat");addChat("vChat","【第5フェーズ入口／協成・M＆A・補助金助成金利活用】ご相談箱・その他へ進む想定です。");}
 function calcMinutes(j){
   if(!j) return 60;
-  const p=PRICE[j.service]||{mins:60};
-  let optCount=0;
-  if(j.unitOptions && typeof j.unitOptions==="object"){
-    optCount+=Object.values(j.unitOptions).reduce((n,a)=>n+(Array.isArray(a)?a.length:0),0);
-  }
-  if(Array.isArray(j.options)){
-    optCount+=j.options.length;
-  }
+  if(j.workMins>0) return j.workMins; // 塞がっている枠：サーバーが計算した、押さえる分
   let addMins=0;
   if(Array.isArray(j.additionalItems) && j.additionalItems.length>0){
     addMins+=j.additionalItems.reduce((sum,item)=>sum+(Number(item.mins)||0),0);
   }
-  return (p.mins*(j.units||1))+(optCount*20)+addMins;
+  return kkd135WorkMinsFor(j.units||1, j.unitOptions, j.options)+addMins;
 }
 function calcPrice(j){
   if(!j) return 0;
@@ -3535,6 +3600,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=55a1b56a34"></script>
+<script src="../assets/app_boot.js?v=ff33c1aae5"></script>
 </body>
 </html>

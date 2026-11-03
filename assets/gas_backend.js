@@ -91,6 +91,7 @@ var KKD135Gas = (function () {
       sendTodayNotice: function (caseId, time) { return vendor({ action: 'sendTodayNotice', caseId: caseId, time: time }); },
       completeWork: function (caseId) { return vendor({ action: 'completeWork', caseId: caseId }); },
       confirmVisit: function (caseId, choice) { return vendor({ action: 'confirmVisit', caseId: caseId, choice: choice }); },
+      checkPhotos: function (caseId) { return vendor({ action: 'checkPhotos', caseId: caseId }); },
       respondRequest: function (caseId, accept, choice) { return vendor({ action: 'respondRequest', caseId: caseId, accept: accept === true, choice: choice === 2 ? 2 : 1 }); },
       // 試験・診断用
       _hasSession: function () { return !!session && Date.now() < expiresAt; }
