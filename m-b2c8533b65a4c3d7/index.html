@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>KKD 管理画面</title>
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--ink:#1f2a27;--mut:#64726d;--line:#dfe5e2;--ac:#1f6f5c;--hi:#b91c1c;--hib:#fde8e8;--mid:#b45309;--midb:#fef3c7;--lo:#475569;--lob:#e8edf2;--bar:#1f6f5c;--bar2:#a9c9bf}
+@media (prefers-color-scheme:dark){:root{--bg:#121816;--card:#1b2420;--ink:#e6eeea;--mut:#93a39c;--line:#2a3631;--ac:#5fc4a8;--hi:#fca5a5;--hib:#3a1d1d;--mid:#fcd34d;--midb:#3a2f12;--lo:#b6c2cc;--lob:#25303a;--bar:#5fc4a8;--bar2:#35524a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 system-ui,"Hiragino Sans","Yu Gothic UI",sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:12px 16px 40px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 12px}
+h1{font-size:18px;margin:0;flex:1}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--lob);color:var(--lo)}
+.badge.sample{background:var(--midb);color:var(--mid)}
+button{font:inherit;font-size:12px;padding:5px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+h2{font-size:14px;margin:0 0 8px}
+.sub{color:var(--mut);font-size:11.5px;margin:0 0 8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.kpi b{display:block;font-size:20px;line-height:1.3}
+.kpi span{font-size:11px;color:var(--mut)}
+.al{display:flex;gap:8px;align-items:flex-start;border-radius:8px;padding:7px 10px;margin:0 0 6px;font-size:13px}
+.al.high{background:var(--hib)}.al.mid{background:var(--midb)}.al.low{background:var(--lob)}
+.al .k{font-size:11px;font-weight:700;white-space:nowrap;padding-top:1px}
+.al.high .k{color:var(--hi)}.al.mid .k{color:var(--mid)}.al.low .k{color:var(--lo)}
+.al .id{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.ok{color:var(--ac);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600;font-size:11.5px}
+.scroll{overflow-x:auto}
+.bar{display:inline-block;height:8px;border-radius:4px;background:var(--bar);vertical-align:middle}
+.bar.p{background:var(--bar2)}
+.pos{color:var(--ac)}.neg{color:var(--hi)}
+.legend{font-size:11px;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:8px;border-radius:3px;margin:0 4px 0 8px;vertical-align:middle}
+.err{color:var(--hi)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>KKD 管理画面</h1>
+    <span class="badge" id="src"></span>
+    <span class="badge" id="upd"></span>
+    <button id="keybtn" type="button" style="display:none">合言葉</button>
+    <button id="reload" type="button">更新</button>
+  </header>
+  <div id="err" class="err"></div>
+
+  <section>
+    <h2>要注意の案件</h2>
+    <p class="sub" id="alsub"></p>
+    <div id="alerts"></div>
+  </section>
+
+  <section>
+    <h2>今月の状況</h2>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section>
+    <h2>月別の予実</h2>
+    <p class="sub">予定＝取消を除いた見積の合計／実績＝完了した案件の確定金額の合計。予約した月で集計。</p>
+    <div class="scroll"><table id="months"></table></div>
+    <div class="legend"><i style="background:var(--bar2)"></i>予定<i style="background:var(--bar)"></i>実績</div>
+  </section>
+
+  <section>
+    <h2>業者別</h2>
+    <div class="scroll"><table id="vendors"></table></div>
+  </section>
+
+  <section>
+    <h2>地域別（上位）</h2>
+    <div class="scroll"><table id="areas"></table></div>
+  </section>
+
+  <section>
+    <h2>案件の状態</h2>
+    <div class="scroll"><table id="status"></table></div>
+  </section>
+  <p class="sub">氏名・住所・電話は、この画面に出しません（案件番号・日付・金額・業者ID・市区町村まで）。</p>
+</div>
+<script>
+var HOSTED_URL="https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec";           // 公開ページでは、ビルド時にGASのURLが入る。ローカルでは、そのまま（PC内の管理画面プログラムから読む）
+var HOSTED=HOSTED_URL.indexOf('__')!==0;
+var P={overdueDays:7,pendingDays:3,unassignedDays:1,rescheduleWarn:2};
+var ST={pending:'日時未確定',unassigned:'担当未定',confirmed:'確定（訪問前）',working:'作業中',done:'完了',cancelled:'キャンセル'};
+function yen(n){var s=Math.round(Math.abs(n)).toLocaleString('ja-JP');return (n<0?'-':'')+'¥'+s;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function $(id){return document.getElementById(id);}
+function head(cols){return '<tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr>';}
+function ymd(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function pd(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||''));return m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3])):null;}
+function days(a,b){return Math.round((a-b)/86400000);}
+function analyze(cases){
+  var t=new Date();t=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  var alerts=[],months={},vendors={},areas={},sc={};
+  cases.forEach(function(c){
+    var v=pd(c.visitDate),b=pd(c.bookedAt),st=c.status,act=(c.actual!=null?c.actual:c.estimate);
+    sc[st]=(sc[st]||0)+1;
+    if((st==='confirmed'||st==='working')&&v&&days(t,v)>P.overdueDays){var d=days(t,v);alerts.push({level:'high',kind:'期限超過',id:c.id,vendorId:c.vendorId,area:c.area,days:d-P.overdueDays,note:'訪問予定 '+c.visitDate+' から '+d+'日経過・未完了（期限 '+P.overdueDays+'日を '+(d-P.overdueDays)+'日超過）'});}
+    else if(st==='pending'&&b&&days(t,b)>=P.pendingDays){alerts.push({level:'mid',kind:'日時未確定',id:c.id,vendorId:c.vendorId,area:c.area,days:days(t,b),note:'予約から '+days(t,b)+'日・訪問日時が未確定'});}
+    else if(st==='unassigned'&&b&&days(t,b)>=P.unassignedDays){alerts.push({level:'mid',kind:'担当未定',id:c.id,vendorId:'',area:c.area,days:days(t,b),note:'予約から '+days(t,b)+'日・担当業者が未定'});}
+    if(c.reschedules>=P.rescheduleWarn&&(st==='confirmed'||st==='working'||st==='pending')){alerts.push({level:'low',kind:'日程変更が多い',id:c.id,vendorId:c.vendorId,area:c.area,days:c.reschedules,note:'日程変更 '+c.reschedules+'回'});}
+    if(!b)return;
+    var m=ymd(b).slice(0,7),r=months[m]||(months[m]={month:m,bookings:0,done:0,cancelled:0,plan:0,actual:0,planDone:0});
+    r.bookings++;
+    if(st==='cancelled')r.cancelled++;else r.plan+=c.estimate;
+    if(st==='done'){r.done++;r.actual+=act;r.planDone+=c.estimate;}
+    var vid=c.vendorId||'（未定）',vr=vendors[vid]||(vendors[vid]={vendorId:vid,handled:0,done:0,cancelled:0,actual:0,open:0});
+    vr.handled++;if(st==='done'){vr.done++;vr.actual+=act;}else if(st==='cancelled')vr.cancelled++;else vr.open++;
+    var ar=areas[c.area]||(areas[c.area]={area:c.area,count:0,actual:0});ar.count++;if(st==='done')ar.actual+=act;
+  });
+  var o={high:0,mid:1,low:2};alerts.sort(function(a,b){return o[a.level]-o[b.level]||b.days-a.days;});
+  var cur=ymd(t).slice(0,7);
+  var arr=function(x){return Object.keys(x).map(function(k){return x[k];});};
+  return {today:ymd(t),alerts:alerts,current:months[cur]||{month:cur,bookings:0,done:0,cancelled:0,plan:0,actual:0,planDone:0},
+    months:arr(months).sort(function(a,b){return a.month<b.month?-1:1;}),vendors:arr(vendors).sort(function(a,b){return b.actual-a.actual;}),
+    areas:arr(areas).sort(function(a,b){return b.count-a.count;}).slice(0,8),statusCount:sc};
+}
+function render(d,meta){
+  $('err').textContent='';
+  $('src').textContent=meta.sample?'サンプルデータ':'実データ';
+  $('src').className='badge'+(meta.sample?' sample':'');
+  $('upd').textContent='取得 '+meta.at;
+  $('alsub').textContent='基準：訪問予定から'+P.overdueDays+'日を過ぎても未完了／日時未確定が'+P.pendingDays+'日以上／担当未定が'+P.unassignedDays+'日以上／日程変更'+P.rescheduleWarn+'回以上';
+  var al=d.alerts;
+  $('alerts').innerHTML=al.length?al.map(function(a){
+    return '<div class="al '+a.level+'"><span class="k">'+esc(a.kind)+'</span><span><span class="id">'+esc(a.id)+'</span>　'+esc(a.area)+(a.vendorId?'・'+esc(a.vendorId):'')+'<br>'+esc(a.note)+'</span></div>';
+  }).join(''):'<div class="ok">要注意の案件は、ありません。</div>';
+  var c=d.current,diff=c.actual-c.planDone;
+  $('kpis').innerHTML=[
+    ['予約',c.bookings+'件',d.today.slice(0,7)],['完了',c.done+'件',''],['キャンセル',c.cancelled+'件',''],
+    ['予定（見積）',yen(c.plan),'取消を除く'],['実績（確定）',yen(c.actual),'完了分'],['完了分の差',(diff>=0?'+':'')+yen(diff),'実績－見積']
+  ].map(function(k){return '<div class="kpi"><span>'+k[0]+(k[2]?'（'+k[2]+'）':'')+'</span><b>'+k[1]+'</b></div>';}).join('');
+  var max=Math.max.apply(null,d.months.map(function(m){return Math.max(m.plan,m.actual);}).concat([1]));
+  $('months').innerHTML=head(['月','予約','完了','取消','予定','実績','差'])+d.months.slice().reverse().map(function(m){
+    var df=m.actual-m.planDone;
+    return '<tr><td>'+m.month+'</td><td>'+m.bookings+'</td><td>'+m.done+'</td><td>'+m.cancelled+'</td>'
+      +'<td><span class="bar p" style="width:'+Math.round(m.plan/max*90)+'px"></span> '+yen(m.plan)+'</td>'
+      +'<td><span class="bar" style="width:'+Math.round(m.actual/max*90)+'px"></span> '+yen(m.actual)+'</td>'
+      +'<td class="'+(df<0?'neg':'pos')+'">'+(df>=0?'+':'')+yen(df)+'</td></tr>';
+  }).join('');
+  $('vendors').innerHTML=head(['業者','担当','完了','取消','進行中','実績'])+d.vendors.map(function(v){
+    return '<tr><td>'+esc(v.vendorId)+'</td><td>'+v.handled+'</td><td>'+v.done+'</td><td>'+v.cancelled+'</td><td>'+v.open+'</td><td>'+yen(v.actual)+'</td></tr>';
+  }).join('');
+  $('areas').innerHTML=head(['地域','件数','実績'])+d.areas.map(function(a){
+    return '<tr><td>'+esc(a.area)+'</td><td>'+a.count+'</td><td>'+yen(a.actual)+'</td></tr>';
+  }).join('');
+  $('status').innerHTML=head(['状態','件数'])+Object.keys(ST).map(function(k){
+    return '<tr><td>'+ST[k]+'</td><td>'+(d.statusCount[k]||0)+'</td></tr>';
+  }).join('');
+}
+var KEYNAME='kkd_admin_key';
+function getKey(){try{return localStorage.getItem(KEYNAME)||'';}catch(e){return '';}}
+function setKey(k){try{localStorage.setItem(KEYNAME,k);}catch(e){}}
+function askKey(msg){
+  var k=prompt((msg?msg+'\n':'')+'合言葉を入れてください（この端末に保存されます）');
+  if(k){setKey(k.trim());return true;}return false;
+}
+var GAS_MSG={NOT_CONFIGURED:'GAS側に合言葉（ADMIN_DASH_KEY）が未登録です。',UNAUTHORIZED:'合言葉が、合っていません。',LOCKED:'合言葉のまちがいが続いたため、10分間止まっています。',UNKNOWN_ACTION:'GASに窓口が反映されていません。'};
+function fetchCases(){
+  if(!HOSTED){return fetch('/api/cases',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){if(j.error)throw new Error(j.error);return {cases:j.cases,sample:j.sample};});}
+  var key=getKey();
+  if(!key){if(!askKey(''))return Promise.reject(new Error('合言葉が未入力です。「合言葉」ボタンから入れてください。'));key=getKey();}
+  return fetch(HOSTED_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'adminCases',key:key}),redirect:'follow'})
+    .then(function(r){return r.json();}).then(function(j){
+      if(j.status!=='OK'){if(j.errorCode==='UNAUTHORIZED')setKey('');throw new Error(GAS_MSG[j.errorCode]||('エラー：'+j.errorCode));}
+      return {cases:j.cases,sample:false};
+    });
+}
+function load(){
+  fetchCases().then(function(r){
+    var n=new Date();render(analyze(r.cases),{sample:r.sample,at:ymd(n)+' '+('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2)});
+  }).catch(function(e){$('err').textContent='データを読めませんでした：'+(e&&e.message?e.message:e)+(HOSTED?'':'（PCで管理画面のプログラムが動いているか確認）');});
+}
+$('reload').onclick=load;
+if(HOSTED){var kb=$('keybtn');kb.style.display='';kb.onclick=function(){if(askKey('合言葉を入れ直します。'))load();};}
+load();
+setInterval(load,60000);
+</script>
+</body>
+</html>
