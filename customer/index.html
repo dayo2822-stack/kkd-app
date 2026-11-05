@@ -455,14 +455,14 @@ h3{font-size:14px;margin:0 0 10px}.step{font-size:9px;color:var(--accent);font-w
 </section>
 </div>
 
-<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "9139ff0e5a", "loadingMedia": ""};</script>
+<script>window.KKD135_ENV={"role": "customer", "liffId": "2012309379-K8bQpjOF", "gasUrl": "https://script.google.com/macros/s/AKfycbzAtBFhiS4XuomY8tsmsMpJG7ZgtJo7VseGejWt3cdxYY7uwfdfW05UVX60xWwQuV0c/exec", "build": "f69572b478", "loadingMedia": ""};</script>
 <script>(function(){try{var b=window.KKD135_ENV&&window.KKD135_ENV.build;if(!b||!window.fetch)return;fetch('../version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(!j||!j.build||j.build===b)return;var u=new URL(location.href);if(u.searchParams.get('_v')===j.build)return;u.searchParams.set('_v',j.build);location.replace(u.toString());}).catch(function(){});}catch(e){}})();</script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="../assets/pricing_source.js?v=9139ff0e5a"></script>
-<script src="../assets/photo_report_logic.js?v=9139ff0e5a"></script>
-<script src="../assets/photo_report_ui.js?v=9139ff0e5a"></script>
-<script src="../assets/gas_backend.js?v=9139ff0e5a"></script>
-<script src="../assets/jobs_from_gas.js?v=9139ff0e5a"></script>
+<script src="../assets/pricing_source.js?v=f69572b478"></script>
+<script src="../assets/photo_report_logic.js?v=f69572b478"></script>
+<script src="../assets/photo_report_ui.js?v=f69572b478"></script>
+<script src="../assets/gas_backend.js?v=f69572b478"></script>
+<script src="../assets/jobs_from_gas.js?v=f69572b478"></script>
 <script>
 const TIMES=["08:00〜09:00","09:00〜10:00","10:00〜11:00","11:00〜12:00","12:00〜13:00","13:00〜14:00","14:00〜15:00","15:00〜16:00","16:00〜17:00","17:00〜18:00","18:00〜19:00","19:00〜20:00"];
 const SERVICES={
@@ -1785,8 +1785,8 @@ function openCustomerCases(tabArg="before", resetAccordion=false){
     }
     statusBadge += kkd135UnreadBadge(j);
     if(j.declined){
-      statusBadge = '<span class="badge warn">受付不可</span>'; rightItemHtml = ''; line4Html = '✕ ご希望の日時では、お受けできませんでした';
-      tabDetailHtml = `<div class="notice warn" style="margin:4px 0 6px;line-height:1.6;">【受付不可】申し訳ございません。ご希望の日時では、ご依頼をお受けできませんでした。<br>恐れ入りますが、別の日時で、あらためてご予約ください。</div>`;
+      statusBadge = '<span class="badge warn">' + (j.cancelled ? 'キャンセル済み' : '受付不可') + '</span>'; rightItemHtml = ''; line4Html = j.cancelled ? '✕ キャンセルとなりました' : '✕ ご希望の日時では、お受けできませんでした';
+      tabDetailHtml = j.cancelled ? `<div class="notice warn" style="margin:4px 0 6px;line-height:1.6;">【キャンセル済み】この予約は、キャンセルとなりました。<br>あらためてご利用の際は、新しくご予約ください。</div>` : `<div class="notice warn" style="margin:4px 0 6px;line-height:1.6;">【受付不可】申し訳ございません。ご希望の日時では、ご依頼をお受けできませんでした。<br>恐れ入りますが、別の日時で、あらためてご予約ください。</div>`;
     }
     const line3Address = (tab === "done" || (tab === "before" && !j.customerDetailed)) ? getSimpleAddress(j) : getFullAddress(j);
 
@@ -2180,6 +2180,7 @@ function openVendorCases(tabArg="before", resetAccordion=false){
       line4Html = `✓ 対応完了日:<b>${fmtDateShort(compDateStr)}</b>`;
     }
     statusBadge += kkd135UnreadBadge(j);
+    if(j.cancelled){ statusBadge = '<span class="badge warn">キャンセル済み</span>'; rightItemHtml = ''; line4Html = '✕ キャンセルしました'; detailHtml = `<div class="notice warn" style="margin:4px 0 6px;line-height:1.6;">【キャンセル済み】この案件は、キャンセルとして完了しました。</div>`; }
     const line3Address = tab === "progress" ? getFullAddress(j) : getSimpleAddress(j);
 
     // 業者画面はデフォルト折り畳み（開いていたIDを維持）
@@ -2524,7 +2525,7 @@ openCustomerCases = function () { var r = __kkd135OpenCustomerCases.apply(this, 
 // 案件は、今の工程の1つのタブにだけ出る。タブも、案件カードの帯も、同じ番号。先の工程の中身は、見せない（誤操作を防ぐ）。
 var KKD135_NUMS = ["①", "②", "③", "④", "⑤"];
 function kkd135Stage(j) {
-  if (j.declined || j.completed) return 5;
+  if (j.declined || j.completed || j.cancelled) return 5;
   if (!j.vendorChoice) return countRequiredPhotos(j) >= requiredPhotoCount(j) ? 2 : 1;
   return j.customerDetailed ? 4 : 3;
 }
@@ -2542,13 +2543,14 @@ function kkd135StepBar(labels, cur) {
 }
 var KKD135_CUSTOMER_STEPS = ["写真送付", "訪問予定", "住所入力", "当日・作業", "完了"];
 function kkd135CustomerBar(j, tab, photosDone) {
-  if (j.declined) return kkd135StepBar(["受付不可"], 1);
+  if (j.declined) return kkd135StepBar([j.cancelled ? "キャンセル" : "受付不可"], 1);
   return kkd135StepBar(KKD135_CUSTOMER_STEPS, kkd135Stage(j));
 }
 var KKD135_VENDOR_STEPS = ["写真確認", "日時連絡", "住所待ち", "当日・作業", "完了"];
 // 業者の工程：予定表示で◯（対応可能）を返すまでは、まだ手順が届いていない（0＝どの工程も「今」にしない）。◯の後：① 写真確認 → ② 日時を選んで、顧客へ連絡
 function kkd135VendorStage(j) { var s = kkd135Stage(j); return s === 2 ? (!j.claimed ? 0 : (j.photosChecked ? 2 : 1)) : s; }
 function kkd135VendorBar(j, tab, photosDone, reviewDone) {
+  if (j.cancelled) return "";
   return kkd135StepBar(KKD135_VENDOR_STEPS, kkd135VendorStage(j));
 }
 // 完了後の並び：対応完了日時の新しい順（同じ時刻は、案件番号の新しい順）
@@ -3124,7 +3126,7 @@ function renderDirectChatBox(j, viewerRole) {
   var input = st === "open"
     ? '<div class="direct-chat-input-row"><input type="text" maxlength="500" id="' + prefix + '-msg-' + j.id + '" class="direct-chat-input" placeholder="' + ph + '" onfocus="kkd135MarkRead(\'' + j.id + '\',\'' + viewerRole + '\')" onkeydown="if(event.key===\'Enter\')sendDirectMessage(\'' + j.id + '\',\'' + viewerRole + '\')"><button type="button" class="direct-chat-send" onclick="sendDirectMessage(\'' + j.id + '\',\'' + viewerRole + '\')">送信</button></div>'
     : '<div class="mini" style="padding:6px 8px;color:#64748b;">' + (st === "wait" ? "訪問予定日の連絡の後に、メッセージを送れます。" : "完了した案件のため、メッセージは送れません（履歴のみ）。") + '</div>';
-  return '<div class="direct-chat-box"><div class="direct-chat-head"><span>' + title + '</span><span style="font-size:8px;color:var(--customer);font-weight:900;">💬 双方向通信</span></div><div class="direct-chat-history" id="' + prefix + '-chat-history-' + j.id + '">' + html + '</div>' + input + '</div>';
+  return '<div class="direct-chat-box"><div class="direct-chat-head"><span>' + title + '</span><span style="font-size:8px;color:var(--customer);font-weight:900;">💬 双方向通信</span></div><div class="direct-chat-history" id="' + prefix + '-chat-history-' + j.id + '">' + html + '</div>' + input + (viewerRole === "vendor" ? kkd135VendorExceptionButtons(j) : "") + '</div>';
 }
 function sendDirectMessage(jobId, senderRole) {
   var j = getJob(jobId); if (!j) return;
@@ -3219,6 +3221,72 @@ function kkd135ScrollChats() { Array.prototype.forEach.call(document.querySelect
   }
   window.addEventListener("scroll", onScroll, true);
 })();
+
+// ---- 業者：キャンセル受付（例外対応）。顧客・業者の双方で、キャンセルとして完了済みの扱いにする ----
+function kkd135VendorExceptionButtons(j) {
+  if (!j || !j.gas || j.cancelled || j.completed || kkd135Stage(j) !== 4) return "";
+  var st = "flex:1;font-size:10.5px;padding:7px 4px;", id = esc(j.id), btns = "";
+  if (kkd135CanVendorReschedule(j)) btns += '<button type="button" class="btn" style="' + st + '" data-id="' + id + '" onclick="kkd135RescheduleByVendorOpen(this.dataset.id)">日程変更受付</button>';
+  btns += '<button type="button" class="btn" style="' + st + 'color:#b91c1c;" data-id="' + id + '" onclick="kkd135CancelByVendorAsk(this.dataset.id)">キャンセル受付</button>';
+  return '<div style="display:flex;gap:6px;margin:6px 0 2px;">' + btns + '</div>';
+}
+// 日程変更の受付は、訪問予定日の1週間後まで（訪問時のイレギュラーによる日延べも見越す）
+function kkd135CanVendorReschedule(j) {
+  var d = String(j.scheduledDate || ""); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return true;
+  var x = new Date(d + "T00:00:00"); x.setDate(x.getDate() + 7);
+  var n = new Date(); var today = n.getFullYear() + "-" + ("0" + (n.getMonth() + 1)).slice(-2) + "-" + ("0" + n.getDate()).slice(-2);
+  var lim = x.getFullYear() + "-" + ("0" + (x.getMonth() + 1)).slice(-2) + "-" + ("0" + x.getDate()).slice(-2);
+  return today <= lim;
+}
+function kkd135RescheduleByVendorOpen(id) {
+  var j = getJob(id); if (!j) return;
+  var old = document.getElementById("kkd135Resched"); if (old) old.remove();
+  var wrap = document.createElement("div"); wrap.id = "kkd135Resched";
+  wrap.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;";
+  var box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:12px;padding:16px;max-width:320px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px;line-height:1.6;";
+  var n = new Date(), today = n.getFullYear() + "-" + ("0" + (n.getMonth() + 1)).slice(-2) + "-" + ("0" + n.getDate()).slice(-2);
+  var opts = TIMES.map(function (t) { return '<option value="' + kkd135Hm(t) + '">' + esc(t) + '</option>'; }).join("");
+  box.innerHTML = '<b>日程変更の受付</b><div style="font-size:11px;color:#64748b;margin:2px 0 8px;">お客様と合意した、新しい訪問日時を入れてください。お客様の画面の訪問予定日が、この日時に変わります。</div>'
+    + '<div class="field"><label>新しい訪問日</label><input type="date" id="kkd135ReDate" min="' + today + '"></div>'
+    + '<div class="field"><label>開始時刻</label><select id="kkd135ReTime">' + opts + '</select></div>';
+  var row = document.createElement("div"); row.style.cssText = "display:flex;gap:8px;margin-top:12px;";
+  var no = document.createElement("button"); no.type = "button"; no.className = "btn secondary"; no.style.flex = "1"; no.textContent = "閉じる"; no.onclick = function () { wrap.remove(); };
+  var ok = document.createElement("button"); ok.type = "button"; ok.className = "btn primary"; ok.style.flex = "1"; ok.textContent = "次へ";
+  ok.onclick = function () {
+    var d = document.getElementById("kkd135ReDate").value, t = document.getElementById("kkd135ReTime").value;
+    if (!d || d < today) { alert("新しい訪問日を、今日以降で選んでください。"); return; }
+    wrap.remove();
+    kkd135AskYesNo("案件 " + esc(id) + " の訪問日時を<br><b>" + fmtDate(d) + " " + esc(t) + "</b><br>に変更しますか？<br><span style=\"font-size:11px;color:#64748b;\">作業開始・当日連絡は、やり直しになります。お客様への連絡は、メッセージでお願いします。</span>", function () { kkd135RescheduleByVendorSend(j, d, t); });
+  };
+  row.appendChild(no); row.appendChild(ok); box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap);
+}
+var KKD135_RESCHED_ERRORS = { CASE_COMPLETED: "この案件は、すでに完了しています。", NOT_CONFIRMED: "訪問日時の確定の後に、受け付けられます。", PERIOD_OVER: "訪問予定日から1週間を過ぎたため、受け付けられません。", SLOT_TAKEN: "その日時は、ほかの予定と重なっています（前後1時間も空けます）。別の日時を選んでください。", INVALID_INPUT: "日時を、確かめてください。", CASE_CLOSED: "この案件は、すでに終了しています。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。" };
+function kkd135RescheduleByVendorSend(j, d, t) {
+  var be = window.KKD135_BACKEND;
+  var fin = function () {
+    j.scheduledDate = d; j.scheduledTime = t; j.todayTime = ""; j.noticeAt = ""; j.noticeEta = ""; j.isStarted = false; j.startedAt = "";
+    try { vendorRender(false); } catch (e) {} if (typeof window.kkd135RefreshNow === "function") window.kkd135RefreshNow(); alert("訪問日時を変更しました。お客様へは、メッセージでお知らせください。");
+  };
+  if (!be || typeof be.rescheduleByVendor !== "function") { fin(); return; }
+  be.rescheduleByVendor(j.id, d, t).then(function (r) {
+    if (r && r.status === "OK") { fin(); return; }
+    alert((r && KKD135_RESCHED_ERRORS[r.errorCode]) || "日程変更を受け付けられませんでした。通信を確かめて、もう一度お試しください。");
+  }, function () { alert("日程変更を受け付けられませんでした。通信を確かめて、もう一度お試しください。"); });
+}
+function kkd135CancelByVendorAsk(id) {
+  var j = getJob(id); if (!j) return;
+  kkd135AskYesNo("案件 " + esc(id) + " を、<b>キャンセル</b>として受け付けますか？<br><span style=\"font-size:11px;color:#64748b;\">お客様・業者の双方で、キャンセルとして完了済みになります。元に戻せません。</span>", function () {
+    var be = window.KKD135_BACKEND;
+    var fin = function () { j.cancelled = true; state.vendorTab = "done"; try { vendorRender(false); } catch (e) {} if (typeof window.kkd135RefreshNow === "function") window.kkd135RefreshNow(); };
+    if (!be || typeof be.cancelByVendor !== "function") { fin(); return; }
+    be.cancelByVendor(id).then(function (r) {
+      if (r && r.status === "OK") { fin(); return; }
+      var m = { CASE_COMPLETED: "この案件は、すでに完了しています。", NOT_CONFIRMED: "訪問日時の確定の後に、受け付けられます。", CASE_CLOSED: "この案件は、すでに終了しています。", UNAUTHENTICATED: "ログインの有効期限が切れました。画面を開き直してください。" };
+      alert((r && m[r.errorCode]) || "キャンセルを受け付けられませんでした。通信を確かめて、もう一度お試しください。");
+    }, function () { alert("キャンセルを受け付けられませんでした。通信を確かめて、もう一度お試しください。"); });
+  });
+}
 
 try { Promise.resolve(KKD135_BACKEND.getPricing && KKD135_BACKEND.getPricing()).then(function(r){ if(r && r.status === "OK") applyPricing(r.pricing); }); } catch(e) {}
 function openPhotoReport(id){
@@ -3757,6 +3825,6 @@ window.addEventListener('focus', fetchSharedState); }
 </script>
 
 
-<script src="../assets/app_boot.js?v=9139ff0e5a"></script>
+<script src="../assets/app_boot.js?v=f69572b478"></script>
 </body>
 </html>

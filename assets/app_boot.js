@@ -118,6 +118,7 @@
       else if (env.role === 'customer') KKD135Jobs.loadCustomer(backend, state, function () { try { if (typeof openCustomerCases === 'function') openCustomerCases(state.customerTab || 'before', false); if (typeof renderSide === 'function') renderSide(); } catch (e) {} }, namesP, { onlyIfChanged: true }).then(done, done);
       else done();
     }
+    window.kkd135RefreshNow = function () { refresh(true); };
     document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(false); });
     window.addEventListener('focus', function () { refresh(false); });
     setInterval(function () { refresh(false); }, 30000);

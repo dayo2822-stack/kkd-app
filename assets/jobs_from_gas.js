@@ -69,6 +69,7 @@ var KKD135Jobs = (function () {
     if (!r || typeof r !== 'object' || !r.caseId) return null;
     var done = isDone(r.status), units = Math.max(1, Number(r.units) || 1), reported = r.photoReported === true;
     return {
+      cancelled: String(r.status) === 'cancelDone',
       id: String(r.caseId), gas: true, service: SERVICE, category: 'メンテナンス', units: units, unitOptions: unitOptionsFrom(r.selections, units, names),
       date1: String(r.date1 || r.date || ''), time1: String(r.time1 || r.startTime || ''), date2: String(r.date2 || ''), time2: String(r.time2 || ''), name: 'お客様', zip: String(r.roughZip || ''), address: String(r.rough || r.areaName || ''), note: '', claimed: r.claimed === true, photosChecked: r.photosChecked === true,
       photos: photosOf(r.photos, { install: true, model: true, outdoor: true, other: false }), visitPhotos: visitPhotosOf(r.photos),
@@ -154,7 +155,7 @@ var KKD135Jobs = (function () {
       vendorChoice: chosen, vendorId: 'V-001', adminNote: '', vendorMemo: '', additionalFlag: '', additionalItems: [], customerDetailed: false,
       todayTime: '', noticeEta: String(b.noticeTime || ''), noticeAt: String(b.noticeAt || ''), scheduledDate: visitDate, scheduledTime: String(b.startTime || ''),
       reviewUrl: String(b.reviewUrl || ''), invoiceNo: String(b.invoiceNo || ''), installers: Array.isArray(b.installers) ? b.installers.map(String) : [],
-      declined: b.declined === true, completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
+      declined: b.declined === true || !!b.cancelled, cancelled: !!b.cancelled, completed: done, completedDate: done ? visitDate : '', completedAt: done ? String(b.completedAt || '') : '', completionPhotos: { before: false, after: false },
       rating: 5, ratingComment: '', ratingSubmitted: false, createdAt: '', receiptDateYmd: '', chatMessages: messagesOf(b.messages), unread: Number(b.unread) || 0, isStarted: isWorking(b.status) || done, startedAt: String(b.startedAt || '')
     };
   }
